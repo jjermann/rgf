@@ -67,13 +67,13 @@ Stream.prototype.initMediaElement=function() {
     } else if (this.media_type=="youtube") {
         el=document.createElement("div");
         el.id=this.id;
-        el.style.width=this.width+"px";
-        el.style.height=this.height+"px";
+//        el.style.width=this.width+"px";
+//        el.style.height=this.height+"px";
     } else if (this.media_type=="vimeo") {
         el=document.createElement("div");
         el.id=this.id;
-        el.style.width=this.width+"px";
-        el.style.height=this.height+"px";
+//        el.style.width=this.width+"px";
+//        el.style.height=this.height+"px";
     } else { alert("illegal type: "+this.media_type); }
     return el;
 };
@@ -220,6 +220,7 @@ Stream.prototype.initPlayer=function() {
         $('.jp-pause').hide();
         pl.pause();
         pl.currentTime(0);
+        pl.trigger("timeupdate");
     });
     pl.listen("timeupdate", function() {
         $('.jp-current-time').text(self._convertTime(this.currentTime()));
@@ -247,8 +248,7 @@ function BoardWidget() {
 };
 BoardWidget.prototype.apply=function(data) {
     //testing...
-    var txt=document.getElementById("output")
-    txt.innerHTML+="<P>Added "+data.property+"["+data.arg+"] with time argument "+data.time+"</P>";
+    $('.output').text("Added "+data.property+"["+data.arg+"] with time argument "+data.time);
 };
 
 /*  Internal storage of an RGF gametree, basically exactly the same as for sgf.
@@ -296,22 +296,23 @@ DisplayStreamWidget.prototype.loadRGF=function() {
 
 DisplayStreamWidget.prototype.loadStream = function(stream_id,sources,media_type,width,height,duration) {
     var self=this;
+
+    // for testing 
+    var el=document.createElement("div");
+    el.className="output";
+
     this.stream=new Stream(stream_id,sources,media_type,width,height,duration);
+    document.body.appendChild(el);
     document.body.appendChild(this.stream.media_element);
     document.body.appendChild(this.stream.interface_element);
 
-    // for testing
-    var elem=document.createElement("div");   
-    elem.id=this.stream.id+"_time";
-    document.body.appendChild(elem);
-    var elem2=document.createElement("div");   
-    elem2.id=this.stream.id+"_output";
-    document.body.appendChild(elem2);
-
     this.stream.player=this.stream.initPlayer();
-    this.current_time=this.stream.player.currentTime();
-    this.duration=this.stream.player.duration();
 
+    this.stream.player.listen("loadedmetadata", function() {
+        self.current_time=this.stream.player.currentTime();
+        self.duration=this.stream.player.duration();
+    });
+    //pl.listen("ended", function() { });
     this.stream.player.listen("timeupdate", function() {
         self.update(this.currentTime());
     });

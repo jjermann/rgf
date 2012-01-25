@@ -6,8 +6,6 @@
 function Stream(stream_id,sources,media_type,width,height,duration) {
     // stream id of the div/video element to be created
     this.id=stream_id;
-    // Popcorn instance
-    this.player;
     // none (no media), audio/video (audio video file/address), youtube, vimeo
     this.media_type=media_type;
     // Array of sources, only 1 entry for "youtube", "vimeo", irrelevant for "none"
@@ -17,68 +15,89 @@ function Stream(stream_id,sources,media_type,width,height,duration) {
     this.height=height;
     this.duration=duration; //TODO
     
-    // Calculate the necessery video window id entries for the HTML body
-    this.window;
-    if (this.media_type=="none") {
-        this.window=document.createElement("div");
-        this.window.id=this.id;
-    } else if (this.media_type=="audio") {
-        this.window=document.createElement("audio");
-        this.window.id=this.id;
-        this.window.width=this.width;
-        this.window.height=this.height;
-        this.window.controls="yes";
-        for (var i=0; i<this.source.length; i++) {
-            var src=document.createElement("source");
-            src.src=this.source[i];
-            this.window.appendChild(src);
-        }
-    } else if (this.media_type=="video") {
-        this.window=document.createElement("video");
-        this.window.id=this.id;
-        this.window.width=this.width;
-        this.window.height=this.height;
-        this.window.controls="yes";
-        for (var i=0; i<this.source.length; i++) {
-            var src=document.createElement("source");
-            src.src=this.source[i];
-            this.window.appendChild(src);
-        }
-    } else if (this.media_type=="youtube") {
-        this.window=document.createElement("div");
-        this.window.id=this.id;
-        this.window.style.width=this.width+"px";
-        this.window.style.height=this.height+"px";
-    } else if (this.media_type=="vimeo") {
-        this.window=document.createElement("div");
-        this.window.id=this.id;
-        this.window.style.width=this.width+"px";
-        this.window.style.height=this.height+"px";
-    } else { alert("illegal type: "+this.media_type); }
+    this.media_element=this.initMediaElement();
 
     // TODO: Ideally we deactivate the native controls in all cases
     // and write our own "uniform" Kaya.gs "styled" controls...
     // The controls could/should e.g. be drawn underneath the board since they are mainly used
     // to navigate the "board situation", not the video/audio/nothing stream...
-    this.controls='';
+    this.interface_element=this.initInterfaceElement();
+
+    // Popcorn instance
+    this.player;
 }
 
-// create a Popcorn instance, this needs the corresponding id (this.window) in the document first...
+Stream.prototype.initMediaElement=function() {
+    var ele;
+    if (this.media_type=="none") {
+        ele=document.createElement("div");
+        ele.id=this.id;
+    } else if (this.media_type=="audio") {
+        ele=document.createElement("audio");
+        ele.id=this.id;
+        ele.width=this.width;
+        ele.height=this.height;
+        for (var i=0; i<this.source.length; i++) {
+            var src=document.createElement("source");
+            src.src=this.source[i];
+            ele.appendChild(src);
+        }
+    } else if (this.media_type=="video") {
+        ele=document.createElement("video");
+        ele.id=this.id;
+        ele.width=this.width;
+        ele.height=this.height;
+        for (var i=0; i<this.source.length; i++) {
+            var src=document.createElement("source");
+            src.src=this.source[i];
+            ele.appendChild(src);
+        }
+    } else if (this.media_type=="youtube") {
+        ele=document.createElement("div");
+        ele.id=this.id;
+        ele.style.width=this.width+"px";
+        ele.style.height=this.height+"px";
+    } else if (this.media_type=="vimeo") {
+        ele=document.createElement("div");
+        ele.id=this.id;
+        ele.style.width=this.width+"px";
+        ele.style.height=this.height+"px";
+    } else { alert("illegal type: "+this.media_type); }
+    return ele;
+};
+
+Stream.prototype.initInterfaceElement=function() {
+    var ele;
+    /* TODO */
+    return ele;
+};
+
+// create a Popcorn instance, this needs the corresponding id (this.media_element) in the document first...
 Stream.prototype.initPlayer=function() {
+    var pl;
     if (this.media_type=="none") {
         Popcorn.player("baseplayer");
-        this.player=Popcorn.baseplayer("#"+this.id);
+        pl=Popcorn.baseplayer("#"+this.id);
     } else if (this.media_type=="audio") {
-        this.player=Popcorn("#"+this.id);
+        pl=Popcorn("#"+this.id);
     } else if (this.media_type=="video") {
-        this.player=Popcorn("#"+this.id);
+        pl=Popcorn("#"+this.id);
     } else if (this.media_type=="youtube") {
-        this.player=Popcorn.youtube("#"+this.id,this.source[0]);
+        pl=Popcorn.youtube("#"+this.id,this.source[0]);
     } else if (this.media_type=="vimeo") {
-        this.player=Popcorn.vimeo("#"+this.id,this.source[0]);
+        pl=Popcorn.vimeo("#"+this.id,this.source[0]);
     } else { alert("illegal type: "+this.media_type); }
-    return this.player;
-}    
+    pl.controls(false);
+    return pl;
+};
+
+
+
+
+
+
+
+/*  Involves Go game logic.... */
 
 /*  Go board internals/etc (should already exist)
     Has no "time" information (unsure?).
@@ -90,7 +109,7 @@ function BoardWidget() {
 BoardWidget.prototype.apply=function(data) {
     //testing...
     var txt=document.getElementById("output")
-    txt.innerHTML=data.property+"["+data.arg+"]\n";
+    txt.innerHTML+="<P>Added "+data.property+"["+data.arg+"] with time argument "+data.time+"</P>";
 };
 
 /*  Internal storage of an RGF gametree, basically exactly the same as for sgf.
@@ -114,8 +133,8 @@ function Action(time,property,arg,position) {
     (already exists?)
 */
 function DisplayStreamWidget() {
-    this.stream;
     this.board_widget=new BoardWidget();
+    this.stream;
     // gametree will not change unless we are recording!
     // we assume it has already been loaded...
     this.gametree;
@@ -139,7 +158,7 @@ DisplayStreamWidget.prototype.loadRGF=function() {
 DisplayStreamWidget.prototype.loadStream = function(stream_id,sources,media_type,width,height,duration) {
     var self=this;
     this.stream=new Stream(stream_id,sources,media_type,width,height,duration);
-    document.body.appendChild(this.stream.window);
+    document.body.appendChild(this.stream.media_element);
 
     // for testing
     var elem=document.createElement("div");   
@@ -149,7 +168,7 @@ DisplayStreamWidget.prototype.loadStream = function(stream_id,sources,media_type
     elem2.id=this.stream.id+"_output";
     document.body.appendChild(elem2);
 
-    this.stream.initPlayer();
+    this.stream.player=this.stream.initPlayer();
     this.current_time=this.stream.player.currentTime();
     this.stream.player.listen("timeupdate", function() {
         self.update(this.currentTime());
@@ -157,12 +176,14 @@ DisplayStreamWidget.prototype.loadStream = function(stream_id,sources,media_type
 };
 
 DisplayStreamWidget.prototype.update = function(time) {
+    // for testing
     document.getElementById(this.stream.id+"_time").innerHTML=time;
+    
     if (time>=this.current_time) {
         this.advance(time-this.current_time);
         this.current_time=time;
     } else {
-        /* somehow get to the previous time, see rgf.txt e.g... */
+        /* somehow get to the previous time, see RGF.txt e.g... */
         this.current_time=time;
     }
 };
@@ -175,4 +196,5 @@ DisplayStreamWidget.prototype.advance = function(time_step) {
     while (this._action_list_future.length>0 && this._action_list_future[0].time<=this.current_time+time_step) {
         this.board_widget.apply(this._action_list_future.shift());
     }
+    /* Should return data to allow undo/jump back, see e.g. RGF.txt */
 };

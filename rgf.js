@@ -120,6 +120,7 @@ function DisplayStreamWidget() {
     // we assume it has already been loaded...
     this.gametree;
     this.current_time;
+    this.duration;
     // additional data... (atm used for "testing")
     this.data;
     this._action_list_future=[];
@@ -139,6 +140,15 @@ DisplayStreamWidget.prototype.loadStream = function(stream_id,sources,media_type
     var self=this;
     this.stream=new Stream(stream_id,sources,media_type,width,height,duration);
     document.body.appendChild(this.stream.window);
+
+    // for testing
+    var elem=document.createElement("div");   
+    elem.id=this.stream.id+"_time";
+    document.body.appendChild(elem);
+    var elem2=document.createElement("div");   
+    elem2.id=this.stream.id+"_output";
+    document.body.appendChild(elem2);
+
     this.stream.initPlayer();
     this.current_time=this.stream.player.currentTime();
     this.stream.player.listen("timeupdate", function() {
@@ -147,7 +157,7 @@ DisplayStreamWidget.prototype.loadStream = function(stream_id,sources,media_type
 };
 
 DisplayStreamWidget.prototype.update = function(time) {
-    document.getElementById("time").innerHTML=time;
+    document.getElementById(this.stream.id+"_time").innerHTML=time;
     if (time>=this.current_time) {
         this.advance(time-this.current_time);
         this.current_time=time;

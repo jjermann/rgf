@@ -1,17 +1,15 @@
 <!doctype html>
 <html>
   <head>
-<!--
     <script src="http://popcornjs.org/code/dist/popcorn-complete.min.js"></script>
--->
+<!--
     <script src="popcorn-complete.min.js"></script>
+-->
     <script src="rgf.js"></script>
     <script>
       // ensure the web page (DOM) has loaded
       document.addEventListener("DOMContentLoaded", function () {
          var dstream0=new DisplayStreamWidget();
-         var dstream1=new DisplayStreamWidget();
-         var dstream2=new DisplayStreamWidget();
          dstream0.loadStream(
            "stream0",
            [
@@ -23,6 +21,7 @@
            300,
            180
          );
+         var dstream1=new DisplayStreamWidget();
          dstream1.loadStream(
            "stream1",
            ["http://www.youtube.com/embed/Z6zZbkDmvks"],
@@ -32,13 +31,13 @@
            180
          );
 
+         var dstream2=new DisplayStreamWidget();
          dstream2.loadStream("stream2",[],"none",0,0);
          dstream2.stream.player.play(0);
       }, false);
   </script>
   </head>
   <body>
-  <div id="time"></div>
   <div id="output"></div>
   </body>
 </html>

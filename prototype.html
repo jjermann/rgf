@@ -25,7 +25,18 @@
            180
          );
 */
+
          var dstream1=new DisplayStreamWidget();
+         dstream1.loadRGF([
+             {time:null, property:";GS", arg:"http://www.youtube.com/embed/Z6zZbkDmvks",position:""},
+             {time:13,   property:";B",  arg:"wh", position:""},
+             {time:16,   property:";W",  arg:"cq", position:""},
+             {time:18,   property:";B",  arg:"bi", position:""},
+             {time:21,   property:";W",  arg:"cc", position:""},
+             {time:12,   property:";B",  arg:"ep", position:""},
+             {time:14,   property:";W",  arg:"bo", position:""},
+             {time:30,   property:";B",  arg:"cr", position:""}
+         ]); 
          dstream1.loadStream(
            "stream1",
            ["http://www.youtube.com/embed/Z6zZbkDmvks?HD=1;modestbranding=1;rel=0;showinfo=0;controls=0;disablekb=1;modestbranding=1"],
@@ -34,10 +45,14 @@
            300,
            180
          );
-
                                
-//         var dstream2=new DisplayStreamWidget();
-//         dstream2.loadStream("stream2",[],"none",0,0);
+/*
+         var dstream2=new DisplayStreamWidget();
+         dstream2.loadRGF([{time:0 ,property:"W",arg:"aa",position:""}, 
+                           {time:10,property:"B",arg:"ee",position:""}, 
+                           {time:20 ,property:"W",arg:"ab",position:""}]); 
+         dstream2.loadStream("stream2",[],"none",0,0);
+*/
       }, false);
   </script>
   </head>

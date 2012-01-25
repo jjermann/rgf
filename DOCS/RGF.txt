@@ -88,6 +88,7 @@ RP[PROPERTY:ARGUMENTS]: Removes the corresponding property or just one list entr
     from ARGUMENTS are removed from PROPERTY. Each entry in ARGUMENTS SHOULD
     be present in the current PROPERTY.
 
+Conanbatt: On hold. This has some bad smell to me.
 RC[CHARS]: Removes the last CHARS <integer> characters from the comments.
 
 VT[NAME]: Adds a visual trigger NAME <string>. The handling is up to the

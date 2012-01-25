@@ -43,21 +43,15 @@ function DisplayStreamWidget() {
     // additional data... (atm used for "testing")
     this.data;
     this._action_list_future=[];
-    
-    this.loadRGF();
 };
 
 // create this.gametree
 // also create _action_list_future/whatever else we use in the process...
-DisplayStreamWidget.prototype.loadRGF=function() {
-    this._action_list_future.push(new Action(0,";GS","http://www.youtube.com/embed/Z6zZbkDmvks",""));
-    this._action_list_future.push(new Action(13,";B","wh",""));
-    this._action_list_future.push(new Action(16,";W","cq",""));
-    this._action_list_future.push(new Action(18,";B","bi",""));
-    this._action_list_future.push(new Action(21,";W","cc",""));
-    this._action_list_future.push(new Action(12,";B","ep",""));
-    this._action_list_future.push(new Action(14,";W","bo",""));
-    this._action_list_future.push(new Action(30,";B","cr",""));
+DisplayStreamWidget.prototype.loadRGF=function(actions) {
+    for(var i=0;i<actions.length;i++){
+        var action = actions[i];
+        this._action_list_future.push(new Action(action.time, action.property, action.arg, action.position));
+    }
 }
 
 DisplayStreamWidget.prototype.loadStream = function(stream_id,sources,media_type,width,height,duration) {

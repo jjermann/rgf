@@ -73,9 +73,9 @@ Stream.prototype.initPlayer=function() {
     } else if (this.media_type=="video") {
         this.player=Popcorn("#"+this.id);
     } else if (this.media_type=="youtube") {
-        this.player=Popcorn(Popcorn.youtube("#"+this.id,this.source[0]));
+        this.player=Popcorn.youtube("#"+this.id,this.source[0]);
     } else if (this.media_type=="vimeo") {
-        this.player=Popcorn(Popcorn.vimeo("#"+this.id,this.source[0]));
+        this.player=Popcorn.vimeo("#"+this.id,this.source[0]);
     } else { alert("illegal type: "+this.media_type); }
     return this.player;
 }    
@@ -124,6 +124,7 @@ function DisplayStreamWidget() {
     this.data;
     this._action_list_future=[];
     
+    this.loadRGF();
 };
 
 // create this.gametree
@@ -162,6 +163,6 @@ DisplayStreamWidget.prototype.advance = function(time_step) {
        "actions" as a (chronologically sorted) array to be passed on to the
        go board widget... */
     while (this._action_list_future.length>0 && this._action_list_future[0].time<=this.current_time+time_step) {
-        this.board_widget.apply(_action_list_future.shift());
+        this.board_widget.apply(this._action_list_future.shift());
     }
 };

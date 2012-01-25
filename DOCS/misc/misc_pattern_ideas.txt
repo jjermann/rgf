@@ -1,0 +1,99 @@
+Types:
+- Draw time bar
+  Draw controls
+  Load audio/video
+  Add export capability (button/context menu)
+
+  => definitely doable
+  => not so interesting part, relatively easy and yet hard to make it "look"
+     nice. In any case it is the last thing to do...
+  => recording audio probably needs flashplugin...
+  => viewing video/audio either html5 or jplayer...
+
+- Load/parse RGF file
+
+  => reading as RGF tree is almost exactly the same as sgf tree
+     to display it as a stream some more effort needs to be done.
+     For the editor widget some new controls are needed (see above)
+     corresponding to "time". Basically draw_board(time) function...
+     affects parser go indirectly (it demands some capabilities and
+     thus gives restrictions)
+  => probably what's most interesting for you
+
+- Display RGF file/game/lecture
+  Display RGF/SGF game tree
+
+  => see above, probably needs existing code...
+  Otherwise just general pseudo code is possible
+
+  RGF:
+  first: load(RGF) somehow, also (optionally) associating a stream to it 
+  get_initial_sgf (optional)
+  get_final_sgf (optional)
+  play, stop, pause  -> obvious
+  playback_speed     -> maybe...
+  display(time) -> jumps to time in media and updates board drawing (resp SGF tree)
+  advance(time_step) -> similar (user controled)
+  reverse(time_step) -> similar
+  export_to_egf      -> exports with a lot of options (independent of time)
+  export_to_sgf      -> similar for sgf (depends on time)
+  detach             -> creates a new non-stream tree from that time...
+
+  SGF:
+  jump_to_node(node) <- either calculated from board position + current data
+                     <- or "directly" by a click on the tree from the user
+                     <- so this depends 
+                     -> changes current active node
+                     -> question is if "node" or "property", note that
+                        "move" is not really sufficient (see KGS var. tree)...
+  draw_position()    -> draws board according to current SGF game tree +
+                        current active node...
+  export_to_sgf()    -> export, with a lot of options
+  
+  How to execute internally
+  -> see rgf.txt...?
+  -> calc initial SGF Tree, build up FUTURE list...
+  -> let stream/normal clock callback when the next time is reached
+  -> update(time_step) (stream controled), resp. advance(time_step) (user
+     controled but basically the same)
+  -> RGF code then updates the current SGF Tree and FUTURE/PAST list...
+     i.e. do the same as usual for sgf_tree (assuming some kind of ACTION
+     mechanism, since we want undo anyway...)
+  -> update the board drawing (draw_position()).
+
+- Record RGF game
+  _additionally_ create an RGF game tree where we never remove properties
+  and always add timestamps...
+
+  => needs some existing code because it interacts with some internal data
+     (game tree etc)...
+  => But similar to load/parse RGF file, so +- "doable"...
+
+- Record RGF lecture
+
+  => needs some existing code because it interacts with some internal data...
+     E.g. when a move is made some "internal" trees are updated/modified and
+     we also keep track of the changes...
+  => But similar to load/parse RGF file, so +- "doable"...
+
+- Export functionality to RGF/SGF
+
+  => needs existing code... Otherwise just general pseudo code is possible
+
+
+Key feature:
+
+When displaying an RGF lecture we want to go forward and backwards.
+We also want to be able to sve it as an RGF file.
+We also want the possibility to modify it similar to an SGF file,
+resp. the ability to "detach" from the recording stream and modify the
+current situation. The commands from the "editor" widget for this are rather
+simple/trivial but the part that stores the current "internal" data
+needs to provide the requested information from above. To achieve this
+some internal restructuring is probably required. One suggestion is given in
+RGF.txt...
+
+
+Node tree => tree used in SGF, see KGS variation tree
+most of the time nodes = move nodes...
+Property tree => tree used in RGF with the new spec assumptions (order matters)

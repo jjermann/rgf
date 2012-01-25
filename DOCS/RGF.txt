@@ -1,0 +1,164 @@
+// Written by Jonas Jermann <jjermann2@gmail.com>
+
+
+RGF
+===
+
+
+RGF stands fo Recording Game Format. It could be thought of as an extension
+to SGF but first note that RGF is _NOT_ backwards compatible to SGF.
+To parse an RGF file without using any of the new properties
+some modifications to an existing SGF parser might be needed.
+So "Extension" would not the most "accurate" word.
+
+
+New syntax specification:
+-------------------------
+The order of properties within a node MUST be preserved.
+Inside a node there may be more than one property with the same name and it
+may also contain conflicting properties.
+
+
+Intended Purpose:
+-----------------
+The RGF format is intented to be used to allow accurate recording of "game
+streams". A game stream should reflect an accurate recording of all
+performed changes during the recording time. Hence it is not intended to be
+changed after its creation (it is not strictly forbidden either though).
+
+If additional variations are added later they could be added on a separate
+node outside of the game stream since they are not really part of the
+"recording" and timing informations will probably not be important. If
+timing informations are important then an additional stream should be
+created (since it is based on a new recording). The parts of the tree where
+timing informations are not important (i.e. subtrees with no streaming
+game-info node) should ideally stick to the classical SGF syntax.
+
+
+New properties (they SHOULD only be used inside a "game stream"):
+-----------------------------------------------------------------
+GS[SOURCE:TYPE]: Defines a game stream (game-info type).
+    SOURCE <string> is the source to be used for the timing of the stream.
+    If SOURCE is empty then normal time is used for timing (starting at 0).
+    If SOURCE is a web address the media at that address is used for timing
+    (this SHOULD be handled very carful if at all to avoid abuses).
+    If SOURCE is a filename that file is used for timing (it SHOULD be
+    restricted to files in the same directory, again to avoid abuses).
+    If the corresponding SOURCE cannot be read properly it should be
+    considered as if SOURCE was empty.
+
+    TODO: maybe specify further global information in TYPE, like the total
+    time or media type...
+
+TS[TIME]: Defines timestamps for the preceeding property (resp. node).
+    The preceeding property resp. node is called timestamped property (resp. node).
+    TIME <double> is a time in seconds. It SHOULD always be non-negative
+    and SHOULD NEVER exceed the final time of the corresponding SOURCE
+    (if SOURCE is non-empty).
+    If a property is not followed by a TS[TIME] we associate TIME=-1 to it
+    and consider it to be an "initial", non-timestamped PROPERTY. The
+    initial properties SHOULD be consistent with the classical SGF format
+    (in particular no conflicts or repetitions).
+    Properties for a given node MUST be sorted chronologically (increasing),
+    in particular by TIME. Two TIME's from two different nodes SHOULD NEVER be equal
+    (except TIME=-1). The TS property SHOULD be ignored if no GS was defined for
+    the corresponding game-info node.
+    When viewing a the RGF file properties are added resp. overwritten according to
+    their timestamp. Later timestamped properties SHOULD override the arguments of
+    earlier properties. Except if the argument is a list in which case the new
+    arguments are added to that list instead. Also if the property is "C" (comment)
+    the new comments are added to the old one.
+    Considering this any other conflicts between properties SHOULD
+    NEVER occur at any point of time when "following" a game stream.
+    So in case of a conflict the RP property has to be used to avoid the conflict.
+
+    TODO: what about introducing a convention for the "final" TIME? E.g.
+    TIME=-2 (but then it would not be ordered chronologically according to
+    the ordering of the real numbers... ^^). All modifications made later on
+    could be added to the final time the same way initial changes were just
+    "prepended" to the recording.
+
+RP[PROPERTY:ARGUMENTS]: Removes the corresponding property or just one list entry of it.
+    PROPERTY <string> is the property to be removed/reduced.
+    ARGUMENTS is either empty or a comma separated list of arguments with the same type as
+    the arguments of the PROPERTY. If ARGUMENTS is empty the whole property is removed.
+    If PROPERTY is empty the whole node is removed
+    (this SHOULD occur at most once for each stream insde a given node).
+    If both PROPERTY and ARGUMENTS are not empty then the list entries
+    from ARGUMENTS are removed from PROPERTY. Each entry in ARGUMENTS SHOULD
+    be present in the current PROPERTY.
+
+RC[CHARS]: Removes the last CHARS <integer> characters from the comments.
+
+VT[NAME]: Adds a visual trigger NAME <string>. The handling is up to the
+    corresponding applications except for some standard commands below.
+    VT SHOULD only effect how the game tree is _displayed_. It SHOULD NOT
+    reflect any changes made to the "classical" SGF game tree during
+    recording. Each trigger SHOULD be invertible using either
+    the same trigger or other triggers.
+
+    Here are some basic NAMEs for visual triggers:
+        VT[N]: Jump to this node (most important visual trigger).
+               Note that the current node position also changes in other
+               cases (e.g. when we make a move).
+               This trigger is used when the node position is "manually" changed
+               (e.g. during naviagion) and to select the initial node position.
+
+    Further possible examples might be:
+        Switch to the score/edit/etc tool
+        mark a stone to be dead/alive in the score tool
+
+TODO: maybe add commands for pause/unpause during a recording...
+
+
+Example:
+--------
+
+(;GM[1]FF[4]CA[UTF-8]ST[2]
+RU[Japanese]SZ[19]HA[2]KM[0.00]
+PW[White]PB[Black]AB[pd][dp]PL[W]
+  (
+    ;GS[]AN[Jonas]
+    ;TS[0]W[pp]TS[0]
+    ;TS[3.1]B[dd]TS[3.1]
+    ;TS[6.1]W[qf]TS[6.1]
+    ;TS[10.3]B[od]TS[10.3]
+    ;TS[13.6]W[rd]TS[13.6]
+  )
+
+  (
+    ;GS[review.mp3]AN[Jonas]
+    (
+        ;W[pp]VT[N]TS[0]
+        ;B[dd]VT[N]TS[0.2]
+        ;W[qf]VT[N]TS[0.4]
+        (
+            ;B[od]VT[N]TS[0.6]C[This was a mistake.]TS[7.3]
+            ;W[rd]VT[N]TS[7.8]C[...this situation]TS[28.9]
+        )
+        (
+            ;TS[9.2]B[nc]TS[9.2]C[You should play here for example.]TS[12.1]
+            ;TS[13]W[rd]TS[13]
+            ;TS[14]B[qc]TS[14]
+            ;TS[15]W[qi]TS[15]C[Joseki.]TS[22]C[So this is better than...]TS[25.2]
+        )
+    )
+    (
+        ;TS[41]AB[pp]TS[41]AB[qp]TS[42]AB[pq]TS[43]AB[qq]TS[44]C[This is an ugly dumpling...]TS[50.2]C[So let's remove it]TS[52]AE[pp]TS[53]AE[qp]TS[54]AE[pq]TS[55]AE[qq]TS[56]
+        ;TS[51]W[or]TS[51]
+    )
+  )
+
+)
+
+
+
+
+RGT/RGZ:
+========
+If an RGF file contains at least one media file the RGF file and all media
+files may be stored in a tar file (extracting to the the current
+directory). The resulting file file can be given the extension .rgt.
+
+If it is further compressed using gzip (.tar.gz) it may be given the
+extension .rgz.

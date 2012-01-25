@@ -1,0 +1,285 @@
+RGF IMPLEMENTATION IDEAS
+========================
+
+
+How to store RGF (and SGF) game trees and POSITIONS:
+----------------------------------------------------
+Bite that the timestamps of two different game streams should be treated
+completely separate. So when viewing or recording a game stream it is probably
+not a bad idea to restrict to the corresponding game stream subtree.
+We will (for simplicity) assume this from now on.
+
+In the classical case a game tree is usually stored as a tree of Property
+lists. However for recording purposes (when the chronological ordering
+matters) it is convenient to use a tree of "timestamped Properties" instead. The
+chronological ordering inside a node is then given from left to right.
+Note that this puts properties and nodes on the "same level" (which makes
+sense since they belong to the same chronological ordering inside the
+corresponding parent node). 
+
+We will also always add an empty (timestamped) property to each node,
+corresponding to the node (resp. the node creation). If a property is not
+timestamped we consider its time to be -1.
+
+This generalizes the classical tree structure and for consistency (in the
+same program) it makes sense to use the same tree structure also for
+"classical" SGF game trees.
+
+In JavaScript this might e.g. be done with a recursive sparse Array structure...
+In this case a POSITION inside such a tree might be stored as an array of
+index position that describes how to "walk" through the recursive game tree
+array. It is convenient to keep an index position even after removing the
+corresponding property (it might be "undefined" resp. sparse though).
+This way a POSITION remains valid after modifications to the game tree.
+We assume this hypothesis for this implemenation.
+
+When we apply an Action (see below) to a game tree there are two cases:
+1) We are viewing a recording in which case we only need to apply
+   Actions to the current SGF game tree or
+2) We are recording in which case the corresponding property is added as a
+   further child to some node from left to right.
+
+In either case it is sufficient to "only" know the position of the
+corresponding root node.
+
+
+
+SGF game tree vs. RGF game tree:
+--------------------------------
+It is probably a good idea to keep track of the current "classical" SGF game
+tree when viewing a recording. Basically this is the SGF tree one would get
+if the sgf file was saved at the one particular moment. Additionally one
+should keep track of the current active position. Using these two informations
+allows to draw the current board image. It also allows to construct the
+"classical" SGF file as mentioned above. Note that the SGF game tree has no
+memory of what was or what will be...
+
+In contrast the RGF game tree keeps track of all changes (i.e. it stores
+temporal information, like a "movie"). During recording each applied change
+is "added" to the RGF game tree with a timestamp (whereis the SGF game tree might lose
+information).
+
+Note that for the implementation part we assume that the node position from
+a game tree doesn't change during modifications to the tree.
+
+ 
+What is an Action?
+------------------
+All modifications/changes to a given game tree are split up into Actions.
+One Action correspond to adding one property or node to the RGF game tree
+(or removing one). Note that each individual change made (at a certain time) can
+be represented by one or more Actions. 
+
+An Action=Action(POSITION,TIME,PROPERTY,ARGUMENTS) consists of the following data:
+    - POSITION: see above, the node position in the RGF game tree
+        The position can e.g. be determined by the board coordinates, the
+        current time (resp. the current SGF game tree) and the current
+        active node.
+      Example 1 (while recording): A move is made at a certain board coordinate.
+        Since we know the current active node we can determine where the change
+        should be added/mode in the SGF/RGF game tree, giving us the position...
+      Example 2 (during a recorded lecture): The teacher clicks on a
+        node in the variation tree. This should give the position
+        in a more direct way...
+    - TIME: time from the corresponding timestamped property
+        If the property was not timestamped then TIME=-1
+    - PROPERTY the property to be added, it might be a good idea to
+        (internally) give all "special" PROPERTY a separate name, e.g.
+        AddNode,RemoveNode,AddComment,RemoveComment,RemoveProperty,
+        RemoveListEntries and names for all visual triggers (see below)
+    - ARGUMENTS the arguments of the PROPERTY if there are any.
+
+Each Action modifies the current SGF game tree (resp. updates the RGF game
+tree during recording). It SHOULD always be possible to recover the previous
+game tree by applying appropriate Actions. We denote them by the "inverse Actions"
+of a given Action.
+
+
+How to get the inverse Actions?
+-------------------------------
+We consider the inverse Actions as a chronologically sorted list of Actions.
+For ordinary properties the list will contain only one element with the same TIME
+as the Action. The other special cases are mentioned below. Note that "TIME=-1"
+might occur. The inverse Actions are constructed as follows (where ARGUMENTS is
+considered to be empty unless specified and POSITION is considered to be the same
+unless specified):
+
+If PROPERTY="AddNode[]":
+    - PROPERTY=RemoveProperty
+If PROPERTY="RemoveNode[]":
+    - PROPERTY=AddNode
+      POSITION=position of the node
+    - The inverse Actions for all properties that were removed
+      added in a backwards chronological order such that the Action with
+      the biggest TIME comes first...
+      Note that this might create quite a lot of Actions if a "big" node is
+      removed...
+    - ...
+If PROPERTY="AddComment[ARG]":
+    - If it is the first comment => PROPERTY=RP[C]
+      Otherwise => PROPERTY=RC[CHARS], where CHARS is the number of
+        added characters.
+If PROPERTY="RemoveComments[ARG]":
+    - PROPERTY=C[COMMENT], where COMMENT was the removed comments.
+If PROPERTY="RemoveProperty[PROP]" 
+    - PROPERTY=PROP[ARGUMENTS], where ARGUMENTS are the arguments of
+      the removed property.
+If PROPERTY="RemoveListEntries[PROP:LIST]"
+    - PROPERTY=PROP[LIST].
+If PROPERTY="Visual*":
+    - ...
+Otherwise if PROPERTY=PROP[ARG] (for normal properties):
+    - PROPERTY=RemoveProperty 
+      ARGUMENT=PROP
+
+
+How to record a stream:
+-----------------------
+When recording the stream we are building up the RGF game tree and update
+the current SGF game tree at the same time accordingly (to give the recorder
+an update about what he has already done). From the RGF game tree it is
+simple to write down the RGF file.
+ 
+1)  Each stream starts with some initial SGF file which is written down first
+    without any new properties (like a "trivial stream" with no changes
+    at all).
+
+    Remark 1: This could (depending on the implementation) also be done
+      by applying a list of Actions with TIME=-1.
+    Remark 2: If the same SGF file is used for different streams or if a stream uses
+      the position of another stream as a basis we simply create the
+      corresponding SGF code and write it down "again" for the new stream.
+      This will create some (theoretically unnecessary) overhead but it will
+      simplify things for the editor considerably.
+
+2)  Note that the stream should "start" with a game-info node with the
+    property GS[SOURCE], where SOURCE is the media source file for the stream
+    (empty if there is no media stream). Hence we add the mentioned GS property
+    and the recording starts.
+
+3)  All further modifications are applied to the RGF game tree in the form of Actions
+    (see above). The TIME is determined by the timing information from the
+    current stream. More details how to apply the Actions are provided in the
+    next section below. At the end the whole RGF game tree is converted to
+    the RGF file format and written down. Note that when "TIME!=-1" we
+    always add a timestamp after each property...
+
+    Remark 1: During this process we should also keep track of the current
+      SGF game tree to give the recorder a visual representation of the current
+      situation.
+
+
+How to replay (and record!) a stream up to a certain time:
+----------------------------------------------------------
+We describe how to view a recording in a way that we can easily jump forward
+and backward in time (i.e. how to keep track of the applied
+changes). In particular we specify how to construct the SGF game tree
+(together with the current active node) for a certain time (and thus how to
+draw the corresponding board image). Note that many of the ideas here can be
+used while recording a stream as well.
+
+1)  The RGF game trees is built up:
+    We parse the RGF file and build up an RGF game tree as indicated at the
+    beginning ("How to store RGF game trees"). Also check step 6) below...
+
+    Remark: When recording we would simply start with the SGF game tree of
+      the current SGF file.
+    Remark2: When recording we might also want to use Actions with TIME=-1
+      to build up the initial RGF (resp. SGF) game tree. In step 2) the same
+      Actions could then be used to build the SGF game tree (resp. we just
+      copy the initial RGF game tree). These Actions could then also be
+      passed on to step 3) (see below).
+
+2)  The initial (time=0) SGF game tree is built up:
+    We copy the RGF game tree and walk through it, each timestamped property
+    is translated into an Action and passed on to step 3) below to be
+    processed later, the timestamped property is then removed. At the end of
+    this procedure we have contructed the initial SGF game tree.
+    
+    Remark: When recording we simply copy the initial RGF game tree which (as
+      mentioned) already is an SGF game tree... 
+    Remark 2: As also mentioned above we might also want to use Actions with
+      TIME=-1 for properties that are not timestamped. In this case we would
+      end up with an empty tree at the end (but more passed on Actions).
+
+3)  The Actions from step 2) are stored as a sorted list, sorted by TIME (or
+    by the order in which they were added when two TIMEs are the same).
+    Let's call the list FUTURE.
+
+5)  To get the SGF game tree up to the current time all Actions up to that
+    time are applied in chronological order:
+      list<Action> applyActions(list<Action>).
+    The return value is the corresponding chronologically (backwards) sorted
+    list of inverse Actions (see above)...
+
+    Each time we insert/change/remove the corresponding property/node at the
+    corresponding position of the SGF game tree (which can be calculated from
+    the position in the RGF game tree). If TYPE=0 (resp. TYPE=1) this generally
+    means inserting from left to right (resp. right to left). More precisely
+    for non-standard properties we do the following to the SGF game tree:
+        - If PROPERTY=AddNode: Create an empty node as child of the node at
+          POSITION. Don't forget to create the initial timestamp property for node.
+        - If PROPERTY=RemoveNode: Remove the node at POSITION.
+        - If PROPERTY=AddComment: If there is no comment property yet
+              => Add a comment C[ARGUMENTS] at POSITION. Otherwise
+              => Add ARGUMENTS to the current comment.
+        - If PROPERTY=RemoveComments: Remove the last ARGUMENTS characters from the
+          current comment.
+        - If PROPERTY=RemoveProperty: Remove the property ARGUMENTS.
+        - If PROPERTY=RemoveListEntries: Remove the list entries (2nd
+          argument of ARGUMENTS) from the property (1st argument of ARGUMENTS)
+        - If PROPERTY=VisualJumpToNode: Add a VT[N] at POSITION.
+          Change the current active node to POSITION.
+        - If PROPERTY=Visual*: ...
+    Otherwise (if it is a "normal" property):
+        - If the property didn't exist before, it is added.
+          Recall that this SHOULD NOT cause any conflicts.
+        - If the property already existed before, then
+          the argument is changed to the new argument.
+          If the property takes a list as argument the corresponding new
+          list entries are added to it.
+        - Note that when applying the Action the corresponding inverse
+          Action should afterwards restore the initial situation. So if e.g. some
+          properties get implicitely removed/overwritten they have to be
+          added to the list of inverse Actions. E.g. the "inverse" of an
+          applied AE property should restore "all" properties that were
+          removed at the listed positions (including annotation properties).
+
+6)  If we are recording we want to add further modifications/Actions to the
+    (at the moment "trivial") RGF game tree.
+    Note that during a recording we will ideally never jump back in time and
+    always remain at the "front" time...
+    Also note that the node position of the RGF game tree will still be valid
+    after adding further properties (because for the RGF game tree we don't
+    delete anything we just "add" things). So the Actions (resp. the
+    POSITION argument) in the FUTURE list will remain valid at all times.
+
+    Each time we apply an Action to the RGF game tree we also "update the"
+    SGF game tree by adding the Action to the FUTURE list (and usually immediately
+    applying all entries from the FUTURE list to the SGF game tree).
+
+    For the RGF game tree we do the following:
+        - If PROPERTY=AddNode: Create an empty node as a child of the node
+          at POSITION. Create the initial timestamp property for the node.
+        - If PROPERTY=RemoveNode: Add a timestamped "RP[:]".
+        - If PROPERTY=AddComment: Add a timestamped "C[ARGUMENTS]".
+        - If PROPERTY=RemoveComments: Add a timestamped "RC[ARGUMENTS]".
+        - If PROPERTY=RemoveProperty: Add a timestamped "RP[ARGUMENTS]".
+        - If PROPERTY=RemoveListEntries: Add a timestamped "RP[ARGUMENTS]".
+        - If PROPERTY=VisualJumpToNode: Add a timestamped "VT[N]" at the current POSITION. 
+        - If PROPERTY=Visual*: ...
+        - Otherwise (if it is a "normal" property):
+          Add a timestamped property PROPERTY[ARGUMENTS].
+
+7) Each time an Action from the FUTURE list is applied we insert the
+   corresponding inverse Actions (backwards) to another list which we call PAST. 
+   The idea is that the already applied Actions (to the SGF game tree)
+   are stored in PAST and the yet to be applied Actions are stored in FUTURE.
+   inverse Actions are applied the same way as actions. The main
+   difference is that TYPE=1 for "backwards" Actions...
+   When jumping backward in time we simply process the PAST list and insert
+   the corresponding inverse Actions in the FUTURE list...
+
+8) Usually the constructed "current SGF game tree" and the "current active
+   node" is then used to visualize the current board image and variation
+   tree.

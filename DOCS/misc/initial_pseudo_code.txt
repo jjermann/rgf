@@ -1,0 +1,367 @@
+/* 
+    RUDIMENTARY PSEUDO-CODE PROTOTYPE
+    
+    Jonas Jermann <jjermann2@gmail.com>
+    (limited/no experience in Java Script and/or software architecture)
+*/
+
+
+
+
+/*  Action
+    ------
+    Contains all information needed to add a new property and/or node to the game tree.
+    It is usually derived from an event from the "go board area" or from the "go variation tree area".
+    Another case is when loading (and building up) an RGF file.
+*/
+function Action() {
+    this.position; /* node position where to insert the property. This is an array of GameTree (Array) indices,
+                      describing how to go through the GameTree up to a certain "node position". */
+    this.time; /* time=-1 or time=null or time=undefined (I prefer the last one) if no timestamp */
+    this.property; /* Property to be added/changed (see the sgf spec and rgf.txt) */
+    this.arguments; /* arguments of the property. */
+}
+
+
+
+
+/*  GameTree
+    --------
+    (Already exists?). For storing SGF and RGF trees.
+    When modifying/editing the tree a clear distinction should be made between
+    modifications to a game stream subtree and normal editing for the remaining parts...
+    It also has methods to get the "initial"/starting situation, but no "stream" control is done here...
+*/
+function GameTree(subtree) {
+};
+GameTree.prototype = inherit(Array.prototype);
+GameTree.prototype.constructor = GameTree;
+GameTree.prototype.exportToRGF = function() {
+    /* exports to RGF. Should provide/ask some options... */
+};
+GameTree.prototype.exportToSGF = function() {
+    /* exports to SGF.
+       This leaves the question what to do with the game stream parts.
+       One idea is to use the initial or final SGF tree for each game stream.
+       Another is to let the user decide at which time he is in each game stream (and
+       store this information somewhere). And when exporting use the corresponding
+       times as a basis to get the SGF tree/file. */
+};
+GameTree.prototype.applyAction = function(action,type) {
+    /* successively apply all Actions to the Gametree and return the (ordered) list
+       of inverse Actions.
+              
+       There are basically two types: Recording (type=forward or backward) and Editing (type=edit).
+       The intention is to use Editing for non game-stream parts and Recording for game-stream parts.
+       type=forward:  the actions are assumed to be sorted chronologically,
+                      corresponding timestamped properties are inserted from left to right.
+                      e.g. this[1][3][4][last_array_length]=";TS[2.1]" (or "C[hi, gg]TS[0.1]")
+       type=backward: the actions are assumed to be sorted backward chronologically,
+                      corresponding timestamped properties are inserted from right to left.
+       type=edit:     apply the property in a classical way (might remove/modify things). */
+};
+
+GameTree.prototype.getInitialSGFTree = function(game_stream_node) {
+    /* Calculates the initial SGF game tree as described in rgf.txt.
+       Might e.g. return a list of Actions... */
+};
+GameTree.prototype.getInitialEditingProperties = function() {
+    /* Self-explanatory... */
+};
+
+
+
+
+/*  EditingProperties
+    -----------------
+    Stores all required information to give a visual representation of the current situation
+    (i.e. go board, variation trees, etc). Note that a different editing mode would most probably
+    also change the behaviour/availability of editor tools. But this is a separate issue.
+    If we want to record different editing modes we have to keep track of them as well, so this
+    should be stored somewhere. Current solution is "this" (probably there are better ways)...
+*/
+function EditingProperties() {
+    this.current_position; /* where in the tree are we edditing at the moment,
+                              this could be stored as an array of array indices, telling us
+                              how to "go through" the GameTree Array... */
+    this.editing_mode; /* move, edit/mark/etc, score, print layout, ... */
+    /* some other editing properties (?) */
+}
+
+
+/*  Stream (TODO)
+    ------
+    with additionall "time callback", "query options", time controls etc.
+    This should already be defined in JPlayer or HTML5...
+    Actually a callback is not really needed since we regularly update the DisplayStreamWidget anyway,
+    maybe using the time information from the stream. But maybe it is still a good idea to use callbacks... */
+function Stream() {
+    /* ... */
+    this.current_time;
+    this.playback_speed; /* maybe, to allow fast play */
+}
+/*  StreamPlayer (TODO)
+    ------------
+    Do we need an object for the media player?
+*/
+function StreamPlayer { }
+/*  RGFParser (TODO)
+    ---------
+    For parsing RGF and SGF files, almost the same as SGFParser but also supports/parses timestamps
+    of properties accordingly (i.e. we consider the timestamp to be part of a property and not a
+    "usual" property of itself), see rgf.txt...
+    It extends resp. replaces the SGFParser.
+*/
+function RGFParser() { 
+    /* builds up and returns a GameTree()... */
+} 
+
+
+/*  DisplayBoardWidget
+    ------------------
+    Something is probably responsible for the _visual representation_ of the current go boaard and its tools (?).
+    Probably depends on editing_mode...
+*/
+function DisplayBoardWidget() { }
+/*  DisplayVariationsWidget
+    -----------------------
+    Dito for the variation tree.
+*/
+function DisplayVariationsWidget() { }
+
+
+
+
+/*  DisplayStreamWidget
+    -------------------
+    Contains all necessary information to display an individual stream (given as an argument).
+    When it created it will usually only consider the corresponding (game) subtree of the whole tree
+    (and thus "forget" the rest).
+*/
+function DisplayStreamWidget(game_stream_node) { 
+    this.display_board_widget; /* responsible for the actual drawing (?) */
+    this.display_variations_widget; /* dito */
+    this.gametree=new GameTree(game_stream_node); /* stores all information for this stream, could export to RGF from it */
+    this.sgftree=gametree.getInitialSGFTree(); /* stores only relevant SGF data for the current time, could export to SGF from it, might be part of RGFTree?? */
+    this.editing_properties=gametree.getInitialEditingProperties(); /* this will be changed automatically based on "visual triggers" during display... */
+    this.stream = getStream(); /* associated "stream". It should be loaded according to the argument of GS in the gametree... */
+    this._action_list_future; /* has something to do with time, it keeps track of the "to-be-done" actions, allows easy advance(time_step) */
+    this._action_list_past; /* has something to do with time, it keeps track of the "already-done" actions, allows easy reverse(time_step) */
+}
+DisplayStreamWidget.prototype.getStream() {
+    /* creates a Stream object corresponding to the GS property of the rgftree */
+};
+
+/*  NEW IDEA for play, stop, pause, etc... (why didn't I realize this earlier??):
+    Do all time control using the jplayer application and report any changes back using the callback function.
+    That way we don't need to make any progress bar etc. We can just use the existing one.
+    One remaining question is whether we like the existing one and whether it also supports "no sound/video" at all...
+    "obvious" Commands from Jplayer: play, stop, pause, resume, seek
+*/
+
+DisplayStreamWidget.prototype.play = function() {
+    stream.play();
+    /* make sure that "this" is updated regularly and update the visual representation... */
+};
+DisplayStreamWidget.prototype.stop = function() {
+    stream.stop()
+    /* stop playback, update the visual representations. Maybe: leave the DisplayStreamWidget and return to the EditWidget... */
+};
+DisplayStreamWidget.prototype.pause = function() {
+    stream.pause();
+    /* pause playback, update the visual representation. */
+};
+DisplayStreamWidget.prototype.applyActions(action_list) {
+    action_list.each(function(action) {
+        if (action.property="VT") {
+            if (action.argument="N") {
+                editing_properties.current_position=action.position;
+            } else {
+            }
+        } else {
+            editing_properties.current_position=action.position;
+            sgftree.applyAction(action,"edit");
+        }
+    });
+}
+/*  user controled, jumps to time in Stream, updates the trees and then the board drawing */
+DisplayStreamWidget.prototype.seek = function(time) {
+    if (time>=currentediting_properties.current_time) {
+        advance(time-currentediting_properties.current_time);
+    } else {
+        reverse(currentediting_properties.current_time-time);
+    }
+};
+DisplayStreamWidget.prototype.advance = function(time_step) {
+    /*  apply all Actions in _action_list_future up to time+time_step,
+        store the corresponding inverse Actions in _action_list_past.
+        This function should be called quite regularly to give a proper
+        update of the "progress bar" and to keep in sync with the stream.
+       
+        One very precise way to do this is to use a callback function from
+        the stream, triggered by the "next" event, or just by some maximal time_step
+        (if time_step is bigger than max_time_step). The second condition
+        would be used to update the progress bar (since no new Action will happen
+        in that case). */
+
+    /* this most probably needs fixing... */
+    var i=0;
+    while (_action_list_future[i].time<editing_properties.current_time+time_step) {
+        i=i+1;
+    }
+    if (_action_list_future[i].time<editing_properties.current_time+time_step) {
+        /* apply to sgftree for displaying and store the inverse Actions in the _action_list_past */
+        _action_list_past=_action_list_past.concat(applyActions(_action_list_future.slice(0,i)));
+    }
+    updateDrawing();
+};
+DisplayStreamWidget.prototype.reverse = function(time_step) {
+    /* analogous to advance but we go time_step backward... */
+    var i=0;
+    while (_action_list_past[i].time>editing_properties.current_time-time_step) {
+        i=i+1;
+    }
+    if (_action_list_past[i].time>editing_properties.current_time-time_step) {
+        _action_list_future=_action_list_future.concat(applyActions(_action_list_past.slice(0,i)));
+    }
+    updateDrawing();
+};
+/*  updates the visual representation (display_board_widget and display_variations_widget)
+    according to sgftree and the editing properties. */
+DisplayStreamWidget.prototype.updateDrawing = function() {
+    display_board_widget.update(sgftree,editing_properties);
+    display_variations_widget.update(sgftree,editing_properties);
+};
+DisplayStreamWidget.prototype.detach = function() {
+    /* TODO: creates new SGF subtree from sgftree and inserts it in the existing BIIG tree,
+       at the same level as the current stream node,
+       => then leaves(!) DisplayStreamWidget going into SGFEditorWidget at the new positon */
+};
+DisplayStreamWidget.prototype.exportToRGF = function() {
+    /* exports the stream subtree to RGF */
+    gametree.exportToRGF();
+};
+DisplayStreamWidget.prototype.exportToSGF = function() {
+    /* epxorts sgftree to SGF; */
+    sgftree.exportToSGF();
+};
+DisplayStreamWidget.prototype.exportToOgg = function() {
+    /* creates a "real" movie out of the game stream... */
+};
+
+
+
+
+/* TODO: EditWidget DisplayWidget and RecordingWidget interplay, applyAction needs access to editing properties... */
+
+/*  EditWidget
+    ----------
+    (already exists) classical sandbox editor, maybe also used for games (spectators), maybe also used for games (players)
+*/
+function EditWidget() {
+    /* usual existing parameters/functions */
+    this.display_board_widget=new DisplayBoardWidget();
+    this.display_variations_widget= new DisplayVariationsWidget();
+    this.gametree;
+    this.editing_properties; /* see above, note that these _are_ changed by the user... */
+    this._action_list_future; /* (optional) has nothing to do with time, just to be able to redo */
+    this._action_list_past; /* (optional) has nothing to do with time, just to be able to undo */
+}
+EditWidget.prototype.updateDrawing = function() {
+    display_board_widget.update(gametree,editing_properties);
+    display_variations_widget.update(gametree,editing_properties);
+};
+
+EditWidget.prototype.jump_to_node = function(position) {
+    editing_properties.current_position=position;
+    updateDrawing();
+};
+EditWidget.prototype.jump_to_stream = function(stream_node) {
+    editing_properties.current_position=stream_node;
+    /* most probably the editor window will look slightly different, when we are over a
+       game stream node. One idea is to directly create/jump to a DisplayStreamWidget... */
+    updateDrawing();
+};
+EditWidget.prototype.play_stream = function(stream_node) {
+    /* Creates/Jumps to a DisplayStreamWidget(stream_node). Also see jump_to_stream. */
+};
+EditWidget.prototype.insertGameTree = function(rgftree,position) {
+    /* Adds rgftree to position of the given gametree. */
+};
+
+EditWidget.prototype.startRecording = function() {
+    /* First creates a copy of the variation tree corresponding to the current position and uses
+       it to start a RecordingWidget. */
+};
+EditWidget.prototype.stopRecording = function() {
+    /* Inserts the so far created rgf GameTree at the position where the recording was started.
+       Should this be defined/done in RecordingWidget? */
+EditWidget.prototype.pauseRecording = function() {}; /* maybe, needs some additional work to make this possible */
+EditWidget.prototype.resumeRecording = function() {}; /* dito */
+
+EditWidget.prototype.applyActions(action_list) {
+    action_list.each(function(action) {
+        /* no VT property should occur anyway for non game stream parts... */
+        editing_properties.current_position=action.position;
+        gametree.applyAction(action,"edit");
+    });
+}
+
+EditWidget.prototype.undo() {
+    /* This could be done in a similar fashion as "reverse" in DisplayStreamWidget */
+}
+EditWidget.prototype.redo() {
+    /* This could be done in a similar fashion as "advance" in DisplayStreamWidget */
+}
+EditWidget.prototype.changeEditingMode = function(new_mode) {
+    /* editing, moving, scoring, etc... */
+    editing_properties.editing_mode=new_mode;
+    updateDrawing();
+}
+EditWidget.prototype.exportToRGF = function() {
+    gametree.exportToRGF();
+};
+EditWidget.prototype.exportToSGF = function() {
+    gametree.exportToSGF();
+};
+
+
+
+
+/*  RecordingWidget
+    ---------------
+    Handles the recording of a lecture to a supplied game stream gametree. 
+*/
+function RecordingWidget(new_gametree) {
+    this.gametree=new_gametree;
+    this.rgftree; /* additional tree to keep track of the recording data. When the recording is finnished this tree will be inserted
+                     in the big (overall) gametree... */
+    this.stream; /* should be initialized for time control/etc */
+    /* this._action_list_future: as before, but this time the time matters but for recording we actually don't need it!
+       this._action_list_past: dito */
+}
+
+/* inherited from EditWidget... */
+RecordingWidget.prototype = inherit(EditWidget.prototype);
+RecordingWidget.prototype.constructor = RecordingWidget;
+
+/* ...but override some functions. E.g.: */
+RecordingWidget.prototype.updateVariationTreeDrawing = function() {
+    /* as above, only now we actually see the current variation tree */
+
+RecordingWidget.prototype.applyActions(action_list) {
+    action_list.each(function(action) {
+        if (action.property="VT") {
+            if (action.argument="N") {
+                editing_properties.current_position=action.position;
+            } else {
+            }
+            rgftree.applyAction(action,"forward");
+        } else {
+            editing_properties.current_position=action.position;
+            gametree.applyAction(action,"edit");
+            rgftree.applyAction(action,"forward");
+        }
+    });
+}
+

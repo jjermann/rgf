@@ -283,15 +283,16 @@ function DisplayStreamWidget() {
     this.data;
     this._action_list_future=[];
     
-    this.loadRGF();
 };
 
 // create this.gametree
 // also create _action_list_future/whatever else we use in the process...
-DisplayStreamWidget.prototype.loadRGF=function() {
-    this._action_list_future.push(new Action(0,"W","aa",""));
-    this._action_list_future.push(new Action(10,"B","ee",""));
-    this._action_list_future.push(new Action(20,"W","ab",""));
+//Conanbatt: i removed code here. All "use" of this code should be in a different file, lets keep the core clean.
+DisplayStreamWidget.prototype.loadRGF=function(actions) {
+    for(var i=0;i<actions.length;i++){
+        var action = actions[i];
+        this._action_list_future.push(new Action(action.time, action.property, action.arg, action.position));
+    }
 }
 
 DisplayStreamWidget.prototype.loadStream = function(stream_id,sources,media_type,width,height,duration) {

@@ -248,7 +248,7 @@ function BoardWidget() {
 };
 BoardWidget.prototype.apply=function(data) {
     //testing...
-    $('.output').text("Added "+data.property+"["+data.arg+"] with time argument "+data.time);
+    $('.output').append(data.property+"["+data.arg+"]").show();;
 };
 
 /*  Internal storage of an RGF gametree, basically exactly the same as for sgf.
@@ -289,9 +289,14 @@ function DisplayStreamWidget() {
 // create this.gametree
 // also create _action_list_future/whatever else we use in the process...
 DisplayStreamWidget.prototype.loadRGF=function() {
-    this._action_list_future.push(new Action(0,"W","aa",""));
-    this._action_list_future.push(new Action(10,"B","ee",""));
-    this._action_list_future.push(new Action(20,"W","ab",""));
+    this._action_list_future.push(new Action(0,";GS","http://www.youtube.com/embed/Z6zZbkDmvks",""));
+    this._action_list_future.push(new Action(13,";B","wh",""));
+    this._action_list_future.push(new Action(16,";W","cq",""));
+    this._action_list_future.push(new Action(18,";B","bi",""));
+    this._action_list_future.push(new Action(21,";W","cc",""));
+    this._action_list_future.push(new Action(12,";B","ep",""));
+    this._action_list_future.push(new Action(14,";W","bo",""));
+    this._action_list_future.push(new Action(30,";B","cr",""));
 }
 
 DisplayStreamWidget.prototype.loadStream = function(stream_id,sources,media_type,width,height,duration) {

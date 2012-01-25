@@ -1,14 +1,17 @@
 <!doctype html>
 <html>
   <head>
-    <script src="http://popcornjs.org/code/dist/popcorn-complete.min.js"></script>
+    <link   type="text/css" href="jplayer.blue.monday.css" rel="stylesheet" />
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
+    <script type="text/javascript" src="http://popcornjs.org/code/dist/popcorn-complete.min.js"></script>
 <!--
     <script src="popcorn-complete.min.js"></script>
 -->
-    <script src="rgf.js"></script>
+    <script type="text/javascript" src="rgf.js"></script>
     <script>
       // ensure the web page (DOM) has loaded
       document.addEventListener("DOMContentLoaded", function () {
+/*
          var dstream0=new DisplayStreamWidget();
          dstream0.loadStream(
            "stream0",
@@ -21,19 +24,19 @@
            300,
            180
          );
+*/
+
          var dstream1=new DisplayStreamWidget();
          dstream1.loadStream(
            "stream1",
-           ["http://www.youtube.com/embed/Z6zZbkDmvks"],
-//         ["http://www.youtube.com/watch?v=Z6zZbkDmvks"],
+//           ["http://www.youtube.com/embed/Z6zZbkDmvks"],
+           ["http://www.youtube.com/watch?v=Z6zZbkDmvks"],
            "youtube",
            300,
            180
          );
-
-         var dstream2=new DisplayStreamWidget();
-         dstream2.loadStream("stream2",[],"none",0,0);
-         dstream2.stream.player.play(0);
+//         var dstream2=new DisplayStreamWidget();
+//         dstream2.loadStream("stream2",[],"none",0,0);
       }, false);
   </script>
   </head>

@@ -14,13 +14,8 @@ function Stream(stream_id,sources,media_type,width,height,duration) {
     this.width=width;
     this.height=height;
     this.duration=duration; //TODO: for artificially setting duration
-    
-    this.media_element=this.initMediaElement();
 
-    // TODO: Ideally we deactivate the native controls in all cases
-    // and write our own "uniform" Kaya.gs "styled" controls...
-    // The controls could/should e.g. be drawn underneath the board since they are mainly used
-    // to navigate the "board situation", not the video/audio/nothing stream...
+    this.media_element=this.initMediaElement();
     this.interface_element=this.initInterfaceElement();
 
     // Popcorn instance
@@ -206,10 +201,6 @@ Stream.prototype.initPlayer=function() {
     $('.jp-play-bar').click(function(e) { /* TODO */ });
     $('.jp-volume-bar').click(function(e) { /* TODO */ });
     $('.jp-volume-bar-value').click(function(e) { /* TODO */ });
-//    $('.jp-time-holder').click(function() { });
-//    $('.jp-current-time').click(function() { });
-//    $('.jp-duration').click(function() { });
-
 
     pl.listen("loadedmetadata", function() {
         $('.jp-current-time').text(self._convertTime(this.currentTime()));

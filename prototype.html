@@ -4,15 +4,19 @@
     <link   type="text/css" href="jplayer.blue.monday.css" rel="stylesheet" />
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
     <script type="text/javascript" src="http://popcornjs.org/code/dist/popcorn-complete.min.js"></script>
+<!--
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/popcorn-complete.js"></script>
+-->
     <script type="text/javascript" src="stream.js"></script>
     <script type="text/javascript" src="displaystreamwidget.js"></script>
+
     <script>
       // ensure the web page (DOM) has loaded
       document.addEventListener("DOMContentLoaded", function () {
-/*
-         var dstream0=new DisplayStreamWidget();
+
+         var dstream0=new DisplayStreamWidget("stream0");
          dstream0.loadStream(
-           "stream0",
            [
              "http://videos.mozilla.org/serv/webmademovies/popcornplug.mp4",
              "http://videos.mozilla.org/serv/webmademovies/popcornplug.ogv",
@@ -22,9 +26,8 @@
            300,
            180
          );
-*/
 
-         var dstream1=new DisplayStreamWidget();
+         var dstream1=new DisplayStreamWidget("stream1");
          dstream1.loadRGF([
              {time:null, property:";GS", arg:"http://www.youtube.com/embed/Z6zZbkDmvks",position:""},
              {time:13,   property:";B",  arg:"wh", position:""},
@@ -36,7 +39,6 @@
              {time:30,   property:";B",  arg:"cr", position:""}
          ]); 
          dstream1.loadStream(
-           "stream1",
            ["http://www.youtube.com/embed/Z6zZbkDmvks?HD=1;modestbranding=1;rel=0;showinfo=0;controls=0;disablekb=1;modestbranding=1"],
 //           ["http://www.youtube.com/watch?v=Z6zZbkDmvks"],
            "youtube",
@@ -44,13 +46,14 @@
            180
          );
                                
-/*
-         var dstream2=new DisplayStreamWidget();
-         dstream2.loadRGF([{time:0 ,property:"W",arg:"aa",position:""}, 
-                           {time:10,property:"B",arg:"ee",position:""}, 
-                           {time:20 ,property:"W",arg:"ab",position:""}]); 
-         dstream2.loadStream("stream2",[],"none",0,0);
-*/
+         var dstream2=new DisplayStreamWidget("stream2");
+         dstream2.loadRGF([
+             {time:null, property:";GS", arg:"20?", position:""}, 
+             {time:3,    property:";W",  arg:"aa",  position:""}, 
+             {time:10,   property:";B",  arg:"ee",  position:""}, 
+             {time:20,   property:";W",  arg:"ab",  position:""}
+         ]); 
+         dstream2.loadStream([],"none",0,0,20);
       }, false);
   </script>
   </head>

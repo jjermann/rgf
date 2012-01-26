@@ -1,20 +1,25 @@
-/*  Involves Go game logic.... */
+/*  This Javascript file contains all Go specific parts/classes... */
 
+function BoardWidget(board_id) {
 /*  Go board internals/etc (should already exist)
-    Has no "time" information (unsure?).
+    Has no information about time...
     Maybe also responsible for the drawing of the go board and/or variations (no idea)
 */
-function BoardWidget() {
-    this.gametree;
+    this.board_id=board_id;
+    this.sgftree;
+    // for drawing (?)
+    this.board_element=this._initBoardElement(this.board_id);
+};
+BoardWidget.prototype._initBoardElement=function(id) {
+    // only for testing at the moment
+    var el=document.createElement("div");
+    el.id=id;
+    return el;
 };
 BoardWidget.prototype.apply=function(data) {
-    //testing...
-    $('.output').append(data.property+"["+data.arg+"]").show();;
+    // for testing...
+    $('div#'+this.board_id).append(data.property+"["+data.arg+"]").show();
 };
-
-/*  Internal storage of an RGF gametree, basically exactly the same as for sgf.
-    Probably also used in BoardWidget()... */
-function GameTree() { };
 
 /*  A single modification on the go board. Depends on the actual implementation... */
 function Action(time,property,arg,position) {
@@ -32,16 +37,21 @@ function Action(time,property,arg,position) {
     Responsible for putting the actual html body...
     (already exists?)
 */
-function DisplayStreamWidget() {
-    this.board_widget=new BoardWidget();
+function DisplayStreamWidget(base_id) {
+    /*
+        id=base_id   = ID
+        media_id     = ID_media
+        interface_id = ID_interface
+        board_id     = ID_board
+    */
+    this.id=base_id;
+    this.board;
     this.stream;
     // gametree will not change unless we are recording!
     // we assume it has already been loaded...
-    this.gametree;
+    this.rgftree;
     this.current_time;
     this.duration;
-    // additional data... (atm used for "testing")
-    this.data;
     this._action_list_future=[];
 };
 
@@ -54,25 +64,23 @@ DisplayStreamWidget.prototype.loadRGF=function(actions) {
     }
 }
 
-DisplayStreamWidget.prototype.loadStream = function(stream_id,sources,media_type,width,height,duration) {
+DisplayStreamWidget.prototype.loadStream = function(sources,media_type,width,height,duration) {
     var self=this;
 
-    // for testing 
-    var el=document.createElement("div");
-    el.className="output";
-
-    this.stream=new Stream(stream_id,sources,media_type,width,height,duration);
-    document.body.appendChild(el);
+    this.board=new BoardWidget(this.id+"_board");
+    this.stream=new Stream(this.id,sources,media_type,width,height,duration);
+    
+    // no "nice" placements yet
+    document.body.appendChild(this.board.board_element);
     document.body.appendChild(this.stream.media_element);
     document.body.appendChild(this.stream.interface_element);
 
-    this.stream.player=this.stream.initPlayer();
+    this.stream.initPlayer();
 
     this.stream.player.listen("loadedmetadata", function() {
         self.current_time=this.stream.player.currentTime();
         self.duration=this.stream.player.duration();
     });
-    //pl.listen("ended", function() { });
     this.stream.player.listen("timeupdate", function() {
         self.update(this.currentTime());
     });
@@ -82,12 +90,8 @@ DisplayStreamWidget.prototype.loadStream = function(stream_id,sources,media_type
 };
 
 DisplayStreamWidget.prototype.update = function(time) {
-    // for testing
-//    document.getElementById(this.stream.id+"_time").innerHTML=time;
-//    $('.jp-current-time').text(time);
-    
     if (time>=this.current_time) {
-        this.advance(time-this.current_time);
+        this._advance(time-this.current_time);
         this.current_time=time;
     } else {
         /* somehow get to the previous time, see RGF.txt e.g... */
@@ -95,13 +99,13 @@ DisplayStreamWidget.prototype.update = function(time) {
     }
 };
 
-DisplayStreamWidget.prototype.advance = function(time_step) {
+DisplayStreamWidget.prototype._advance = function(time_step) {
     /* check data resp. gametree/whatever to find out what (if anything) happens
        from current_time up to current_time+time_step and return the corresponding
        "actions" as a (chronologically sorted) array to be passed on to the
        go board widget... */
     while (this._action_list_future.length>0 && this._action_list_future[0].time<=this.current_time+time_step) {
-        this.board_widget.apply(this._action_list_future.shift());
+        this.board.apply(this._action_list_future.shift());
     }
     /* Should return data to allow undo/jump back, see e.g. RGF.txt */
 };

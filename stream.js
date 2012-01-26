@@ -3,9 +3,9 @@
     Responsible for initializing Popcorn and getting the html body for the corresponding
     audio/video/control gui
 */
-function Stream(stream_id,sources,media_type,width,height,duration) {
-    // stream id of the div/video element to be created
-    this.id=stream_id;
+function Stream(base_id,sources,media_type,width,height,manual_duration) {
+    this.media_id=base_id+"_media";
+    this.interface_id=base_id+"_interface";
     // none (no media), audio/video (audio video file/address), youtube, vimeo
     this.media_type=media_type;
     // Array of sources, only 1 entry for "youtube", "vimeo", irrelevant for "none"
@@ -13,10 +13,22 @@ function Stream(stream_id,sources,media_type,width,height,duration) {
     // Media properties: width, height, duration
     this.width=width;
     this.height=height;
-    this.duration=duration; //TODO: for artificially setting duration
 
-    this.media_element=this.initMediaElement();
-    this.interface_element=this.initInterfaceElement();
+    this.status={
+        currentTime: 0,
+        duration: (manual_duration>0) ? manual_duration : 0,
+        paused: true,
+        muted: false,
+        volume: 0,
+        seekPercent: 0,
+        currentPercentRelative: 0,
+        currentPercentAbsolute: 0,
+        playbackRate: 1,
+        ended: false
+    };
+
+    this.media_element=this._initMediaElement(this.media_id);
+    this.interface_element=this._initInterfaceElement(this.interface_id);
 
     // Popcorn instance
     this.player;
@@ -33,51 +45,54 @@ Stream.prototype._convertTime = function(s) {
     return strHour + ":" + strMin + ":" + strSec;
 };
 
+// to simplify selecting interface elements...
+//Stream.prototype.sel=function(s) { return $('div#'+this.interface_id+' .'+s); };
 
-Stream.prototype.initMediaElement=function() {
-    var el=document.createDocumentFragment();
-    if (this.media_type=="none") {
-        el=document.createElement("div");
-        el.id=this.id;
-    } else if (this.media_type=="audio") {
-        el=document.createElement("audio");
-        el.id=this.id;
-        el.width=this.width;
-        el.height=this.height;
-        for (var i=0; i<this.source.length; i++) {
-            var src=document.createElement("source");
-            src.src=this.source[i];
-            el.appendChild(src);
-        }
-    } else if (this.media_type=="video") {
-        el=document.createElement("video");
-        el.id=this.id;
-        el.width=this.width;
-        el.height=this.height;
-        for (var i=0; i<this.source.length; i++) {
-            var src=document.createElement("source");
-            src.src=this.source[i];
-            el.appendChild(src);
-        }
-    } else if (this.media_type=="youtube") {
-        el=document.createElement("div");
-        el.id=this.id;
-//        el.style.width=this.width+"px";
-//        el.style.height=this.height+"px";
-    } else if (this.media_type=="vimeo") {
-        el=document.createElement("div");
-        el.id=this.id;
-//        el.style.width=this.width+"px";
-//        el.style.height=this.height+"px";
-    } else { alert("illegal type: "+this.media_type); }
-    return el;
+Stream.prototype._initMediaElement=function(id) {
+    var el, container;
+    //el=document.createElement("div");
+    //el.id=id;
+      if (this.media_type=="none") {
+          container=document.createElement("div");
+      } else if (this.media_type=="audio") {
+          container=document.createElement("audio");
+          container.width=this.width;
+          container.height=this.height;
+          for (var i=0; i<this.source.length; i++) {
+              var src=document.createElement("source");
+              src.src=this.source[i];
+              container.appendChild(src);
+          }
+      } else if (this.media_type=="video") {
+          container=document.createElement("video");
+          container.width=this.width;
+          container.height=this.height;
+          for (var i=0; i<this.source.length; i++) {
+              var src=document.createElement("source");
+              src.src=this.source[i];
+              container.appendChild(src);
+          }
+      } else if (this.media_type=="youtube") {
+          container=document.createElement("div");
+          if (this.width!=null) container.style.width=this.width+"px";
+          if (this.height!=null) container.style.height=this.height+"px";
+      } else if (this.media_type=="vimeo") {
+          container=document.createElement("div");
+          if (this.width!=null) container.style.width=this.width+"px";
+          if (this.width!=null) container.style.height=this.height+"px";
+      } else { alert("illegal type: "+this.media_type); }
+      container.id=id;
+      //container.className="jp-jplayer";
+    //el.appendChild(container);
+
+    return container;
 };
 
-Stream.prototype.initInterfaceElement=function() {
+Stream.prototype._initInterfaceElement=function(id) {
     var el, container, singletype, gui, lvl1, lvl2, lvl3;
     /* jp-controls */
     el=document.createElement("div");
-    el.className="jp-jplayer";
+    el.id=id;
       container=document.createElement("div");
       container.className="jp-audio";
         singletype=document.createElement("div");
@@ -147,78 +162,121 @@ Stream.prototype.initInterfaceElement=function() {
 
 // create a Popcorn instance, this needs the corresponding id (this.media_element) in the document first...
 Stream.prototype.initPlayer=function() {
-    var self=this;
     var pl;
+    var self=this;
+    
     if (this.media_type=="none") {
         Popcorn.player("baseplayer");
-        pl=Popcorn.baseplayer("#"+this.id);
+        pl=Popcorn.baseplayer("#"+this.media_id);
     } else if (this.media_type=="audio") {
-        pl=Popcorn("#"+this.id);
+        pl=Popcorn("#"+this.media_id);
     } else if (this.media_type=="video") {
-        pl=Popcorn("#"+this.id);
+        pl=Popcorn("#"+this.media_id);
     } else if (this.media_type=="youtube") {
-        pl=Popcorn.youtube("#"+this.id,this.source[0]);
+        pl=Popcorn.youtube("#"+this.media_id,this.source[0]);
     } else if (this.media_type=="vimeo") {
-        pl=Popcorn.vimeo("#"+this.id,this.source[0]);
+        pl=Popcorn.vimeo("#"+this.media_id,this.source[0]);
     } else { alert("illegal type: "+this.media_type); }
-    pl.controls(false);
+    this.player=pl;
+    this.player.controls(false);
 
-    /* set initial state */
-    $('.jp-pause').hide();
-    $('.jp-unmute').hide();
-
+    this.player.pause();
+    this._updateInterface();
 
     /* set eventHandlers */
-    $('.jp-play').click(function() {
-        $('.jp-play').hide();
-        $('.jp-pause').show();
-        pl.play();
+    $('div#'+this.interface_id+' .jp-play').click(function() {
+        self.player.play();
     });
-    $('.jp-pause').click(function() {
-        $('.jp-play').show();
-        $('.jp-pause').hide();
-        pl.pause();
+    $('div#'+this.interface_id+' .jp-pause').click(function() {
+        self.player.pause();
     });
-    $('.jp-stop').click(function() {
-        $('.jp-play').show();
-        $('.jp-pause').hide();
-        pl.pause();
-        pl.currentTime(0);
+    $('div#'+this.interface_id+' .jp-stop').click(function() {
+        self.player.pause();
+        self.player.currentTime(0);
     });
-    $('.jp-mute').click(function() {
-        $('.jp-mute').hide();
-        $('.jp-unmute').show();
-        pl.mute();
+    $('div#'+this.interface_id+' .jp-mute').click(function() {
+        self.player.mute();
     });
-    $('.jp-unmute').click(function() {
-        $('.jp-mute').show();
-        $('.jp-unmute').hide();
-        pl.unmute();
-    });
-// (?)    $('.jp-volume-max').click(function() { /* TODO */ });
-    $('.jp-progress').click(function(e) { /* TODO */ });
-    $('.jp-seek-bar').click(function(e) { /* TODO */ });
-    $('.jp-play-bar').click(function(e) { /* TODO */ });
-    $('.jp-volume-bar').click(function(e) { /* TODO */ });
-    $('.jp-volume-bar-value').click(function(e) { /* TODO */ });
-
-    pl.listen("loadedmetadata", function() {
-        $('.jp-current-time').text(self._convertTime(this.currentTime()));
-        $('.jp-duration').text(self._convertTime(this.duration()));
-    });
-    pl.listen("ended", function() {
-        $('.jp-play').show();
-        $('.jp-pause').hide();
-        pl.pause();
-        pl.currentTime(0);
-        pl.trigger("timeupdate");
-    });
-    pl.listen("timeupdate", function() {
-        $('.jp-current-time').text(self._convertTime(this.currentTime()));
-    });
-    pl.listen("durationchange", function() {
-        $('.jp-duration').text(self._convertTime(this.duration()));
+    $('div#'+this.interface_id+' .jp-unmute').click(function() {
+        self.player.unmute();
     });
 
-    return pl;
+//TODO    $('div#'+this.interface_id+' .jp-volume-max').click(function() { /* TODO */ });
+    $('div#'+this.interface_id+' .jp-progress').click(function(e) { /* TODO */ });
+    $('div#'+this.interface_id+' .jp-seek-bar').click(function(e) { /* TODO */ });
+    $('div#'+this.interface_id+' .jp-play-bar').click(function(e) { /* TODO */ });
+    $('div#'+this.interface_id+' .jp-volume-bar').click(function(e) { /* TODO */ });
+    $('div#'+this.interface_id+' .jp-volume-bar-value').click(function(e) { /* TODO */ });
+
+//    this.player.listen("loadedmetadata", function() {
+//        self.status.ready=true;
+//        self._updateInterface();
+//    });
+    this.player.listen("play", function() {
+        if (self.status.ended) {
+            self.status.ended=false;
+            self.player.currentTime(0);
+        }
+        self.status.paused=false;
+        self._updateInterface();
+    });
+    this.player.listen("pause", function() {
+        self.status.paused=true;
+        self._updateInterface();
+    });
+    this.player.listen("ended", function() {
+        self.player.pause();
+        self.status.ended=true;
+//        self.player.currentTime(0);
+    });
+    this.player.listen("timeupdate", function() {
+        self.status.currentTime=this.currentTime();
+        // TODO: what if we are streaming?
+        if (self.status.currentTime>=self.status.duration) {
+            self.status.currentTime=self.status.duration;
+            if (!self.status.ended) self.player.trigger("ended");
+        } else {
+            self.status.ended=false;
+        }
+        self._updateInterface();
+    });
+    this.player.listen("durationchange", function() {
+        self.status.duration=this.duration();
+        // TODO: what if we are streaming?
+        if (self.status.currentTime>=self.status.duration) {
+            self.status.currentTime=self.status.duration;
+            if (!self.status.ended) self.player.trigger("ended");
+        } else {
+            self.status.ended=false;
+        }
+        self._updateInterface();
+    });
+    this.player.listen("volumechange", function() {
+        self.status.muted=this.muted();
+        self.status.volume=this.volume();
+        self._updateInterface();
+    });
+    
+    return this.player;
+};
+
+Stream.prototype._updateInterface = function() {
+    if (this.status.paused) {
+        $('div#'+this.interface_id+' .jp-pause').hide();
+        $('div#'+this.interface_id+' .jp-play').show();
+    } else {
+        $('div#'+this.interface_id+' .jp-pause').show();
+        $('div#'+this.interface_id+' .jp-play').hide();
+    }
+
+    if (this.status.muted) {
+        $('div#'+this.interface_id+' .jp-mute').hide();
+        $('div#'+this.interface_id+' .jp-unmute').show();
+    } else {
+        $('div#'+this.interface_id+' .jp-mute').show();
+        $('div#'+this.interface_id+' .jp-unmute').hide();
+    }
+
+    $('div#'+this.interface_id+' .jp-current-time').text(this._convertTime(this.status.currentTime));
+    $('div#'+this.interface_id+' .jp-duration').text(this._convertTime(this.status.duration));
 };

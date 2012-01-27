@@ -82,7 +82,7 @@ Interface.prototype._initInterfaceElement=function(id) {
 
 Interface.prototype.initInterface=function(stream) {
     this.stream=stream;
-    this.stream.addInterface(this);
+    this.stream.addInterface(this.updatedStatus.bind(this),this.updatedTime.bind(this));
     var self_stream=this.stream;
     // initial setup
     this.updatedStatus();

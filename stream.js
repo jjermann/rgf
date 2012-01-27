@@ -38,7 +38,12 @@ function Stream(media_id,sources,media_type,width,height,manual_duration) {
     this.interfaces=[];
 }
 
-Stream.prototype.addInterface=function(new_interface) { this.interfaces.push(new_interface); };
+Stream.prototype.addInterface=function(updatedStatusFun,updatedTimeFun) {
+    this.interfaces.push({
+        updatedStatus: updatedStatusFun,
+        updatedTime: updatedTimeFun
+    });
+};
 
 // a useful function to have in any case (so it is left in Stream class)
 Stream.prototype.convertTime = function(s) {

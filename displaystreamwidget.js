@@ -48,6 +48,7 @@ function DisplayStreamWidget(base_id) {
     this.id=base_id;
     this.board;
     this.stream;
+    this.gui;
     // TODO(?): maybe we want to have the possibility to specify a delay...
     // For now we assume time starts at 0 (or at least >0)...
     this.time=0;
@@ -72,19 +73,25 @@ DisplayStreamWidget.prototype.loadRGF=function(actions) {
 DisplayStreamWidget.prototype.loadStream = function(sources,media_type,width,height,duration) {
     var self=this;
 
+    // Set up the basic widgets
     this.board=new BoardWidget(this.id+"_board");
-    this.stream=new Stream(this.id,sources,media_type,width,height,duration);
+    this.stream=new Stream(this.id+"_stream",sources,media_type,width,height,duration);
+    this.gui=new Interface(this.id+"_interface0");
     
-    // no "nice" placements yet
+    // Set up the placement in the body/some container
     document.body.appendChild(this.board.board_element);
     document.body.appendChild(this.stream.media_element);
-    document.body.appendChild(this.stream.interface_element);
+    document.body.appendChild(this.gui.interface_element);
 
+    // Initialize the Stream and its interface(s)
     this.stream.initPlayer();
+    this.gui.initInterface(this.stream);
 
-    // create the initial board position
+    
+    // Initialize the the starting Board position
     this.update(0);
     
+    // This rather belongs in the Stream but the Stream has no access to "this"
     this.stream.player.listen("timeupdate", function() {
         if (self.stream.status.ready) {
             self.stream.timeupdate(this.currentTime());

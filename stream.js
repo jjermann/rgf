@@ -3,9 +3,8 @@
     Responsible for initializing Popcorn and getting the html body for the corresponding
     audio/video/control gui
 */
-function Stream(base_id,sources,media_type,width,height,manual_duration) {
-    this.media_id=base_id+"_media";
-    this.interface_id=base_id+"_interface";
+function Stream(media_id,sources,media_type,width,height,manual_duration) {
+    this.media_id=media_id;
     // none (no media), audio/video (audio video file/address), youtube, vimeo
     this.media_type=media_type;
     // Array of sources, only 1 entry for "youtube", "vimeo", irrelevant for "none"
@@ -15,28 +14,34 @@ function Stream(base_id,sources,media_type,width,height,manual_duration) {
     this.height=height;
 
     this.status={
-        currentTime: 0,
-        duration: (manual_duration>0) ? manual_duration : 0,
         set_duration: (manual_duration>0),
-        paused: true,
-        muted: false,
-        volume: 0,
+        // options for updatedTime()
+        currentTime: 0,
         seekPercent: 0,
         currentPercentRelative: 0,
         currentPercentAbsolute: 0,
+        duration: (manual_duration>0) ? manual_duration : 0,
+        // options for updatedStatus()
+        paused: true,
+        muted: false,
+        volume: 0,
         playbackRate: 1,
         ended: false,
         ready: false
     };
 
     this.media_element=this._initMediaElement(this.media_id);
-    this.interface_element=this._initInterfaceElement(this.interface_id);
 
     // Popcorn instance
     this.player;
+    // associated interfaces that need to be updated
+    this.interfaces=[];
 }
 
-Stream.prototype._convertTime = function(s) {
+Stream.prototype.addInterface=function(new_interface) { this.interfaces.push(new_interface); };
+
+// a useful function to have in any case (so it is left in Stream class)
+Stream.prototype.convertTime = function(s) {
     var myTime = new Date(s * 1000);
     var hour = myTime.getUTCHours();
     var min = myTime.getUTCMinutes();
@@ -90,78 +95,6 @@ Stream.prototype._initMediaElement=function(id) {
     return container;
 };
 
-Stream.prototype._initInterfaceElement=function(id) {
-    var el, container, singletype, gui, lvl1, lvl2, lvl3;
-    /* jp-controls */
-    el=document.createElement("div");
-    el.id=id;
-      container=document.createElement("div");
-      container.className="jp-audio";
-        singletype=document.createElement("div");
-        singletype.className="jp-type-single";
-          gui=document.createElement("div");
-          gui.className="jp-gui jp-interface";
-            lvl1=document.createElement("ul");
-            lvl1.className="jp-controls";
-              lvl2=document.createElement("li");
-              lvl2.innerHTML='<a href="javascript:;" class="jp-play">play';
-              lvl1.appendChild(lvl2);
-
-              lvl2=document.createElement("li");
-              lvl2.innerHTML='<a href="javascript:;" class="jp-pause">pause</a>';
-              lvl1.appendChild(lvl2);
-
-              lvl2=document.createElement("li");
-              lvl2.innerHTML='<a href="javascript:;" class="jp-stop">stop</a>';
-              lvl1.appendChild(lvl2);
-
-              lvl2=document.createElement("li");
-              lvl2.innerHTML='<a href="javascript:;" class="jp-mute" title="mute">mute</a>';
-              lvl1.appendChild(lvl2);
-
-              lvl2=document.createElement("li");
-              lvl2.innerHTML='<a href="javascript:;" class="jp-unmute" title="unmute">unmute</a>';
-              lvl1.appendChild(lvl2);
-/*
-              lvl2=document.createElement("li");
-              lvl2.innerHTML='<a href="javascript:;" class="jp-volume-max" title="max volume">max volume</a>';
-              lvl1.appendChild(lvl2);
-*/
-          gui.appendChild(lvl1);
-            lvl1=document.createElement("div");
-            lvl1.className="jp-progress";
-              lvl2=document.createElement("div");
-              lvl2.className="jp-seek-bar";
-                lvl3=document.createElement("div");
-                lvl3.className="jp-play-bar";
-                lvl2.appendChild(lvl3);
-              lvl1.appendChild(lvl2);
-            gui.appendChild(lvl1);
-
-            lvl1=document.createElement("div");
-            lvl1.className="jp-volume-bar";
-              lvl2=document.createElement("div");
-              lvl2.className="jp-volume-bar-value";
-              lvl1.appendChild(lvl2);
-            gui.appendChild(lvl1);
-
-            lvl1=document.createElement("div");
-            lvl1.className="jp-time-holder";
-              lvl2=document.createElement("div");
-              lvl2.className="jp-current-time";
-              lvl1.appendChild(lvl2);
-
-              lvl2=document.createElement("div");
-              lvl2.className="jp-duration";
-              lvl1.appendChild(lvl2);
-            gui.appendChild(lvl1);
-          singletype.appendChild(gui);
-        container.appendChild(singletype);
-      el.appendChild(container);
-
-    return el;
-};
-
 // create a Popcorn instance, this needs the corresponding id (this.media_element) in the document first...
 Stream.prototype.initPlayer=function() {
     var pl;
@@ -187,35 +120,7 @@ Stream.prototype.initPlayer=function() {
     this.player.controls(false);
 
     // initial setup
-    this._updateButtons();
-    this._updateInterface();
-
-    /* set eventHandlers */
-    $('div#'+this.interface_id+' .jp-play').click(function() {
-        self.player.play();
-    });
-    $('div#'+this.interface_id+' .jp-pause').click(function() {
-        self.player.pause();
-    });
-    $('div#'+this.interface_id+' .jp-stop').click(function() {
-        self.player.pause();
-        if (self.status.ready) {
-            self.player.currentTime(0);
-        }
-    });
-    $('div#'+this.interface_id+' .jp-mute').click(function() {
-        self.player.mute();
-    });
-    $('div#'+this.interface_id+' .jp-unmute').click(function() {
-        self.player.unmute();
-    });
-
-//TODO    $('div#'+this.interface_id+' .jp-volume-max').click(function() { /* TODO */ });
-    $('div#'+this.interface_id+' .jp-progress').click(function(e) { /* TODO */ });
-    $('div#'+this.interface_id+' .jp-seek-bar').click(function(e) { /* TODO */ });
-    $('div#'+this.interface_id+' .jp-play-bar').click(function(e) { /* TODO */ });
-    $('div#'+this.interface_id+' .jp-volume-bar').click(function(e) { /* TODO */ });
-    $('div#'+this.interface_id+' .jp-volume-bar-value').click(function(e) { /* TODO */ });
+    this.interfaces.forEach(function(inter) { inter.updatedStatus(); inter.updatedTime(); });
 
 //    this.player.listen("loadedmetadata", function() {
 //        self.status.ready=true;
@@ -225,15 +130,20 @@ Stream.prototype.initPlayer=function() {
         if (self.status.ready && self.status.ended) {
             self.status.ended=false;
             self.player.currentTime(0);
-            self._updateInterface();
+            self.interfaces.forEach(function(inter) { inter.updatedTime(); });
         }
         self.status.paused=false;
-        self._updateButtons();
+        self.interfaces.forEach(function(inter) { inter.updatedStatus(); });
     });
     this.player.listen("pause", function() {
         self.status.paused=true;
-        self._updateButtons();
+        self.interfaces.forEach(function(inter) { inter.updatedStatus(); });
     });
+// All of this is already done in "pause"...
+//    this.player.listen("stop", function() {
+//        self.status.paused=true;
+//        self.interfaces.forEach(function(inter) { inter.updatedStatus(); });
+//    });
     this.player.listen("ended", function() {
         self.status.ended=true;
         self.player.pause();
@@ -243,8 +153,7 @@ Stream.prototype.initPlayer=function() {
         self.status.ready=true;
         self.status.currentTime=this.currentTime();
         if (!self.status.set_duration) self.status.duration=this.duration();
-        self._updateButtons();
-        self._updateInterface();
+        self.interfaces.forEach(function(inter) { inter.updatedStatus(); inter.updatedTime(); });
     });
 /*  Not needed since we handle it in DisplayStreamWidget...
 
@@ -264,12 +173,12 @@ Stream.prototype.initPlayer=function() {
                 // TODO...
             }
         }
-        self._updateInterface();
+        self.interfaces.forEach(function(inter) { inter.updatedTime(); });
     });
     this.player.listen("volumechange", function() {
         self.status.muted=this.muted();
         self.status.volume=this.volume();
-        self._updateButtons();
+        self.interfaces.forEach(function(inter) { inter.updatedStatus(); });
     });
 
     if (this.media_type=="none") {
@@ -299,29 +208,8 @@ Stream.prototype.timeupdate = function(time) {
     } else {
         this.status.ended=false;
     }
-    this._updateInterface();
+    for (var i=0; i<this.interfaces.length; i++) {
+        this.interfaces[i].updatedStatus();
+        this.interfaces[i].updatedTime();
+    }
 }
-
-Stream.prototype._updateButtons = function() {
-    if (this.status.paused) {
-        $('div#'+this.interface_id+' .jp-pause').hide();
-        $('div#'+this.interface_id+' .jp-play').show();
-    } else {
-        $('div#'+this.interface_id+' .jp-pause').show();
-        $('div#'+this.interface_id+' .jp-play').hide();
-    }
-
-    if (this.status.muted) {
-        $('div#'+this.interface_id+' .jp-mute').hide();
-        $('div#'+this.interface_id+' .jp-unmute').show();
-    } else {
-        $('div#'+this.interface_id+' .jp-mute').show();
-        $('div#'+this.interface_id+' .jp-unmute').hide();
-    }
-};
-
-// time/duration dependant stuff
-Stream.prototype._updateInterface = function() {
-    $('div#'+this.interface_id+' .jp-current-time').text(this._convertTime(this.status.currentTime));
-    $('div#'+this.interface_id+' .jp-duration').text(this._convertTime(this.status.duration));
-};

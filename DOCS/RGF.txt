@@ -88,28 +88,26 @@ RP[PROPERTY:ARGUMENTS]: Removes the corresponding property or just one list entr
     from ARGUMENTS are removed from PROPERTY. Each entry in ARGUMENTS SHOULD
     be present in the current PROPERTY.
 
-Conanbatt: On hold. This has some bad smell to me.
-RC[CHARS]: Removes the last CHARS <integer> characters from the comments.
-
 VT[NAME]: Adds a visual trigger NAME <string>. The handling is up to the
-    corresponding applications except for some standard commands below.
+    corresponding applications except for the listed commands below.
     VT SHOULD only effect how the game tree is _displayed_. It SHOULD NOT
     reflect any changes made to the "classical" SGF game tree during
-    recording. Each trigger SHOULD be invertible using either
-    the same trigger or other triggers.
+    recording.
 
     Here are some basic NAMEs for visual triggers:
         VT[N]: Jump to this node (most important visual trigger).
-               Note that the current node position also changes in other
-               cases (e.g. when we make a move).
-               This trigger is used when the node position is "manually" changed
-               (e.g. during naviagion) and to select the initial node position.
+            Note that the current node position also changes in other
+            cases (e.g. when we make a move).
+            This trigger is used when the node position is "manually" changed
+            (e.g. during naviagion) and to select the initial node position.
+        VT[ENDED]: Indicates that the game stream has ended and that no more
+            properties will follow. This timestamped property MUST be added
+            (exactly once) as the last property.
 
     Further possible examples might be:
         Switch to the score/edit/etc tool
         mark a stone to be dead/alive in the score tool
-
-TODO: maybe add commands for pause/unpause during a recording...
+        commands for pause/unpause during a recording...
 
 
 Example:

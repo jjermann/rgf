@@ -19,6 +19,7 @@ BoardWidget.prototype._initBoardElement=function(id) {
 BoardWidget.prototype.apply=function(data) {
     // for testing...
     $('div#'+this.board_id).append(data.property+"["+data.arg+"]").show();
+    if (data.time!=null) $('div#'+this.board_id).append("TS["+data.time+"]").show();
 };
 
 /*  A single modification on the go board. Depends on the actual implementation... */
@@ -47,21 +48,25 @@ function DisplayStreamWidget(base_id) {
     this.id=base_id;
     this.board;
     this.stream;
-    // gametree will not change unless we are recording!
-    // we assume it has already been loaded...
-    this.rgftree;
-    this.current_time;
-    this.duration;
-    this._action_list_future=[];
+    // TODO(?): maybe we want to have the possibility to specify a delay...
+    // For now we assume time starts at 0 (or at least >0)...
+    this.time=0;
+    this._next_time=0;
+    // this is equal to the time of the last entry in the action list which is assumed to always grow
+    this.duration=0;
+    // true if the media stream is ahead of the game stream (and the game stream has not ended)...
+    this.waiting=false;
+    this.ended=false;
+    this._action_list=[];
 };
 
-// create this.gametree
-// also create _action_list_future/whatever else we use in the process...
+// also create _action_list/whatever else we use in the process...
 DisplayStreamWidget.prototype.loadRGF=function(actions) {
     for(var i=0;i<actions.length;i++){
         var action = actions[i];
-        this._action_list_future.push(new Action(action.time, action.property, action.arg, action.position));
+        this._action_list.push(new Action(action.time, action.property, action.arg, action.position));
     }
+    if (this._action_list.length) this.duration=this._action_list[this._action_list.length-1].time;
 }
 
 DisplayStreamWidget.prototype.loadStream = function(sources,media_type,width,height,duration) {
@@ -77,35 +82,58 @@ DisplayStreamWidget.prototype.loadStream = function(sources,media_type,width,hei
 
     this.stream.initPlayer();
 
-    this.stream.player.listen("loadedmetadata", function() {
-        self.current_time=this.stream.player.currentTime();
-        self.duration=this.stream.player.duration();
-    });
+    // create the initial board position
+    this.update(0);
+    
     this.stream.player.listen("timeupdate", function() {
-        self.update(this.currentTime());
-    });
-    this.stream.player.listen("durationchange", function() {
-        self.duration=this.duration();
+        if (self.stream.status.ready) {
+            self.stream.timeupdate(this.currentTime());
+            // this might be less than this.currentTime()...
+            self._next_time=self.stream.status.currentTime;
+            // we only update the internal (self.time) clock if we still
+            // have actions to process resp. if the "action stream" is
+            // ahead of the "media stream"
+            if (self._next_time<=self.duration) {
+                if (self.waiting) {
+                    self.waiting=false;
+                }
+                self.update(self._next_time);
+            } else if (self.ended) {
+                self.update(self._next_time);
+            } else {
+                self._next_time=self.duration;
+                self.update(self._next_time);
+                // we should tell the stream to react appropriately, e.g. pause?
+                // it should furthermore give some hint to the user and continue playing
+                // once it caught up...
+                // otherwise the "media stream" and "game stream" get out of sync...
+                if (!self.waiting && !self.ended) {
+                    self.waiting=true;
+//                    self.stream.player.pause();
+                }
+            }
+        }
     });
 };
 
 DisplayStreamWidget.prototype.update = function(time) {
-    if (time>=this.current_time) {
-        this._advance(time-this.current_time);
-        this.current_time=time;
+    if (time>=this.time) {
+        this._advance(time-this.time);
+        this.time=time;
     } else {
         /* somehow get to the previous time, see RGF.txt e.g... */
-        this.current_time=time;
+        this.time=time;
     }
 };
 
 DisplayStreamWidget.prototype._advance = function(time_step) {
-    /* check data resp. gametree/whatever to find out what (if anything) happens
-       from current_time up to current_time+time_step and return the corresponding
-       "actions" as a (chronologically sorted) array to be passed on to the
-       go board widget... */
-    while (this._action_list_future.length>0 && this._action_list_future[0].time<=this.current_time+time_step) {
-        this.board.apply(this._action_list_future.shift());
+    /* applies all actions from this.time up to this.time+time_step.
+       If property=="VT" and arg=="ENDED" we act accordingly...  */
+    while (this._action_list.length>0 && this._action_list[0].time<=this.time+time_step) {
+        if (this._action_list[0].property=="VT" && this._action_list[0].arg=="ENDED") {
+            this.ended=true;
+        }
+        // we might as well send the VT[ENDED] to the BoardWidget...
+        this.board.apply(this._action_list.shift());
     }
-    /* Should return data to allow undo/jump back, see e.g. RGF.txt */
 };

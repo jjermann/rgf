@@ -17,6 +17,7 @@ function Stream(base_id,sources,media_type,width,height,manual_duration) {
     this.status={
         currentTime: 0,
         duration: (manual_duration>0) ? manual_duration : 0,
+        set_duration: (manual_duration>0),
         paused: true,
         muted: false,
         volume: 0,
@@ -24,7 +25,8 @@ function Stream(base_id,sources,media_type,width,height,manual_duration) {
         currentPercentRelative: 0,
         currentPercentAbsolute: 0,
         playbackRate: 1,
-        ended: false
+        ended: false,
+        ready: false
     };
 
     this.media_element=this._initMediaElement(this.media_id);
@@ -177,10 +179,15 @@ Stream.prototype.initPlayer=function() {
     } else if (this.media_type=="vimeo") {
         pl=Popcorn.vimeo("#"+this.media_id,this.source[0]);
     } else { alert("illegal type: "+this.media_type); }
+
+//this.date=new Date();
+//this.date_zero=this.date.getTime();
+//console.log(self.media_id+": instanced, t="+(self.date.getTime()-self.date_zero));
     this.player=pl;
     this.player.controls(false);
 
-    this.player.pause();
+    // initial setup
+    this._updateButtons();
     this._updateInterface();
 
     /* set eventHandlers */
@@ -192,7 +199,9 @@ Stream.prototype.initPlayer=function() {
     });
     $('div#'+this.interface_id+' .jp-stop').click(function() {
         self.player.pause();
-        self.player.currentTime(0);
+        if (self.status.ready) {
+            self.player.currentTime(0);
+        }
     });
     $('div#'+this.interface_id+' .jp-mute').click(function() {
         self.player.mute();
@@ -213,54 +222,87 @@ Stream.prototype.initPlayer=function() {
 //        self._updateInterface();
 //    });
     this.player.listen("play", function() {
-        if (self.status.ended) {
+        if (self.status.ready && self.status.ended) {
             self.status.ended=false;
             self.player.currentTime(0);
+            self._updateInterface();
         }
         self.status.paused=false;
-        self._updateInterface();
+        self._updateButtons();
     });
     this.player.listen("pause", function() {
         self.status.paused=true;
-        self._updateInterface();
+        self._updateButtons();
     });
     this.player.listen("ended", function() {
-        self.player.pause();
         self.status.ended=true;
-//        self.player.currentTime(0);
+        self.player.pause();
+        // self.player.currentTime(0);
     });
-    this.player.listen("timeupdate", function() {
+    this.player.listen("canplay", function() {
+        self.status.ready=true;
         self.status.currentTime=this.currentTime();
-        // TODO: what if we are streaming?
-        if (self.status.currentTime>=self.status.duration) {
-            self.status.currentTime=self.status.duration;
-            if (!self.status.ended) self.player.trigger("ended");
-        } else {
-            self.status.ended=false;
-        }
+        if (!self.status.set_duration) self.status.duration=this.duration();
+        self._updateButtons();
         self._updateInterface();
     });
+/*  Not needed since we handle it in DisplayStreamWidget...
+
+    this.player.listen("timeupdate", function() {
+        if (self.status.ready) {
+            self.timeupdate(this.currentTime());
+        } else { self._updateInterface(); }
+    });
+*/
     this.player.listen("durationchange", function() {
-        self.status.duration=this.duration();
-        // TODO: what if we are streaming?
-        if (self.status.currentTime>=self.status.duration) {
-            self.status.currentTime=self.status.duration;
-            if (!self.status.ended) self.player.trigger("ended");
-        } else {
-            self.status.ended=false;
+        if (self.status.ready) {
+            if (!self.status.set_duration) self.status.duration=this.duration();
+            if (self.status.currentTime<self.status.duration) {
+                self.status.ended=false;
+                // TODO...
+            } else {
+                // TODO...
+            }
         }
         self._updateInterface();
     });
     this.player.listen("volumechange", function() {
         self.status.muted=this.muted();
         self.status.volume=this.volume();
-        self._updateInterface();
+        self._updateButtons();
     });
+
+    if (this.media_type=="none") {
+        self.player.trigger("canplay");
+    }
+    
+    if (this.media_type=="youtube" || this.media_type=="vimeo") {
+        this.player.listen("canplaythrough", function() {
+            self.player.trigger("canplay");
+        });
+    }
+    
+//var events=["abort","canplay","canplaythrough","durationchange","canshowcurrentframe","dataunavailable","emptied","empty","ended","error","loadeddata","loadedmetadata","loadstart","mozaudioavailable","pause","play","playing","progress","ratechange","seeked","seeking","suspend","volumechange","waiting"];
+//events.forEach(function(e) {
+//    self.player.listen(e, function() { console.log(self.media_id+": "+e+" , t="+(self.date.getTime()-self.date_zero)+", ready="+self.status.ready+", paused="+self.status.paused+", currentTime="+self.status.currentTime+", duration="+self.status.duration+", ended="+self.status.ended); });
+//});
     
     return this.player;
 };
 
-Stream.prototype._updateInterface = function() {
+Stream.prototype.timeupdate = function(time) {
+    this.status.currentTime=time;
+    // TODO: what if we are streaming?
+    if (this.status.currentTime>=this.status.duration) {
+        this.status.currentTime=this.status.duration;
+        if (!this.status.ended) this.player.trigger("ended");
+    } else {
+        this.status.ended=false;
+    }
+    this._updateInterface();
+}
+
+Stream.prototype._updateButtons = function() {
     if (this.status.paused) {
         $('div#'+this.interface_id+' .jp-pause').hide();
         $('div#'+this.interface_id+' .jp-play').show();
@@ -276,7 +318,10 @@ Stream.prototype._updateInterface = function() {
         $('div#'+this.interface_id+' .jp-mute').show();
         $('div#'+this.interface_id+' .jp-unmute').hide();
     }
+};
 
+// time/duration dependant stuff
+Stream.prototype._updateInterface = function() {
     $('div#'+this.interface_id+' .jp-current-time').text(this._convertTime(this.status.currentTime));
     $('div#'+this.interface_id+' .jp-duration').text(this._convertTime(this.status.duration));
 };

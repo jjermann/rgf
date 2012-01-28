@@ -71,8 +71,6 @@ DisplayStreamWidget.prototype.loadRGF=function(actions) {
 }
 
 DisplayStreamWidget.prototype.loadStream = function(sources,media_type,width,height,duration) {
-    var self=this;
-
     // Set up the basic widgets
     this.board=new BoardWidget(this.id+"_board");
     this.stream=new Stream(this.id+"_stream",sources,media_type,width,height,duration);
@@ -86,41 +84,40 @@ DisplayStreamWidget.prototype.loadStream = function(sources,media_type,width,hei
     // Initialize the Stream and its interface(s)
     this.stream.initPlayer();
     this.gui.initInterface(this.stream);
-
+    this.stream.addInterface(this.updatedStatus.bind(this),this.updatedTime.bind(this));
     
     // Initialize the the starting Board position
     this.update(0);
-    
-    // This rather belongs in the Stream but the Stream has no access to "this"
-    this.stream.player.listen("timeupdate", function() {
-        if (self.stream.status.ready) {
-            self.stream.timeupdate(this.currentTime());
-            // this might be less than this.currentTime()...
-            self._next_time=self.stream.status.currentTime;
-            // we only update the internal (self.time) clock if we still
-            // have actions to process resp. if the "action stream" is
-            // ahead of the "media stream"
-            if (self._next_time<=self.duration) {
-                if (self.waiting) {
-                    self.waiting=false;
-                }
-                self.update(self._next_time);
-            } else if (self.ended) {
-                self.update(self._next_time);
-            } else {
-                self._next_time=self.duration;
-                self.update(self._next_time);
-                // we should tell the stream to react appropriately, e.g. pause?
-                // it should furthermore give some hint to the user and continue playing
-                // once it caught up...
-                // otherwise the "media stream" and "game stream" get out of sync...
-                if (!self.waiting && !self.ended) {
-                    self.waiting=true;
-//                    self.stream.player.pause();
-                }
-            }
+};
+
+DisplayStreamWidget.prototype.updatedStatus = function() {
+    // TODO...
+};
+
+DisplayStreamWidget.prototype.updatedTime = function() {
+    this._next_time=this.stream.status.currentTime;
+    // we only update the internal (this.time) clock if we still
+    // have actions to process resp. if the "action stream" is
+    // ahead of the "media stream"
+    if (this._next_time<=this.duration) {
+        if (this.waiting) {
+            this.waiting=false;
         }
-    });
+        this.update(this._next_time);
+    } else if (this.ended) {
+        this.update(this._next_time);
+    } else {
+        this._next_time=this.duration;
+        this.update(this._next_time);
+        // we should tell the stream to react appropriately, e.g. pause?
+        // it should furthermore give some hint to the user and continue playing
+        // once it caught up...
+        // otherwise the "media stream" and "game stream" get out of sync...
+        if (!this.waiting && !this.ended) {
+            this.waiting=true;
+            // this.stream.player.pause();
+        }
+    }
 };
 
 DisplayStreamWidget.prototype.update = function(time) {

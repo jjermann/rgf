@@ -165,18 +165,60 @@ Stream.prototype.initPlayer=function() {
             if (!self.status.set_duration) self.status.duration=this.duration();
             self.streamtypeupdate(self.status.duration);
                 
-            // note that this is the only case we call this from Stream instead of DisplayStreamWidget...
-            self.timeupdate(this.currentTime());
+            this.trigger("timeupdate");
         }
     });
-/*  Not needed since we handle it in DisplayStreamWidget...
 
     this.player.listen("timeupdate", function() {
         if (self.status.ready) {
-            self.timeupdate(this.currentTime());
-        } else { self._updateInterface(); }
+            self.status.currentTime=this.currentTime();
+            // TODO: seeking in stream?
+            if (self.stream_type!= "stream" && this.seekable() && this.seekable().length>0) {
+                self.status.seekable=true;
+            } else {
+                self.status.seekable=false;
+            }
+
+            if (self.status.stream_type=="known_duration") {
+                if (self.status.currentTime>=self.status.duration) {
+                    self.status.currentTime=self.status.duration;
+                    if (!self.status.ended) this.trigger("ended");
+                } else {
+                    self.status.ended=false;
+                }
+
+                if (self.status.seekable) { self.status.seekEnd=this.seekable().end(0); } 
+                else { self.status.seekEnd=self.status.duration; }
+                self.status.seekPercent=self.status.seekEnd/self.status.duration;
+                self.status.currentPercentRelative=self.status.currentTime/self.status.seekEnd;
+                self.status.currentPercentAbsolute=self.status.currentTime/self.status.duration;        
+            } else if (self.status.stream_type=="unknown_duration") {
+                if (self.status.seekable) {
+                    self.status.seekEnd=this.seekable().end(0);
+                    self.status.seekPercent=1;
+                    self.status.currentPercentRelative=self.status.currentTime/self.status.seekEnd;
+                } else {
+                    self.status.seekEnd=0;
+                    self.status.seekPercent=1;
+                    self.status.currentPercentRelative=0;
+                }
+                self.status.currentPercentAbsolute=0;
+                if (self.status.currentTime<self.status.seekEnd) { self.status.ended=false; }
+            } else if (self.status.stream_type=="stream") {
+                // TODO: for now no seeking at all in stream...
+                self.status.seekEnd=0;
+                self.status.seekPercent=1;
+                self.status.currentPercentRelative=0;
+                self.status.currentPercentAbsolute=0;
+            }
+
+            for (var i=0; i<self.interfaces.length; i++) {
+                self.interfaces[i].updatedStatus();
+                self.interfaces[i].updatedTime();
+            }
+        }
     });
-*/
+
     this.player.listen("durationchange", function() {
         if (self.status.ready) {
             if (!self.status.set_duration) self.status.duration=this.duration();
@@ -222,52 +264,4 @@ Stream.prototype.streamtypeupdate = function(duration) {
     } else alert("unknown stream type (?)");
 
     return this.status.stream_type;
-}
-
-Stream.prototype.timeupdate = function(time) {
-    this.status.currentTime=time;
-    // TODO: seeking in stream?
-    if (this.stream_type!= "stream" && this.player.seekable() && this.player.seekable().length>0) {
-        this.status.seekable=true;
-    } else {
-        this.status.seekable=false;
-    }
-
-    if (this.status.stream_type=="known_duration") {
-        if (this.status.currentTime>=this.status.duration) {
-            this.status.currentTime=this.status.duration;
-            if (!this.status.ended) this.player.trigger("ended");
-        } else {
-            this.status.ended=false;
-        }
-
-        if (this.status.seekable) { this.status.seekEnd=this.player.seekable().end(0); } 
-        else { this.status.seekEnd=this.status.duration; }
-        this.status.seekPercent=this.status.seekEnd/this.status.duration;
-        this.status.currentPercentRelative=this.status.currentTime/this.status.seekEnd;
-        this.status.currentPercentAbsolute=this.status.currentTime/this.status.duration;        
-    } else if (this.status.stream_type=="unknown_duration") {
-        if (this.status.seekable) {
-            this.status.seekEnd=this.player.seekable().end(0);
-            this.status.seekPercent=1;
-            this.status.currentPercentRelative=this.status.currentTime/this.status.seekEnd;
-        } else {
-            this.status.seekEnd=0;
-            this.status.seekPercent=1;
-            this.status.currentPercentRelative=0;
-        }
-        this.status.currentPercentAbsolute=0;
-        if (this.status.currentTime<this.status.seekEnd) { this.status.ended=false; }
-    } else if (this.status.stream_type=="stream") {
-        // TODO: for now no seeking at all in stream...
-        this.status.seekEnd=0;
-        this.status.seekPercent=1;
-        this.status.currentPercentRelative=0;
-        this.status.currentPercentAbsolute=0;
-    }
-
-    for (var i=0; i<this.interfaces.length; i++) {
-        this.interfaces[i].updatedStatus();
-        this.interfaces[i].updatedTime();
-    }
 }

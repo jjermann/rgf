@@ -46,13 +46,12 @@ function Action(time,property,arg,position) {
     this.position=position;
 };
 
-/*  DisplayStreamWidget (not sure about the design!)
-    -------------------
-    Responsible to initialize a "Stream" and to synchronize with the current board drawing...
+/*  GameStream
+    ----------
+    Responsible to initialize a "MediaStream" and to synchronize with the current board drawing...
     Responsible for putting the actual html body...
-    (already exists?)
 */
-function DisplayStreamWidget(base_id) {
+function GameStream(base_id) {
     /*
         id=base_id   = ID
         media_id     = ID_media
@@ -61,7 +60,7 @@ function DisplayStreamWidget(base_id) {
     */
     this.id=base_id;
     this.board;
-    this.stream;
+    this.media_stream;
     this.gui;
 
     // TODO(?): maybe we want to have the possibility to specify a delay...
@@ -90,9 +89,8 @@ function DisplayStreamWidget(base_id) {
 };
 
 // Adds actions to the _action_list. The first action should always be a KeyFrame...
-// TODO: Maybe manually add an empty KeyFrame?
 // TODO: be more flexible with "initial" time, resp. the start of the _action_list...
-DisplayStreamWidget.prototype.queueActions=function(actions) {
+GameStream.prototype.queueActions=function(actions) {
     for(var i=0;i<actions.length;i++){
         var action = actions[i];
         if (action.property=="KeyFrame") {
@@ -103,34 +101,34 @@ DisplayStreamWidget.prototype.queueActions=function(actions) {
     if (this._action_list.length) this.duration=this._action_list[this._action_list.length-1].time;
 }
 
-DisplayStreamWidget.prototype.loadStream = function(sources,media_type,width,height,duration) {
+GameStream.prototype.loadStream = function(sources,media_type,width,height,duration) {
     // Set up the basic widgets
     this.board=new BoardWidget(this.id+"_board");
-    this.stream=new Stream(this.id+"_stream",sources,media_type,width,height,duration);
-    this.gui=new Interface(this.id+"_interface0");
+    this.media_stream=new MediaStream(this.id+"_media_stream",sources,media_type,width,height,duration);
+    this.gui=new MediaInterface(this.id+"_media_interface");
     
     // Set up the placement in the body/some container
     document.body.appendChild(this.board.board_element);
-    document.body.appendChild(this.stream.media_element);
+    document.body.appendChild(this.media_stream.media_element);
     document.body.appendChild(this.gui.interface_element);
 
-    // Initialize the Stream and its interface(s)
-    this.stream.initPlayer();
-    this.gui.initInterface(this.stream);
-    this.stream.addInterface(this.updatedStatus.bind(this),this.updatedTime.bind(this));
+    // Initialize the MediaStream and its interface(s)
+    this.media_stream.initPlayer();
+    this.gui.initMediaInterface(this.media_stream);
+    this.media_stream.addInterface(this.updatedStatus.bind(this),this.updatedTime.bind(this));
     
     // Initialize the the starting Board position
     this.update(0);
 };
 
-DisplayStreamWidget.prototype.updatedStatus = function() {
+GameStream.prototype.updatedStatus = function() {
     // TODO...
 };
 
-DisplayStreamWidget.prototype.updatedTime = function() {
-    this._next_time=this.stream.status.currentTime;
+GameStream.prototype.updatedTime = function() {
+    this._next_time=this.media_stream.status.currentTime;
     // we only update the internal (this.time) clock if we still
-    // have actions to process resp. if the "action stream" is
+    // have actions to process resp. if the "game stream" is
     // ahead of the "media stream"
     if (this._next_time<=this.duration) {
         if (this.waiting) {
@@ -142,18 +140,18 @@ DisplayStreamWidget.prototype.updatedTime = function() {
     } else {
         this._next_time=this.duration;
         this.update(this._next_time);
-        // we should tell the stream to react appropriately, e.g. pause?
+        // we should tell the media stream to react appropriately, e.g. pause?
         // it should furthermore give some hint to the user and continue playing
         // once it caught up...
         // otherwise the "media stream" and "game stream" get out of sync...
         if (!this.waiting && !this.ended) {
             this.waiting=true;
-            // this.stream.player.pause();
+            // this.media_stream.player.pause();
         }
     }
 };
 
-DisplayStreamWidget.prototype.update = function(next_time) {
+GameStream.prototype.update = function(next_time) {
     if (next_time>=this.time) {
         this._advanceTo(next_time);
         this.time=next_time;
@@ -163,7 +161,7 @@ DisplayStreamWidget.prototype.update = function(next_time) {
     }
 };
 
-DisplayStreamWidget.prototype._advanceTo = function(next_time) {
+GameStream.prototype._advanceTo = function(next_time) {
     /* Applies all actions from the current time_index (resp. this.time) up to next_time.
        The last_keyframe_index is also updated.
        If property=="Ended" we inform the GameStream and BoardWidget */
@@ -187,7 +185,7 @@ DisplayStreamWidget.prototype._advanceTo = function(next_time) {
     this.last_keyframe_index--;
 };
 
-DisplayStreamWidget.prototype._reverseTo = function(next_time) {
+GameStream.prototype._reverseTo = function(next_time) {
     /* Loads the last KeyFrame before next_time (and also sets the last_keyframe_index to this KeyFrame).
        Then it applies all actions up to next_time... */
        

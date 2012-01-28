@@ -1,9 +1,9 @@
-/*  Stream 
-    ------
+/*  MediaStream 
+    -----------
     Responsible for initializing Popcorn and getting the html body for the corresponding
     audio/video/control gui
 */
-function Stream(media_id,sources,media_type,width,height,manual_duration) {
+function MediaStream(media_id,sources,media_type,width,height,manual_duration) {
     this.media_id=media_id;
     // none (no media), audio/video (audio video file/address), youtube, vimeo
     this.media_type=media_type;
@@ -45,15 +45,15 @@ function Stream(media_id,sources,media_type,width,height,manual_duration) {
     this.interfaces=[];
 }
 
-Stream.prototype.addInterface=function(updatedStatusFun,updatedTimeFun) {
+MediaStream.prototype.addInterface=function(updatedStatusFun,updatedTimeFun) {
     this.interfaces.push({
         updatedStatus: updatedStatusFun,
         updatedTime: updatedTimeFun
     });
 };
 
-// a useful function to have in any case (so it is left in Stream class)
-Stream.prototype.convertTime = function(s) {
+// a useful function to have in any case (so it is left in MediaStream class)
+MediaStream.prototype.convertTime = function(s) {
     var myTime = new Date(s * 1000);
     var hour = myTime.getUTCHours();
     var min = myTime.getUTCMinutes();
@@ -64,7 +64,7 @@ Stream.prototype.convertTime = function(s) {
     return strHour + ":" + strMin + ":" + strSec;
 };
 
-Stream.prototype._initMediaElement=function(id) {
+MediaStream.prototype._initMediaElement=function(id) {
     var el, container;
     //el=document.createElement("div");
     //el.id=id;
@@ -105,7 +105,7 @@ Stream.prototype._initMediaElement=function(id) {
 };
 
 // create a Popcorn instance, this needs the corresponding id (this.media_element) in the document first...
-Stream.prototype.initPlayer=function() {
+MediaStream.prototype.initPlayer=function() {
     var pl;
     var self=this;
     
@@ -250,7 +250,7 @@ Stream.prototype.initPlayer=function() {
     return this.player;
 };
 
-Stream.prototype.streamtypeupdate = function(duration) {
+MediaStream.prototype.streamtypeupdate = function(duration) {
     if (duration==0) {
         this.status.stream_type="no_media";
         // TODO: load next fallback, resp. baseplayer

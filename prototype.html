@@ -57,6 +57,21 @@
              {time:20,   property:"Ended", arg:"ab",  position:""}
          ]); 
          gstream2.loadStream([],"none",0,0,20);
+
+         var gstream3=new GameStream("game_stream3");
+         gstream3.queueActions([
+             {time:-1,   property:";GS",   arg:"20",  position:""}, 
+             {time:3,    property:";W",    arg:"aa",  position:""}, 
+             {time:10,   property:";B",    arg:"ee",  position:""}, 
+             {time:12,   property:";W",    arg:"ab",  position:""},
+             {time:20,   property:"Ended", arg:"ab",  position:""}
+         ]); 
+         gstream3.loadStream(
+           ["http://vimeo.com/35693910"],
+           "vimeo",
+           300,
+           180
+         );
       }, false);
   </script>
   </head>

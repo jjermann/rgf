@@ -16,6 +16,7 @@ function Stream(media_id,sources,media_type,width,height,manual_duration) {
     this.status={
         // either Infinity (stream) or a positive number (known_duration)
         set_duration: (manual_duration>0),
+        
         // options for updatedTime()
         currentTime: 0,
         seekable: false,
@@ -24,6 +25,7 @@ function Stream(media_id,sources,media_type,width,height,manual_duration) {
         currentPercentRelative: 0,
         currentPercentAbsolute: 0,
         duration: (manual_duration>0) ? manual_duration : 0,
+        
         // options for updatedStatus()
         paused: true,
         muted: false,
@@ -162,6 +164,9 @@ Stream.prototype.initPlayer=function() {
             if (!self.status.set_duration) self.status.duration=this.duration();
             self.streamtypeupdate(self.status.duration);
                 
+            for (var i=0; i<self.interfaces.length; i++) {
+                self.interfaces[i].updatedStatus();
+            }
             this.trigger("timeupdate");
         }
     });
@@ -180,8 +185,6 @@ Stream.prototype.initPlayer=function() {
                 if (self.status.currentTime>=self.status.duration) {
                     self.status.currentTime=self.status.duration;
                     if (!self.status.ended) this.trigger("ended");
-                } else {
-                    self.status.ended=false;
                 }
 
                 if (self.status.seekable) { self.status.seekEnd=this.seekable().end(0); } 
@@ -210,7 +213,6 @@ Stream.prototype.initPlayer=function() {
             }
 
             for (var i=0; i<self.interfaces.length; i++) {
-                self.interfaces[i].updatedStatus();
                 self.interfaces[i].updatedTime();
             }
         }

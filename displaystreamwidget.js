@@ -1,9 +1,8 @@
-/*  This Javascript file contains all Go specific parts/classes... */
-
 function BoardWidget(board_id) {
 /*  Go board internals/etc (should already exist)
     Has no information about time...
     Maybe also responsible for the drawing of the go board and/or variations (no idea)
+    This is just here for testing!
 */
     this.board_id=board_id;
     this.sgftree;
@@ -16,10 +15,25 @@ BoardWidget.prototype._initBoardElement=function(id) {
     el.id=id;
     return el;
 };
+BoardWidget.prototype.clear=function() {
+    // Clears the whole board to an "initial" empty board.
+   
+    // For testing:
+    $('div#'+this.board_id).text("");
+};
+
 BoardWidget.prototype.apply=function(data) {
-    // for testing...
-    $('div#'+this.board_id).append(data.property+"["+data.arg+"]").show();
-    if (data.time!=null) $('div#'+this.board_id).append("TS["+data.time+"]").show();
+    // For testing:
+    if (data.property=="KeyFrame") {
+        $('div#'+this.board_id).text(data.arg);
+    } else if (data.property=="Ended") {
+        $('div#'+this.board_id).append(" (game ended)").show();
+    } else {
+        $('div#'+this.board_id).append(data.property+"["+data.arg+"]").show();
+        // note that the line below is exactly "NOT" what is usually done by the
+        // board drawing or creation of the sgf tree!
+        if (data.time!=-1) $('div#'+this.board_id).append("TS["+data.time+"]").show();
+    }
 };
 
 /*  A single modification on the go board. Depends on the actual implementation... */
@@ -49,22 +63,41 @@ function DisplayStreamWidget(base_id) {
     this.board;
     this.stream;
     this.gui;
+
     // TODO(?): maybe we want to have the possibility to specify a delay...
     // For now we assume time starts at 0 (or at least >0)...
+    
+    // current game stream time
     this.time=0;
+    // used internally for timeupdates (next game stream time)
     this._next_time=0;
-    // this is equal to the time of the last entry in the action list which is assumed to always grow
+    // current action index
+    this.time_index=0;
+    // last keyframe index before this.time_index (useful for reversing in individual steps)
+    this.last_keyframe_index=0;
+    // current game stream duration (equal to the time of the last entry in the action list)
     this.duration=0;
+    // list of all keyframes, note that for consistency reasons the first property should always
+    // be a KeyFrame. It could be empty or describe the initial board position. As it is now this
+    // is not strictly required to though...
+    this._keyframe_list=[0];
+    // list of all actions
+    this._action_list=[];
+
     // true if the media stream is ahead of the game stream (and the game stream has not ended)...
     this.waiting=false;
     this.ended=false;
-    this._action_list=[];
 };
 
-// also create _action_list/whatever else we use in the process...
-DisplayStreamWidget.prototype.loadRGF=function(actions) {
+// Adds actions to the _action_list. The first action should always be a KeyFrame...
+// TODO: Maybe manually add an empty KeyFrame?
+// TODO: be more flexible with "initial" time, resp. the start of the _action_list...
+DisplayStreamWidget.prototype.queueActions=function(actions) {
     for(var i=0;i<actions.length;i++){
         var action = actions[i];
+        if (action.property=="KeyFrame") {
+            this._keyframe_list.push(this._action_list.length-1);
+        }
         this._action_list.push(new Action(action.time, action.property, action.arg, action.position));
     }
     if (this._action_list.length) this.duration=this._action_list[this._action_list.length-1].time;
@@ -120,24 +153,57 @@ DisplayStreamWidget.prototype.updatedTime = function() {
     }
 };
 
-DisplayStreamWidget.prototype.update = function(time) {
-    if (time>=this.time) {
-        this._advance(time-this.time);
-        this.time=time;
+DisplayStreamWidget.prototype.update = function(next_time) {
+    if (next_time>=this.time) {
+        this._advanceTo(next_time);
+        this.time=next_time;
     } else {
-        /* somehow get to the previous time, see RGF.txt e.g... */
-        this.time=time;
+        this._reverseTo(next_time);
+        this.time=next_time;
     }
 };
 
-DisplayStreamWidget.prototype._advance = function(time_step) {
-    /* applies all actions from this.time up to this.time+time_step.
-       If property=="VT" and arg=="ENDED" we act accordingly...  */
-    while (this._action_list.length>0 && this._action_list[0].time<=this.time+time_step) {
-        if (this._action_list[0].property=="VT" && this._action_list[0].arg=="ENDED") {
+DisplayStreamWidget.prototype._advanceTo = function(next_time) {
+    /* Applies all actions from the current time_index (resp. this.time) up to next_time.
+       The last_keyframe_index is also updated.
+       If property=="Ended" we inform the GameStream and BoardWidget */
+
+    while (this.time_index<this._action_list.length && this._action_list[this.time_index].time<=next_time) {
+        if (this._action_list[this.time_index].property=="Ended") {
             this.ended=true;
         }
-        // we might as well send the VT[ENDED] to the BoardWidget...
-        this.board.apply(this._action_list.shift());
+        // A KeyFrame should always be recoverable by all of the previous actions (back to the previous keyframe),
+        // so it should not introduce any new actions (except maybe at the beginning),
+        // so when advancing forward we can just skip it to save time...
+        if (this._action_list[this.time_index].property!="KeyFrame") {
+            this.board.apply(this._action_list[this.time_index]);
+        }
+        this.time_index++;
+    }
+
+    while (this.last_keyframe_index<this._keyframe_list.length && this._keyframe_list[this.last_keyframe_index]<=this.time_index) {
+        this.last_keyframe_index++;
+    }
+    this.last_keyframe_index--;
+};
+
+DisplayStreamWidget.prototype._reverseTo = function(next_time) {
+    /* Loads the last KeyFrame before next_time (and also sets the last_keyframe_index to this KeyFrame).
+       Then it applies all actions up to next_time... */
+       
+    // jump to the last KeyFrame before next_time
+    while (0<=this.last_keyframe_index && this._keyframe_list[this.last_keyframe_index]<=next_time) {
+        this.last_keyframe_index--;
+    }
+    this.last_keyframe_index++;
+
+    this.time_index=this._keyframe_list[this.last_keyframe_index];
+    this.board.clear();
+
+    // apply all actions up to next_time (a reduced version of advanceTo)
+    // note that the first action is applying the KeyFrame...
+    while (this.time_index<this._action_list.length && this._action_list[this.time_index].time<=next_time) {
+        this.board.apply(this._action_list[this.time_index]);
+        this.time_index++;
     }
 };

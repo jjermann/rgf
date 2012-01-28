@@ -29,16 +29,16 @@
          );
 
          var dstream1=new DisplayStreamWidget("stream1");
-         dstream1.loadRGF([
-             {time:null, property:";GS", arg:"http://www.youtube.com/embed/Z6zZbkDmvks",position:""},
-             {time:13,   property:";B",  arg:"wh", position:""},
-             {time:16,   property:";W",  arg:"cq", position:""},
-             {time:18,   property:";B",  arg:"bi", position:""},
-             {time:21,   property:";W",  arg:"cc", position:""},
-             {time:22,   property:";B",  arg:"ep", position:""},
-             {time:24,   property:";W",  arg:"bo", position:""},
-             {time:30,   property:";B",  arg:"cr", position:""},
-             {time:30,   property:"VT",  arg:"ENDED", position:""}
+         dstream1.queueActions([
+             {time:-1,   property:";GS",   arg:"http://www.youtube.com/embed/Z6zZbkDmvks",position:""},
+             {time:13,   property:";B",    arg:"wh", position:""},
+             {time:16,   property:";W",    arg:"cq", position:""},
+             {time:18,   property:";B",    arg:"bi", position:""},
+             {time:21,   property:";W",    arg:"cc", position:""},
+             {time:22,   property:";B",    arg:"ep", position:""},
+             {time:24,   property:";W",    arg:"bo", position:""},
+             {time:30,   property:";B",    arg:"cr", position:""},
+             {time:30,   property:"Ended", arg:"",   position:""}
          ]); 
          dstream1.loadStream(
            ["http://www.youtube.com/embed/Z6zZbkDmvks?HD=1;modestbranding=1;autoplay=0;rel=0;showinfo=0;controls=0;disablekb=1;modestbranding=1"],
@@ -49,11 +49,12 @@
          );
                                
          var dstream2=new DisplayStreamWidget("stream2");
-         dstream2.loadRGF([
-             {time:null, property:";GS", arg:"20?", position:""}, 
-             {time:3,    property:";W",  arg:"aa",  position:""}, 
-             {time:10,   property:";B",  arg:"ee",  position:""}, 
-             {time:12,   property:";W",  arg:"ab",  position:""}
+         dstream2.queueActions([
+             {time:-1,   property:";GS",   arg:"20",  position:""}, 
+             {time:3,    property:";W",    arg:"aa",  position:""}, 
+             {time:10,   property:";B",    arg:"ee",  position:""}, 
+             {time:12,   property:";W",    arg:"ab",  position:""},
+             {time:20,   property:"Ended", arg:"ab",  position:""}
          ]); 
          dstream2.loadStream([],"none",0,0,20);
       }, false);

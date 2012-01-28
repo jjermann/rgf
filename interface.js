@@ -8,6 +8,9 @@ function Interface(interface_id) {
     this.interface_element=this._initInterfaceElement(this.interface_id);
 }
 
+// to simplify selecting interface elements...
+Interface.prototype.sel=function(s) { return $('div#'+this.interface_id+' .'+s); };
+
 Interface.prototype._initInterfaceElement=function(id) {
     var el, container, singletype, gui, lvl1, lvl2, lvl3;
     /* jp-controls */
@@ -89,42 +92,41 @@ Interface.prototype.initInterface=function(stream) {
     this.updatedTime();
 
     /* set eventHandlers */
-    $('div#'+this.interface_id+' .jp-play').click(function() {
+    this.sel('jp-play').click(function() {
         self.stream.player.play();
     });
-    $('div#'+this.interface_id+' .jp-pause').click(function() {
+    this.sel('jp-pause').click(function() {
         self.stream.player.pause();
     });
-    $('div#'+this.interface_id+' .jp-stop').click(function() {
+    this.sel('jp-stop').click(function() {
         self.stream.player.pause();
         if (self.stream.status.ready) {
             self.stream.player.currentTime(0);
         }
         self.stream.player.trigger("stop");
     });
-    $('div#'+this.interface_id+' .jp-mute').click(function() {
+    this.sel('jp-mute').click(function() {
         self.stream.player.mute();
     });
-    $('div#'+this.interface_id+' .jp-unmute').click(function() {
+    this.sel('jp-unmute').click(function() {
         self.stream.player.unmute();
     });
 
-    // $('div#'+this.interface_id+' .jp-progress').click(function(e) { /* TODO */ });
-    $('div#'+this.interface_id+' .jp-seek-bar').click(function(e) {
-        var offset = $('div#'+self.interface_id+' .jp-seek-bar').offset();
+    this.sel('jp-seek-bar').click(function(e) {
+        var offset = self.sel('jp-seek-bar').offset();
         var x = e.pageX - offset.left;
-        var w = $('div#'+self.interface_id+' .jp-seek-bar').width();
+        var w = self.sel('jp-seek-bar').width();
         var p = x/w;
         if (self.stream.status.seekable || self.stream.status.stream_type=="known_duration") {
             self.stream.player.currentTime(p*self.stream.status.seekEnd);
         }
     });
-    $('div#'+this.interface_id+' .jp-volume-bar').click(function(e) {
-        var offset = $('div#'+self.interface_id+' .jp-volume-bar').offset();
+    this.sel('jp-volume-bar').click(function(e) {
+        var offset = self.sel('jp-volume-bar').offset();
         var x = e.pageX - offset.left;
-        var w = $('div#'+self.interface_id+' .jp-volume-bar').width();
-        var y = $('div#'+self.interface_id+' .jp-volume-bar').height() - e.pageY + offset.top;
-        var h = $('div#'+self.interface_id+' .jp-volume-bar').height();
+        var w = self.sel('jp-volume-bar').width();
+        var y = self.sel('jp-volume-bar').height() - e.pageY + offset.top;
+        var h = self.sel('jp-volume-bar').height();
 
         if (self.stream.status.verticalVolume) {
             self.stream.player.volume(y/h);
@@ -136,7 +138,7 @@ Interface.prototype.initInterface=function(stream) {
 
 // Called whenever the time or duration changes
 Interface.prototype.updatedTime = function() {
-    $('div#'+this.interface_id+' .jp-current-time').text(this.stream.convertTime(this.stream.status.currentTime));
+    this.sel('jp-current-time').text(this.stream.convertTime(this.stream.status.currentTime));
     var text;
     if (this.stream.status.ready) {
         var s=this.stream.status.stream_type;
@@ -151,32 +153,32 @@ Interface.prototype.updatedTime = function() {
     } else {
         text="Loading...";
     }
-    $('div#'+this.interface_id+' .jp-duration').text(text);
-    $('div#'+this.interface_id+' .jp-seek-bar').width(this.stream.status.seekPercent*100+"%");
-    $('div#'+this.interface_id+' .jp-play-bar').width(this.stream.status.currentPercentRelative*100+"%");
+    this.sel('jp-duration').text(text);
+    this.sel('jp-seek-bar').width(this.stream.status.seekPercent*100+"%");
+    this.sel('jp-play-bar').width(this.stream.status.currentPercentRelative*100+"%");
 };
 
 // Called whenever any stream.status entry changes that is not related to time/duration
 Interface.prototype.updatedStatus = function() {
     if (this.stream.status.paused) {
-        $('div#'+this.interface_id+' .jp-pause').hide();
-        $('div#'+this.interface_id+' .jp-play').show();
+        this.sel('jp-pause').hide();
+        this.sel('jp-play').show();
     } else {
-        $('div#'+this.interface_id+' .jp-pause').show();
-        $('div#'+this.interface_id+' .jp-play').hide();
+        this.sel('jp-pause').show();
+        this.sel('jp-play').hide();
     }
 
     if (this.stream.status.muted) {
-        $('div#'+this.interface_id+' .jp-mute').hide();
-        $('div#'+this.interface_id+' .jp-unmute').show();
-        $('div#'+this.interface_id+' .jp-volume-bar-value').hide();
-        $('div#'+this.interface_id+' .jp-volume-bar').hide();
+        this.sel('jp-mute').hide();
+        this.sel('jp-unmute').show();
+        this.sel('jp-volume-bar-value').hide();
+        this.sel('jp-volume-bar').hide();
     } else {
-        $('div#'+this.interface_id+' .jp-mute').show();
-        $('div#'+this.interface_id+' .jp-unmute').hide();
-        $('div#'+this.interface_id+' .jp-volume-bar-value').show();
-        $('div#'+this.interface_id+' .jp-volume-bar').show();
-        $('div#'+this.interface_id+' .jp-volume-bar-value')[this.stream.status.verticalVolume ? "height" : "width"](this.stream.status.volume*100+"%");
+        this.sel('jp-mute').show();
+        this.sel('jp-unmute').hide();
+        this.sel('jp-volume-bar-value').show();
+        this.sel('jp-volume-bar').show();
+        this.sel('jp-volume-bar-value')[this.stream.status.verticalVolume ? "height" : "width"](this.stream.status.volume*100+"%");
                                                 
     }
 };

@@ -62,9 +62,6 @@ Stream.prototype.convertTime = function(s) {
     return strHour + ":" + strMin + ":" + strSec;
 };
 
-// to simplify selecting interface elements...
-//Stream.prototype.sel=function(s) { return $('div#'+this.interface_id+' .'+s); };
-
 Stream.prototype._initMediaElement=function(id) {
     var el, container;
     //el=document.createElement("div");

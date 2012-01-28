@@ -83,44 +83,77 @@ Interface.prototype._initInterfaceElement=function(id) {
 Interface.prototype.initInterface=function(stream) {
     this.stream=stream;
     this.stream.addInterface(this.updatedStatus.bind(this),this.updatedTime.bind(this));
-    var self_stream=this.stream;
+    var self=this;
     // initial setup
     this.updatedStatus();
     this.updatedTime();
 
     /* set eventHandlers */
     $('div#'+this.interface_id+' .jp-play').click(function() {
-        self_stream.player.play();
+        self.stream.player.play();
     });
     $('div#'+this.interface_id+' .jp-pause').click(function() {
-        self_stream.player.pause();
+        self.stream.player.pause();
     });
     $('div#'+this.interface_id+' .jp-stop').click(function() {
-        self_stream.player.pause();
-        if (self_stream.status.ready) {
-            self_stream.player.currentTime(0);
+        self.stream.player.pause();
+        if (self.stream.status.ready) {
+            self.stream.player.currentTime(0);
         }
-        self_stream.player.trigger("stop");
+        self.stream.player.trigger("stop");
     });
     $('div#'+this.interface_id+' .jp-mute').click(function() {
-        self_stream.player.mute();
+        self.stream.player.mute();
     });
     $('div#'+this.interface_id+' .jp-unmute').click(function() {
-        self_stream.player.unmute();
+        self.stream.player.unmute();
     });
 
-    //TODO    $('div#'+this.interface_id+' .jp-volume-max').click(function() { /* TODO */ });
-    $('div#'+this.interface_id+' .jp-progress').click(function(e) { /* TODO */ });
-    $('div#'+this.interface_id+' .jp-seek-bar').click(function(e) { /* TODO */ });
-    $('div#'+this.interface_id+' .jp-play-bar').click(function(e) { /* TODO */ });
-    $('div#'+this.interface_id+' .jp-volume-bar').click(function(e) { /* TODO */ });
-    $('div#'+this.interface_id+' .jp-volume-bar-value').click(function(e) { /* TODO */ });
+    // $('div#'+this.interface_id+' .jp-progress').click(function(e) { /* TODO */ });
+    $('div#'+this.interface_id+' .jp-seek-bar').click(function(e) {
+        var offset = $('div#'+self.interface_id+' .jp-seek-bar').offset();
+        var x = e.pageX - offset.left;
+        var w = $('div#'+self.interface_id+' .jp-seek-bar').width();
+        var p = x/w;
+        if (self.stream.status.seekable || self.stream.status.stream_type=="known_duration") {
+            self.stream.player.currentTime(p*self.stream.status.seekEnd);
+        }
+    });
+    $('div#'+this.interface_id+' .jp-volume-bar').click(function(e) {
+        var offset = $('div#'+self.interface_id+' .jp-volume-bar').offset();
+        var x = e.pageX - offset.left;
+        var w = $('div#'+self.interface_id+' .jp-volume-bar').width();
+        var y = $('div#'+self.interface_id+' .jp-volume-bar').height() - e.pageY + offset.top;
+        var h = $('div#'+self.interface_id+' .jp-volume-bar').height();
+
+        if (self.stream.status.verticalVolume) {
+            self.stream.player.volume(y/h);
+        } else {
+            self.stream.player.volume(x/w);
+        }
+    });
 };
 
 // Called whenever the time or duration changes
 Interface.prototype.updatedTime = function() {
     $('div#'+this.interface_id+' .jp-current-time').text(this.stream.convertTime(this.stream.status.currentTime));
-    $('div#'+this.interface_id+' .jp-duration').text(this.stream.convertTime(this.stream.status.duration));
+    var text;
+    if (this.stream.status.ready) {
+        var s=this.stream.status.stream_type;
+        if (s=="known_duration") {
+            text=this.stream.convertTime(this.stream.status.duration);
+        } else if (s=="unknown_duration" && this.stream.status.seekable) {
+            text="(seek) "+this.stream.convertTime(this.stream.status.seekEnd);
+        // TODO: seeking in stream?
+        } else if (s=="stream") {
+            text="Streaming...";
+        }
+    } else {
+        text="Loading...";
+    }
+    $('div#'+this.interface_id+' .jp-duration').text(text);
+    $('div#'+this.interface_id+' .jp-seek-bar').width(this.stream.status.seekPercent*100+"%");
+    $('div#'+this.interface_id+' .jp-play-bar').width(this.stream.status.currentPercentRelative*100+"%");
 };
 
 // Called whenever any stream.status entry changes that is not related to time/duration
@@ -136,8 +169,14 @@ Interface.prototype.updatedStatus = function() {
     if (this.stream.status.muted) {
         $('div#'+this.interface_id+' .jp-mute').hide();
         $('div#'+this.interface_id+' .jp-unmute').show();
+        $('div#'+this.interface_id+' .jp-volume-bar-value').hide();
+        $('div#'+this.interface_id+' .jp-volume-bar').hide();
     } else {
         $('div#'+this.interface_id+' .jp-mute').show();
         $('div#'+this.interface_id+' .jp-unmute').hide();
+        $('div#'+this.interface_id+' .jp-volume-bar-value').show();
+        $('div#'+this.interface_id+' .jp-volume-bar').show();
+        $('div#'+this.interface_id+' .jp-volume-bar-value')[this.stream.status.verticalVolume ? "height" : "width"](this.stream.status.volume*100+"%");
+                                                
     }
 };

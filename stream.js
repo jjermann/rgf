@@ -14,9 +14,12 @@ function Stream(media_id,sources,media_type,width,height,manual_duration) {
     this.height=height;
 
     this.status={
+        // either Infinity (stream) or a positive number (known_duration)
         set_duration: (manual_duration>0),
         // options for updatedTime()
         currentTime: 0,
+        seekable: false,
+        seekEnd: 0,
         seekPercent: 0,
         currentPercentRelative: 0,
         currentPercentAbsolute: 0,
@@ -24,7 +27,9 @@ function Stream(media_id,sources,media_type,width,height,manual_duration) {
         // options for updatedStatus()
         paused: true,
         muted: false,
-        volume: 0,
+        // TODO: set this somewhere else than (manually) here...
+        verticalVolume: false,
+        volume: 0.8,
         playbackRate: 1,
         ended: false,
         ready: false
@@ -155,10 +160,14 @@ Stream.prototype.initPlayer=function() {
         // self.player.currentTime(0);
     });
     this.player.listen("canplay", function() {
-        self.status.ready=true;
-        self.status.currentTime=this.currentTime();
-        if (!self.status.set_duration) self.status.duration=this.duration();
-        self.interfaces.forEach(function(inter) { inter.updatedStatus(); inter.updatedTime(); });
+        if (!self.status.ready) {
+            self.status.ready=true;
+            if (!self.status.set_duration) self.status.duration=this.duration();
+            self.streamtypeupdate(self.status.duration);
+                
+            // note that this is the only case we call this from Stream instead of DisplayStreamWidget...
+            self.timeupdate(this.currentTime());
+        }
     });
 /*  Not needed since we handle it in DisplayStreamWidget...
 
@@ -171,12 +180,8 @@ Stream.prototype.initPlayer=function() {
     this.player.listen("durationchange", function() {
         if (self.status.ready) {
             if (!self.status.set_duration) self.status.duration=this.duration();
-            if (self.status.currentTime<self.status.duration) {
-                self.status.ended=false;
-                // TODO...
-            } else {
-                // TODO...
-            }
+            self.streamtypeupdate(self.status.duration);
+            if (self.status.currentTime<self.status.duration) { self.status.ended=false; }
         }
         self.interfaces.forEach(function(inter) { inter.updatedTime(); });
     });
@@ -204,15 +209,63 @@ Stream.prototype.initPlayer=function() {
     return this.player;
 };
 
+Stream.prototype.streamtypeupdate = function(duration) {
+    if (duration==0) {
+        this.status.stream_type="no_media";
+        // TODO: load next fallback, resp. baseplayer
+    } else if (duration!=duration) {
+        this.status.stream_type="unknown_duration";
+    } else if (duration===Infinity) {
+        this.status.stream_type="stream";
+    } else if (duration>0) {
+        this.status.stream_type="known_duration";
+    } else alert("unknown stream type (?)");
+
+    return this.status.stream_type;
+}
+
 Stream.prototype.timeupdate = function(time) {
     this.status.currentTime=time;
-    // TODO: what if we are streaming?
-    if (this.status.currentTime>=this.status.duration) {
-        this.status.currentTime=this.status.duration;
-        if (!this.status.ended) this.player.trigger("ended");
+    // TODO: seeking in stream?
+    if (this.stream_type!= "stream" && this.player.seekable() && this.player.seekable().length>0) {
+        this.status.seekable=true;
     } else {
-        this.status.ended=false;
+        this.status.seekable=false;
     }
+
+    if (this.status.stream_type=="known_duration") {
+        if (this.status.currentTime>=this.status.duration) {
+            this.status.currentTime=this.status.duration;
+            if (!this.status.ended) this.player.trigger("ended");
+        } else {
+            this.status.ended=false;
+        }
+
+        if (this.status.seekable) { this.status.seekEnd=this.player.seekable().end(0); } 
+        else { this.status.seekEnd=this.status.duration; }
+        this.status.seekPercent=this.status.seekEnd/this.status.duration;
+        this.status.currentPercentRelative=this.status.currentTime/this.status.seekEnd;
+        this.status.currentPercentAbsolute=this.status.currentTime/this.status.duration;        
+    } else if (this.status.stream_type=="unknown_duration") {
+        if (this.status.seekable) {
+            this.status.seekEnd=this.player.seekable().end(0);
+            this.status.seekPercent=1;
+            this.status.currentPercentRelative=this.status.currentTime/this.status.seekEnd;
+        } else {
+            this.status.seekEnd=0;
+            this.status.seekPercent=1;
+            this.status.currentPercentRelative=0;
+        }
+        this.status.currentPercentAbsolute=0;
+        if (this.status.currentTime<this.status.seekEnd) { this.status.ended=false; }
+    } else if (this.status.stream_type=="stream") {
+        // TODO: for now no seeking at all in stream...
+        this.status.seekEnd=0;
+        this.status.seekPercent=1;
+        this.status.currentPercentRelative=0;
+        this.status.currentPercentAbsolute=0;
+    }
+
     for (var i=0; i<this.interfaces.length; i++) {
         this.interfaces[i].updatedStatus();
         this.interfaces[i].updatedTime();

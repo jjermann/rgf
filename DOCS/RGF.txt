@@ -15,7 +15,7 @@ of a game or a lecture, possibly with an associated media (audio or video)
 stream. There might be several RGF (and corresponding media) files.
 Each such file is referenced in a game-info node in the SGF file which also
 contains all of its "header" information, stored in two new properties (GS
-and GM, see below). If those properties are properly set we call such a node
+and MS, see below). If those properties are properly set we call such a node
 a game stream node.
 
 The syntax of the RGF file (see below) is very similar to the SGF syntax but
@@ -46,9 +46,6 @@ If a media stream is present it MUST start at time 0.
 The RGF file describes how to get an "SGF content" for an arbitrary time of
 the recording. It is recommended to add the initial and/or final SGF file
 at the corresponding game stream node.
-TODO: Introduce header information describing what time the file corresponds to.
-      Problem: if it is added below a game-info node no more game-info nodes
-      may be added.
 
 If additional variations are added later they should be added outside the
 game stream since they are most probably not part of the recording and use
@@ -70,7 +67,7 @@ GS[RGF_FILE:DURATION]: Defines this to be a game stream node.
     If a media stream is present then DURATION SHOULD be smaller or equal to
     the DURATION of the media stream.
 
-GM[SOURCE:TYPE]...[SOURCE:TYPE]: Specifies a list of media streams
+MS[SOURCE:TYPE]...[SOURCE:TYPE]: Specifies a list of media streams
     associated to the game stream. SOURCE <string> may be a local file
     (also stored in the .rgt file) or a web address.
 
@@ -171,20 +168,43 @@ cannot parse RGF at least get a glimpse of the review...
 
 example.sgf:
 ------------
-(;GM[1]FF[4]CA[UTF-8]ST[2]
-RU[Japanese]SZ[19]HA[2]KM[0.00]
-PW[White]PB[Black]AB[pd][dp]PL[W]
+(;GM[1]
+  FF[4]
+  CA[UTF-8]
+  AP[Manual:?]
+  ST[2]
 (
     (
         ;GS[actualgame.rgf:14]
+         RU[Japanese]
+         SZ[19]
+         HA[2]
+         KM[0.00]
+         PW[White]
+         PB[Black]
          AN[Jonas Jermann]
     )
     (
         ;GD[actualgame.rgf:0]
+         RU[Japanese]
+         SZ[19]
+         HA[2]
+         KM[0.00]
+         PW[White]
+         PB[Black]
+         AN[Jonas Jermann]
     )
     (
         ;GD[actualgame.rgf:14]
+         RU[Japanese]
+         SZ[19]
+         HA[2]
+         KM[0.00]
+         PW[White]
+         PB[Black]
+         AN[Jonas Jermann]
         (
+            ;AB[pd][dp]PL[W]
             ;W[pp]
             ;B[dd]
             ;W[qf]
@@ -195,12 +215,26 @@ PW[White]PB[Black]AB[pd][dp]PL[W]
 
     (
         ;GS[review.rgf:56]
-         GM[review.mp3:audio]
+         MS[review.mp3:audio]
+         RU[Japanese]
+         SZ[19]
+         HA[2]
+         KM[0.00]
+         PW[White]
+         PB[Black]
          AN[Jonas Jermann]
     )
     (
         ;GD[review.rgf:0]
+         RU[Japanese]
+         SZ[19]
+         HA[2]
+         KM[0.00]
+         PW[White]
+         PB[Black]
+         AN[Jonas Jermann]
         (
+            ;AB[pd][dp]PL[W]
             ;W[pp]
             ;B[dd]
             ;W[qf]
@@ -210,7 +244,15 @@ PW[White]PB[Black]AB[pd][dp]PL[W]
     )
     (
         ;GD[review.rgf:56]
+         RU[Japanese]
+         SZ[19]
+         HA[2]
+         KM[0.00]
+         PW[White]
+         PB[Black]
+         AN[Jonas Jermann]
         (
+            ;AB[pd][dp]PL[W]
             ;W[pp]
             ;B[dd]
             ;W[qf]
@@ -230,12 +272,13 @@ PW[White]PB[Black]AB[pd][dp]PL[W]
             ;W[or]
         )
     )
-))
+)
 
 
 actualgame.rgf:
 ---------------
 (
+    ;AB[pd][dp]PL[W]
     ;TS[0]W[pp]TS[0]
     ;TS[3.1]B[dd]TS[3.1]
     ;TS[6.1]W[qf]TS[6.1]
@@ -247,21 +290,24 @@ actualgame.rgf:
 review.rgf:
 -----------
 (
-    ;W[pp]VT[N]TS[0]
-    ;B[dd]VT[N]TS[0.2]
-    ;W[qf]VT[N]TS[0.4]
+    ;AB[pd][dp]PL[W]
     (
-        ;B[od]VT[N]TS[0.6]C[This was a mistake.]TS[7.3]
-        ;W[rd]VT[N]TS[7.8]C[...this situation]TS[28.9]
+        ;W[pp]VT[N]TS[0]
+        ;B[dd]VT[N]TS[0.2]
+        ;W[qf]VT[N]TS[0.4]
+        (
+            ;B[od]VT[N]TS[0.6]C[This was a mistake.]TS[7.3]
+            ;W[rd]VT[N]TS[7.8]C[...this situation]TS[28.9]
+        )
+        (
+            ;TS[9.2]B[nc]TS[9.2]C[You should play here for example.]TS[12.1]
+            ;TS[13]W[rd]TS[13]
+            ;TS[14]B[qc]TS[14]
+            ;TS[15]W[qi]TS[15]C[Joseki.]TS[22]C[ So this is better than...]TS[25.2]
+        )
     )
     (
-        ;TS[9.2]B[nc]TS[9.2]C[You should play here for example.]TS[12.1]
-        ;TS[13]W[rd]TS[13]
-        ;TS[14]B[qc]TS[14]
-        ;TS[15]W[qi]TS[15]C[Joseki.]TS[22]C[ So this is better than...]TS[25.2]
+        ;TS[41]AB[pp]TS[41]AB[qp]TS[42]AB[pq]TS[43]AB[qq]TS[44]C[This is an ugly dumpling...]TS[50.2]C[ So let's remove it]TS[52]RP[AB,pp]TS[53]RP[AB,qp]TS[54]RP[AB,pq]TS[55]RP[AB,qq]TS[56]
+        ;TS[51]W[or]TS[51]
     )
-)
-(
-    ;TS[41]AB[pp]TS[41]AB[qp]TS[42]AB[pq]TS[43]AB[qq]TS[44]C[This is an ugly dumpling...]TS[50.2]C[ So let's remove it]TS[52]RP[AB,pp]TS[53]RP[AB,qp]TS[54]RP[AB,pq]TS[55]RP[AB,qq]TS[56]
-    ;TS[51]W[or]TS[51]
 )

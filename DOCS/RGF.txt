@@ -79,6 +79,19 @@ GM[SOURCE:TYPE]...[SOURCE:TYPE]: Specifies a list of media streams
     possible (base) type is "youtube" or "vimeo" in case SOURCE is a youtube
     or vimeo link. Two base TYPES SHOULD NOT be mixed (in the list).
 
+GD[RGF_FILE:TIME]: Defines this to be the SGF content corresponding to the
+    game stream given by the file name RGF_FILE <string> at time TIME <double>.
+    When reconstructing the SGF file in the corresponding game stream up to
+    time TIME. Then it SHOULD be equal (as a tree with property ordering) to the
+    game-info subtree below this game-info node. The property SHOULD be
+    inserted below the same parent node as the corresponding game stream.
+
+    Note that strictly speaking ordering inside a node doesn't have to be
+    preserved. Hence we cannot "enforce" this condition. However if an application
+    "knows" that condition (1) was kept it may act accordingly: For example
+    the SGF content can help during the loading of the RGF file which "might"
+    assume the ordering property. Otherwise the file is still of use for
+    classical SGF editing...
 
 For an RGF the usual SGF properties can be used, except for root or
 game-info properties. The RGF follows the new syntax mentioned above and has
@@ -109,7 +122,8 @@ TS[TIME]: Defines timestamps for the preceeding property (resp. node).
     The initial properties describe how to construct an "initial" SGF file
     and the procedure above describes how to modify this file. During this
     process the resulting file MUST always remain a valid SGF file (in
-    particular repeated or conflicting properties MUST NOT occur).
+    particular repeated or conflicting properties MUST NOT occur, we keep
+    the restriction (1) though: the orders MUST be preserved).
     If necessary the RP property below can be used to avoid conflicts (or
     for normal editing actions).
 
@@ -161,38 +175,61 @@ example.sgf:
 RU[Japanese]SZ[19]HA[2]KM[0.00]
 PW[White]PB[Black]AB[pd][dp]PL[W]
 (
-    ;GS[actualgame.rgf:14]
-     AN[Jonas Jermann]
-     (
-         ;W[pp]
-         ;B[dd]
-         ;W[qf]
-         ;B[od]
-         ;W[rd]
-     )
+    (
+        ;GS[actualgame.rgf:14]
+         AN[Jonas Jermann]
+    )
+    (
+        ;GD[actualgame.rgf:0]
+    )
+    (
+        ;GD[actualgame.rgf:14]
+        (
+            ;W[pp]
+            ;B[dd]
+            ;W[qf]
+            ;B[od]
+            ;W[rd]
+        )
+    )
 
-    ;GS[review.rgf:56]
-     GM[review.mp3:audio]
-     AN[Jonas Jermann]
-     (
-         ;W[pp]
-         ;B[dd]
-         ;W[qf]
-         (
-             ;B[od]C[This was a mistake.]
-             ;W[rd]C[...this situation]
-         )
-         (
-             ;B[nc]C[You should play here for example.]
-             ;W[rd]
-             ;B[qc]
-             ;W[qi]C[Joseki. So this is better than...]
-         )
-     )
-     (
-         ;C[This is an ugly dumpling... So let's remove it]
-         ;W[or]
-     )
+    (
+        ;GS[review.rgf:56]
+         GM[review.mp3:audio]
+         AN[Jonas Jermann]
+    )
+    (
+        ;GD[review.rgf:0]
+        (
+            ;W[pp]
+            ;B[dd]
+            ;W[qf]
+            ;B[od]
+            ;W[rd]
+        )
+    )
+    (
+        ;GD[review.rgf:56]
+        (
+            ;W[pp]
+            ;B[dd]
+            ;W[qf]
+            (
+                ;B[od]C[This was a mistake.]
+                ;W[rd]C[...this situation]
+            )
+            (
+                ;B[nc]C[You should play here for example.]
+                ;W[rd]
+                ;B[qc]
+                ;W[qi]C[Joseki. So this is better than...]
+            )
+        )
+        (
+            ;C[This is an ugly dumpling... So let's remove it]
+            ;W[or]
+        )
+    )
 ))
 
 

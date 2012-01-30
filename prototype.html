@@ -11,6 +11,7 @@
     <script type="text/javascript" src="media_stream.js"></script>
     <script type="text/javascript" src="media_interface.js"></script>
     <script type="text/javascript" src="game_stream.js"></script>
+    <script type="text/javascript" src="misc.js"></script>
 
     <script>
       // ensure the web page (DOM) has loaded
@@ -19,15 +20,83 @@
          var gstream0=new GameStream("game_stream0");
          gstream0.loadStream(
            [
-             "http://videos.mozilla.org/serv/webmademovies/popcornplug.mp4",
-             "http://videos.mozilla.org/serv/webmademovies/popcornplug.ogv",
-             "http://videos.mozilla.org/serv/webmademovies/popcornplug.webm"
+             "example/GameStream0.ogv",
            ],
            "video",
-           300,
-           180
+           640,
+           480
          );
+         gstream0.queueActions(merge_sort([
+             {time:20, property:";B", arg:"cp"},
+             {time:23, property:";W", arg:"pp"},
+             {time:25, property:";B", arg:"dc"},
+             {time:28, property:";W", arg:"pd"},
+             {time:29, property:";B", arg:"eq"},
+             {time:40, property:";W", arg:"de"},
+             {time:43, property:";B", arg:"ce"},
+             {time:45, property:";W", arg:"cf"},
+             {time:47, property:";B", arg:"cd"},
+               {time:92, property:"VT", arg:"N", position:"..."},
 
+                 {time:53, property:";W", arg:"bp"},
+                 {time:55, property:";B", arg:"bo"},
+                 {time:58, property:";W", arg:"co"},
+                   {time:62, property:"VT", arg:"N", position:"..."},
+
+                     {time:60, property:";B", arg:"do"},
+
+                     {time:63, property:";B", arg:"bn"},
+                     {time:66, property:";W", arg:"dp"},
+                     {time:68, property:";B", arg:"cq"},
+                     {time:71, property:";W", arg:"dq"},
+                     {time:73, property:";B", arg:"cr"},
+                     {time:74, property:";W", arg:"dr"},
+                     {time:77, property:";B", arg:"gp"},
+
+                 {time:93, property:";W", arg:"dg"},
+                 {time:95, property:";B", arg:"fc"},
+                 {time:97, property:";W", arg:"ck"},
+                 {time:99, property:";B", arg:"cm"},
+                 {time:109, property:";W", arg:"jq"},
+                 {time:115, property:";B", arg:"ch"},
+                 {time:118, property:";W", arg:"bg"},
+                   {time:125, property:"VT", arg:"N", position:"..."},
+                   {time:185, property:"VT", arg:"N", position:"..."},
+                   {time:189, property:"VT", arg:"N", position:"..."},
+ 
+                     {time:122, property:";B", arg:"dj"},
+                       {time:188, property:"VT", arg:"N", position:"..."},
+
+                     {time:126, property:";B", arg:"bj"},
+                       {time:147, property:"VT", arg:"N", position:"..."},
+                       {time:187, property:"VT", arg:"N", position:"..."},
+                     {time:130, property:";W", arg:"ed"},
+                       {time:148, property:"VT", arg:"N", position:"..."},
+                     {time:132, property:";B", arg:"ec"},
+                       {time:137, property:"VT", arg:"N", position:"..."},
+
+                         {time:135, property:";W", arg:"di"},
+                           {time:146, property:"VT", arg:"N", position:"..."},
+                         {time:149, property:";B", arg:"dj"},
+                         {time:150, property:";W", arg:"cj"},
+                         {time:153, property:";B", arg:"ci"},
+                         {time:155, property:";W", arg:"ei"},
+                         {time:156, property:";B", arg:"bk"},
+                         {time:160, property:";W", arg:"cl"},
+                         {time:162, property:";B", arg:"bl"},
+                         {time:165, property:";W", arg:"ek"},
+
+                         {time:139, property:";W", arg:"cj"},
+                         {time:143, property:";B", arg:"ci"},
+
+                     {time:190, property:";B", arg:"cj"},
+                     {time:193, property:";W", arg:"bj"},
+                     {time:194, property:";B", arg:"bi"},
+                     {time:196, property:";W", arg:"dj"},
+                     {time:198, property:";B", arg:"di"}
+         ],function(a, b) {return a.time - b.time}));
+
+/*
          var gstream1=new GameStream("game_stream1");
          gstream1.queueActions([
              {time:-1,   property:";GS",   arg:"http://www.youtube.com/embed/Z6zZbkDmvks",position:""},
@@ -72,6 +141,7 @@
            300,
            180
          );
+*/
       }, false);
   </script>
   </head>

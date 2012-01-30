@@ -1,0 +1,21 @@
+RGF
+===
+
+RGF stands fo Recording Game Format. It could be considered an extension
+of the SGF file format. It is mainly intended for the game "Go" but might
+be used for other games as well if possible.
+
+An RGF file is stored besides a given SGF file, optionally together its   
+corresponding media stream file(s). It describes a time-accurate recording
+of a game or a lecture, possibly with an associated media (audio or video)
+stream. There might be several RGF (and corresponding media) files.
+Each such file is referenced in a game-info node in the SGF file which also 
+contains all of its "header" information, stored in two new properties (GS
+and MS, see below). If those properties are properly set we call such a node
+a game stream node.
+
+The syntax of the RGF file (see below) is very similar to the SGF syntax but
+it is NOT strictly backwards compatible to SGF. The SGF file remains valid
+though. All files are bundled together in a .tar file which gets the file
+extension .rgt. Consequently this "overall" file format is named RGT.
+If it is further compressed with gzip (.tar.gz) the extension is .rgz.   

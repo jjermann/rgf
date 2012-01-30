@@ -1,0 +1,67 @@
+(
+    ;TS[20]B[cp]TS[20]
+    ;TS[23]W[pp]TS[23]
+    ;TS[25]B[dc]TS[25]
+    ;TS[28]W[pd]TS[28]
+    ;TS[29]B[eq]TS[29]
+    ;TS[40]W[de]TS[40]
+    ;TS[43]B[ce]TS[43]
+    ;TS[45]W[cf]TS[45]
+    ;TS[47]B[cd]TS[47]    VT[N]TS[92]
+    (
+        ;TS[53]W[bp]TS[53]
+        ;TS[55]B[bo]TS[55]
+        ;TS[58]W[co]TS[58]    VT[N]TS[62]
+        (
+            ;TS[60]B[do]TS[60]
+        )
+        (
+            ;TS[63]B[bn]TS[63]
+            ;TS[66]W[dp]TS[66]
+            ;TS[68]B[cq]TS[68]
+            ;TS[71]W[dq]TS[71]
+            ;TS[73]B[cr]TS[73]
+            ;TS[74]W[dr]TS[74]
+            ;TS[77]B[gp]TS[77]
+        )
+    )
+    (
+        ;TS[93]W[dg]TS[93]
+        ;TS[95]B[fc]TS[95]
+        ;TS[97]W[ck]TS[97]
+        ;TS[99]B[cm]TS[99]
+        ;TS[109]W[jq]TS[109]
+        ;TS[115]B[ch]TS[115]
+        ;TS[118]W[bg]TS[118]    VT[N]TS[125]    VT[N]TS[185]    VT[N]TS[189]
+        (
+            ;TS[122]B[dj]TS[122]    VT[N]TS[188]
+        )
+        (
+            ;TS[126]B[bj]TS[126]    VT[N]TS[147]    VT[N]TS[187]
+            ;TS[130]W[ed]TS[130]    VT[N]TS[148]
+            ;TS[132]B[ec]TS[132]    VT[N]TS[137]
+            (
+                ;TS[135]W[di]TS[135]    VT[N]TS[146]
+                ;TS[149]B[dj]TS[149]
+                ;TS[150]W[cj]TS[150]
+                ;TS[153]B[ci]TS[153]
+                ;TS[155]W[ei]TS[155]
+                ;TS[156]B[bk]TS[156]
+                ;TS[160]W[cl]TS[160]
+                ;TS[162]B[bl]TS[162]
+                ;TS[165]W[ek]TS[165]
+            )
+            (
+                ;TS[139]W[cj]TS[139]
+                ;TS[143]B[ci]TS[143]
+            )
+        )
+        (
+            ;TS[190]B[cj]TS[190]
+            ;TS[193]W[bj]TS[193]
+            ;TS[194]B[bi]TS[194]
+            ;TS[196]W[dj]TS[196]
+            ;TS[198]B[di]TS[198]
+        )
+    )
+)

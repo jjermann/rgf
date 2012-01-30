@@ -23,6 +23,7 @@
              "example/lecture.ogv",
            ],
            "video",
+           0,
            640,
            480
          );
@@ -93,7 +94,8 @@
                      {time:193, property:";W", arg:"bj"},
                      {time:194, property:";B", arg:"bi"},
                      {time:196, property:";W", arg:"dj"},
-                     {time:198, property:";B", arg:"di"}
+                     {time:198, property:";B", arg:"di"},
+                       {time:200, property:"VT", arg:"ENDED"}
          ],function(a, b) {return a.time - b.time}));
 
 /*
@@ -113,6 +115,7 @@
            ["http://www.youtube.com/embed/Z6zZbkDmvks?HD=1;modestbranding=1;autoplay=0;rel=0;showinfo=0;controls=0;disablekb=1;modestbranding=1"],
 //           ["http://www.youtube.com/watch?v=Z6zZbkDmvks"],
            "youtube",
+           0,
            300,
            180
          );
@@ -125,7 +128,7 @@
              {time:12,   property:";W",    arg:"ab",  position:""},
              {time:20,   property:"Ended", arg:"ab",  position:""}
          ]); 
-         gstream2.loadStream([],"none",0,0,20);
+         gstream2.loadStream([],"none",20,0,0);
 
          var gstream3=new GameStream("game_stream3");
          gstream3.queueActions([
@@ -138,6 +141,7 @@
          gstream3.loadStream(
            ["http://vimeo.com/35693910"],
            "vimeo",
+           0,
            300,
            180
          );

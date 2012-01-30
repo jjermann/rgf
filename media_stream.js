@@ -3,8 +3,10 @@
     Responsible for initializing Popcorn and getting the html body for the corresponding
     audio/video/control gui
 */
-function MediaStream(media_id,sources,media_type,width,height,manual_duration) {
+function MediaStream(media_id,sources,media_type,max_duration,width,height) {
     this.media_id=media_id;
+    
+    /* fixed header informations */
     // none (no media), audio/video (audio video file/address), youtube, vimeo
     this.media_type=media_type;
     // Array of sources, only 1 entry for "youtube", "vimeo", irrelevant for "none"
@@ -15,7 +17,7 @@ function MediaStream(media_id,sources,media_type,width,height,manual_duration) {
 
     this.status={
         // either Infinity (stream) or a positive number (known_duration)
-        set_duration: (manual_duration>0),
+        set_duration: (max_duration>0),
         
         // options for updatedTime()
         currentTime: 0,
@@ -24,7 +26,7 @@ function MediaStream(media_id,sources,media_type,width,height,manual_duration) {
         seekPercent: 0,
         currentPercentRelative: 0,
         currentPercentAbsolute: 0,
-        duration: (manual_duration>0) ? manual_duration : 0,
+        duration: (max_duration>0) ? max_duration : 0,
         
         // options for updatedStatus()
         paused: true,
@@ -37,8 +39,8 @@ function MediaStream(media_id,sources,media_type,width,height,manual_duration) {
         ready: false
     };
 
+    // HTML element for this media stream
     this.media_element=this._initMediaElement(this.media_id);
-
     // Popcorn instance
     this.player;
     // associated interfaces that need to be updated
@@ -139,7 +141,7 @@ MediaStream.prototype.initPlayer=function() {
         if (self.status.ready && self.status.ended) {
             self.status.ended=false;
             self.player.currentTime(0);
-            self.interfaces.forEach(function(inter) { inter.updatedTime(); });
+            // self.interfaces.forEach(function(inter) { inter.updatedTime(); });
         }
         self.status.paused=false;
         self.interfaces.forEach(function(inter) { inter.updatedStatus(); });

@@ -104,7 +104,8 @@ TS[TIME]: Defines timestamps for the preceeding property (resp. node).
     always be non-negative and (as mentiond) MUST NOT exceed the DURATION of
     the game stream. If a property is not followed by a TS[TIME] it is considered
     to be an "initial", non-timestamped PROPERTY. The initial properties
-    MUST be consistent with the classical SGF format (i.e. no conflicts or repetitions).
+    MUST be consistent with the classical SGF format (i.e. no conflicts or
+    repetitions).
 
     Properties for a given node MUST be sorted chronologically (increasing)
     from left to right by the time they were added (in particular they MUST

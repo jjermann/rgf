@@ -1,3 +1,35 @@
+function Action(time,name,arg,position) {
+    this.time=time;
+    this.name=name;
+    this.arg=arg;
+    this.position=position;
+};
+
+/*  Tree stuff */
+function RGFNode(time) {
+    this.properties=[];
+    this.children=[];
+    this.position="";
+    this.time=(time==undefined || time==-1) ? -1 : time;
+};
+function RGFProperty(name,argument,time) {
+    this.name=name;
+    this.argument=argument;
+    this.time=(time==undefined || time==-1) ? -1 : time;
+};
+RGFNode.prototype.addNode=function(node) {
+    this.children.push(node);
+    node.position=((this.position==="") ? "" : (this.position+"."))+(this.children.length-1);
+    return node;
+}
+RGFNode.prototype.addProp=function(property) { this.properties.push(property); }
+RGFNode.prototype.descend = function(path) {
+    if (!path.length) return this;
+    if (typeof path=='string') path=path.split('.');
+    return this.children[path[0]].descend(path.slice(1));
+};
+
+
 // the following two functions are used to get stable sorting, which is needed
 function merge(left,right,comparison) {
     var result = new Array();
@@ -26,6 +58,8 @@ function createBox(id,title,width,height,left,top) {
     var el,tmp;
     var title_height=20;
     el=document.createElement("div");
+        el.id=id+"_all";
+    
         tmp=document.createElement("div");
         tmp.style.position="absolute";
         tmp.style.width=width+"px";
@@ -50,6 +84,7 @@ function createBox(id,title,width,height,left,top) {
         tmp.style.border="solid black 1px";
         tmp.style.padding=4+"px";
         tmp.style.overflow="auto";
+        tmp.style.whiteSpace="pre";
         tmp.id=id;
         el.appendChild(tmp);
     return el;
@@ -62,13 +97,19 @@ function BoardWidget(board_id) {
     This is just here for testing!
 */
     this.board_id=board_id;
-    this.sgftree;
-    // for drawing (?)
     this.board_element=this._initBoardElement(this.board_id);
+
+    /* for testing */
+    // current SGF tree/content
+    this._sgftree=new RGFNode();
+    // current SGF path
+    this._sgfpath=[];
+    // current SGF parent node (equal to this._sgftree.descend(this._sgfpath))
+    this._sgfnode=this._sgftree;
 };
 BoardWidget.prototype._initBoardElement=function(id) {
     // only for testing at the moment
-    return createBox(id,"During Recording (without any tree structure)",500,500,640,10);
+    return createBox(id,"Current SGF tree",450,500,1110,10);
 };
 BoardWidget.prototype.clear=function() {
     // Clears the whole game stream variation tree, reseting to an "initial" empty one.
@@ -77,34 +118,73 @@ BoardWidget.prototype.clear=function() {
     $('div#'+this.board_id).text("");
 };
 
-BoardWidget.prototype.apply=function(data) {
-    // For testing:
-    var rec_el=$('div#'+this.board_id);
-    if (data.property=="KeyFrame") {
-        rec_el.text(data.arg);
-    } else if (data.property=="Ended") {
-        rec_el.append("<br/>"+"Game ended.").show();
+BoardWidget.prototype.apply=function(action) {
+    /* all this is for testing/demo */
+
+    // modify sgf tree
+    if (action.name=="KeyFrame") {
+        // temporary solution, since we didn't specify the KeyFrame format yet...
+        this._sgftree.children.length=0;
+        this._sgfpath=[];
+        this._sgfnode=this._sgftree;
     } else {
-        if (data.property[0]==";") {
-            rec_el.append("<br/>;TS["+data.time+"] ");
-            rec_el.append(data.property.slice(-(data.property.length-1))+"["+data.arg+"]").show();
-        } else {
-            rec_el.append(" ");
-            rec_el.append(data.property+"["+data.arg+"]").show();
+        if (action.position!=undefined) {
+            if (typeof action.position=='string') this._sgfpath=(action.position).split('.');
+            else this._sgfpath=action.position;
+            this._sgfnode=this._sgftree.descend(this._sgfpath);
         }
-        // note that the line below is exactly "NOT" what is usually done by the
-        // board drawing or creation of the sgf tree!
-        if (data.time!=-1) rec_el.append("TS["+data.time+"]").show();
+        // if a node is added
+        if (action.name[0]==";") {
+            this._sgfpath.push(this._sgfnode.children.length);
+            this._sgfnode=this._sgfnode.addNode(new RGFNode(action.time));
+            if (action.name==";") {
+            } else if (action.name==";B") {
+                this._sgfnode.addProp(new RGFProperty("B",action.arg,action.time));
+            } else if (action.name==";W") {
+                this._sgfnode.addProp(new RGFProperty("W",action.arg,action.time));
+            } else {
+                alert("Invalid node action: "+action.name);
+            }
+        // if a property is added
+        } else {
+            if (action.name!="VT") this._sgfnode.addProp(new RGFProperty(action.name,action.arg,action.time));
+        }
     }
+    $('div#'+this.board_id).text(this.getSGF());
 };
 
-
-/*  A single modification on the go board. Depends on the actual implementation... */
-function Action(time,property,arg,position) {
-    this.time=time;
-    /* the following two arguments (property/position) could e.g. also be queryied in
-       the RGF game tree, so maybe position alone is enough... */
-    this.property=property;
-    this.arg=arg;
-    this.position=position;
+BoardWidget.prototype.getSGF = function() {
+    var output="";
+    if (!this._sgftree.children.length) {
+        output=";";
+    } else {
+        for (var i=0; i<this._sgftree.children.length; i++) {
+            output += "(\n";
+            output += this.getSGFSub("    ",this._sgftree.children[i]);
+            output += ")\n";
+        }
+    }
+    return output;
 };
+
+BoardWidget.prototype.getSGFSub = function(indent,node) {
+    var output=indent;
+    output += ";";
+    for (var i=0; i<node.properties.length; i++) {
+        output +=  node.properties[i].name + "[" + node.properties[i].argument + "]"
+    }
+    output += "\n";
+
+    if (!node.children.length) {
+    } else if (node.children.length==1) {
+        output += this.getSGFSub(indent,node.children[0]);
+    } else {
+        for (var i=0; i<node.children.length; i++) {
+            output += indent + "(\n";
+            output += this.getSGFSub(indent + "    ",node.children[i]);
+            output += indent + ")\n";
+        }
+    }
+    return output;
+};
+

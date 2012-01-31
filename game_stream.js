@@ -144,7 +144,7 @@ GameStream.prototype.loadStream = function(sources,media_type,max_duration,width
     this.gui=new MediaInterface(this.id+"_media_interface");
     
     // For testing
-    this.txt_element=createBox(this.id+"_rgftree","Current RGF Tree",450,500,640,10);
+    this.txt_element=createBox(this.id+"_rgftree","Current RGF Tree",500,500,640,10);
     document.body.appendChild(this.txt_element);
     
     // Set up the placement in the body/some container

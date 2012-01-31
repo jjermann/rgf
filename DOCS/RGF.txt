@@ -1,28 +1,28 @@
-// Written by Jonas Jermann <jjermann2@gmail.com>
+// Copyright (C) 2012 by Jonas Jermann <jjermann2@gmail.com>
 
 
-RGF
-===
+RGF/RGT
+=======
 
 
-RGF stands fo Recording Game Format. It could be considered an extension
-of the SGF file format. It is mainly intended for the game "Go" but might
-be used for other games as well if possible.
+RGF stands for Recording Game Format. It extends the SGF file format
+(together with additional media files) with time-accurate recordings of
+games or lectures. It is mainly intended for the game "Go" but in principle
+it should work as is for any game. Other games are not officially supported
+so far though. If you are interested whether it can be made to work
+for other games then please contact me.
 
-An RGF file is stored besides a given SGF file, optionally together its
-corresponding media stream file(s). It describes a time-accurate recording
-of a game or a lecture, possibly with an associated media (audio or video)
-stream. There might be several RGF (and corresponding media) files.
-Each such file is referenced in a game-info node in the SGF file which also
-contains all of its "header" information, stored in two new properties (GS
-and MS, see below). If those properties are properly set we call such a node
-a game stream node.
+Each added RGF file is referenced in a game-info node in the SGF file which
+also  contains all of its "header" information, stored in two new properties
+named "GS" (game stream) and "MS" (media stream). See below for a more
+detailed specification. We call such a node a game stream node.
 
-The syntax of the RGF file (see below) is very similar to the SGF syntax but
-it is NOT strictly backwards compatible to SGF. The SGF file remains valid
-though. All files are bundled together in a .tar file which gets the file
-extension .rgt. Consequently this "overall" file format is named RGT.
-If it is further compressed with gzip (.tar.gz) the extension is .rgz.
+The syntax of an RGF file is very similar to the SGF syntax but it is not
+strictly backwards compatible to SGF. The (main) SGF file remains valid
+though. The SGF file, all RGF files and the media files are all bundled
+together in a .tar file with file extension .rgt. This "container" file
+format is named RGT. If it is further compressed with gzip (.tar.gz) the
+extension becomes .rgz.
 
 
 The SYNTAX of RGF deviates from SGF in the following three points:
@@ -83,12 +83,16 @@ GD[RGF_FILE:TIME]: Defines this to be the SGF content corresponding to the
     time TIME then it MUST be equal (as an SGF tree) to the game-info subtree
     below this game-info node. The property SHOULD be inserted next to (below
     the same parent node as) the corresponding game stream node.
+    We call such a subtree a game stream snapshot.
 
     Be aware that the order inside nodes of the mentioned subtree from above
     doesn't have to be preserved according to the SGF specifications.
     An application which relies on a preserved ordering in this case has to
     make sure of this on its own and cannot assume it anymore if the file was
     passed to an external viewer.
+
+    Note that if the intention is to make modification to a game stream
+    snapshot one could simply remove the GD property.
 
 For an RGF the usual SGF properties can be used, except for root or
 game-info properties. The RGF follows the new syntax mentioned above and has
@@ -177,7 +181,6 @@ position of "review.rgf were added." this way also editors which
 cannot parse RGF at least get a glimpse of the review...
 
 (Also note that the games below don't make that much sense ;)
-
 
 example.sgf:
 ------------
@@ -287,7 +290,6 @@ example.sgf:
     )
 )
 
-
 actualgame.rgf:
 ---------------
 (
@@ -298,7 +300,6 @@ actualgame.rgf:
     ;TS[10.3]B[od]TS[10.3]
     ;TS[13.6]W[rd]TS[13.6]VT[ENDED]TS[14]
 )
-
 
 review.rgf:
 -----------

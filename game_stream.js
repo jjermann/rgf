@@ -43,7 +43,7 @@ function GameStream(base_id) {
     */
     this._keyframe_list=[0];
     // list of all actions
-    this._action_list=[];
+    this._action_list=[new Action(-2,"KeyFrame","")];
     // current RGF tree/content
     this._rgftree=new RGFNode();
     // current RGF path
@@ -93,6 +93,7 @@ GameStream.prototype.queueActions=function(actions) {
         }
     }
     if (this._action_list.length) this.status.duration=this._action_list[this._action_list.length-1].time;
+    this.status.duration=(this.status.duration>0) ? this.status.duration : 0;
 
     // For testing:
     $('div#'+this.id+"_rgftree").text(this.getRGF());
@@ -232,13 +233,12 @@ GameStream.prototype._reverseTo = function(next_time) {
        Then it applies all actions up to next_time... */
        
     // jump to the last KeyFrame before next_time
-    while (0<=this.status.last_keyframe_index && this._keyframe_list[this.status.last_keyframe_index]<=next_time) {
+    while (0<=this.status.last_keyframe_index && this._action_list[this._keyframe_list[this.status.last_keyframe_index]].time<=next_time) {
         this.status.last_keyframe_index--;
     }
     this.status.last_keyframe_index++;
 
     this.status.time_index=this._keyframe_list[this.status.last_keyframe_index];
-    this.board.clear();
 
     // apply all actions up to next_time (a reduced version of advanceTo)
     // note that the first action is applying the KeyFrame...

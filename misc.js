@@ -119,6 +119,10 @@ BoardWidget.prototype.clear=function() {
 };
 
 BoardWidget.prototype.apply=function(action) {
+    if (action.name=="KeyFrame") {
+        this.clear();
+    }
+
     /* all this is for testing/demo */
 
     // modify sgf tree

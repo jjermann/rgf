@@ -1,24 +1,11 @@
 /*  GameStream
     ----------
-    Responsible to initialize a "MediaStream" and to synchronize with the current board drawing...
-    Responsible for putting the actual html body...
+    Responsible to keep track of applied changes, where we are in this chain and to update the
+    current board drawing accordingly. It kind of "hijacks" the board...
 */
-function GameStream(base_id) {
-    /*
-        id=base_id   = ID
-        media_id     = ID_media
-        interface_id = ID_interface
-        board_id     = ID_board
-    */
-    this.id=base_id;
-    this.board;
-    this.gui;
-
-    /* fixed header information */
-    this.media_stream;
-
-    // TODO: maybe we want to have the possibility to specify a delay...
-    // For now we assume time starts at 0 (or at least >0)...
+function GameStream(game_id,board,max_duration) {
+    this.game_id=game_id;
+    this.board=board;
     
     /* status information */
     this.status = {
@@ -30,8 +17,8 @@ function GameStream(base_id) {
         last_keyframe_index:0,
         // current game stream duration (equal to the time of the last entry in the action list)
         duration:0,
-        max_duration:Infinity,
-        // true if the media stream is ahead of the game stream (and the game stream has not ended)...
+        max_duration:((max_duration>0) ? max_duration : Infinity),
+        // true if the current time is ahead of the game stream (and the game stream has not ended)...
         waiting:false,
         ended:false
     }
@@ -39,7 +26,7 @@ function GameStream(base_id) {
     /* List of all KeyFrames:
        A KeyFrame describes how to get the whole current SGF tree.
        The resulting SGF tree must be identical to the one we get by successively applying actions.
-       The first action MUST be be an "empty" KeyFrame.
+       The first action is set here to be an "empty" KeyFrame.
     */
     this._keyframe_list=[0];
     // list of all actions
@@ -96,8 +83,8 @@ GameStream.prototype.queueActions=function(actions) {
     this.status.duration=(this.status.duration>0) ? this.status.duration : 0;
 
     // For testing:
-    $('div#'+this.id+"_rgftree").text(this.getRGF());
-}
+    $('div#'+this.game_id+"_rgftree").text(this.getRGF());
+};
 
 GameStream.prototype.getRGF = function() {
     var output="";
@@ -135,42 +122,15 @@ GameStream.prototype.getRGFSub = function(indent,node) {
     return output;
 };
 
-GameStream.prototype.loadStream = function(sources,media_type,max_duration,width,height) {
-    // Set up header information (max_duration)
-    this.status.max_duration=(max_duration>0) ? max_duration : Infinity;
-
-    // Set up the basic widgets
-    this.board=new BoardWidget(this.id+"_board",this);
-    this.media_stream=new MediaStream(this.id+"_media_stream",sources,media_type,max_duration,width,height);
-    this.gui=new MediaInterface(this.id+"_media_interface");
-    
-    // For testing
-    this.txt_element=createBox(this.id+"_rgftree","Current RGF Tree",500,500,640,10);
-    document.body.appendChild(this.txt_element);
-    
-    // Set up the placement in the body/some container
-    document.body.appendChild(this.board.board_element);
-    document.body.appendChild(this.media_stream.media_element);
-    document.body.appendChild(this.gui.interface_element);
-
-    // Initialize the MediaStream and its interface(s)
-    this.media_stream.initPlayer();
-    this.gui.initMediaInterface(this.media_stream);
-    this.media_stream.addInterface(this.updatedMStatus.bind(this),this.updatedMTime.bind(this));
-    
-    // Initialize the the starting Board position
-    this.update(0);
-};
-
-GameStream.prototype.updatedMStatus = function() {
+GameStream.prototype.updatedStatus = function(newstatus) {
     // TODO...
 };
 
-GameStream.prototype.updatedMTime = function() {
-    var next_time=this.media_stream.status.currentTime;
+GameStream.prototype.updatedTime = function(newstatus) {
+    var next_time=newstatus.currentTime;
     // we only update the internal (this.status.time) clock if we still
     // have actions to process resp. if the "game stream" is
-    // ahead of the "media stream"
+    // ahead of the "current time"
     if (next_time<=this.status.duration) {
         if (this.status.waiting) {
             this.status.waiting=false;
@@ -187,7 +147,6 @@ GameStream.prototype.updatedMTime = function() {
         // otherwise the "media stream" and "game stream" get out of sync...
         if (!this.status.waiting && !this.status.ended) {
             this.status.waiting=true;
-            // this.media_stream.player.pause();
         }
     }
 };

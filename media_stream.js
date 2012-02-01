@@ -131,7 +131,7 @@ MediaStream.prototype.initPlayer=function() {
     this.player.controls(false);
 
     // initial setup
-    this.interfaces.forEach(function(inter) { inter.updatedStatus(); inter.updatedTime(); });
+    this.interfaces.forEach(function(inter) { inter.updatedStatus(this.status); inter.updatedTime(this.status); });
 
 //    this.player.listen("loadedmetadata", function() {
 //        self.status.ready=true;
@@ -144,16 +144,16 @@ MediaStream.prototype.initPlayer=function() {
             // self.interfaces.forEach(function(inter) { inter.updatedTime(); });
         }
         self.status.paused=false;
-        self.interfaces.forEach(function(inter) { inter.updatedStatus(); });
+        self.interfaces.forEach(function(inter) { inter.updatedStatus(self.status); });
     });
     this.player.listen("pause", function() {
         self.status.paused=true;
-        self.interfaces.forEach(function(inter) { inter.updatedStatus(); });
+        self.interfaces.forEach(function(inter) { inter.updatedStatus(self.status); });
     });
 // All of this is already done in "pause"...
 //    this.player.listen("stop", function() {
 //        self.status.paused=true;
-//        self.interfaces.forEach(function(inter) { inter.updatedStatus(); });
+//        self.interfaces.forEach(function(inter) { inter.updatedStatus(self.status); });
 //    });
     this.player.listen("ended", function() {
         self.status.ended=true;
@@ -167,7 +167,7 @@ MediaStream.prototype.initPlayer=function() {
             self.streamtypeupdate(self.status.duration);
                 
             for (var i=0; i<self.interfaces.length; i++) {
-                self.interfaces[i].updatedStatus();
+                self.interfaces[i].updatedStatus(self.status);
             }
             this.trigger("timeupdate");
         }
@@ -215,7 +215,7 @@ MediaStream.prototype.initPlayer=function() {
             }
 
             for (var i=0; i<self.interfaces.length; i++) {
-                self.interfaces[i].updatedTime();
+                self.interfaces[i].updatedTime(self.status);
             }
         }
     });
@@ -226,12 +226,12 @@ MediaStream.prototype.initPlayer=function() {
             self.streamtypeupdate(self.status.duration);
             if (self.status.currentTime<self.status.duration) { self.status.ended=false; }
         }
-        self.interfaces.forEach(function(inter) { inter.updatedTime(); });
+        self.interfaces.forEach(function(inter) { inter.updatedTime(self.status); });
     });
     this.player.listen("volumechange", function() {
         self.status.muted=this.muted();
         self.status.volume=this.volume();
-        self.interfaces.forEach(function(inter) { inter.updatedStatus(); });
+        self.interfaces.forEach(function(inter) { inter.updatedStatus(self.status); });
     });
 
     if (this.media_type=="none") {

@@ -8,17 +8,17 @@
 -->
     <script type="text/javascript" src="js/jquery-1.7.1.js"></script>
     <script type="text/javascript" src="js/popcorn-complete.js"></script>
-    <script type="text/javascript" src="media_stream.js"></script>
-    <script type="text/javascript" src="media_interface.js"></script>
-    <script type="text/javascript" src="game_stream.js"></script>
     <script type="text/javascript" src="misc.js"></script>
+    <script type="text/javascript" src="media_interface.js"></script>
+    <script type="text/javascript" src="media_stream.js"></script>
+    <script type="text/javascript" src="game_stream.js"></script>
+    <script type="text/javascript" src="gui.js"></script>
 
     <script>
       // ensure the web page (DOM) has loaded
       document.addEventListener("DOMContentLoaded", function () {
 
-         var gstream0=new GameStream("game_stream0");
-         gstream0.loadStream(
+         var display_gui=new DisplayGUI("game_stream0",
            [
              "example/lecture.ogv",
            ],
@@ -27,7 +27,7 @@
            640,
            480
          );
-         gstream0.queueActions(merge_sort([
+         display_gui.game_stream.queueActions(merge_sort([
              {time:20, name:";B", arg:"cp"},
              {time:23, name:";W", arg:"pp"},
              {time:25, name:";B", arg:"dc"},

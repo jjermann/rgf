@@ -92,6 +92,7 @@ BoardPlayer.prototype.apply=function(action) {
     this.eidogoConfig.sgf=new_sgf;
 //  TODO: either update our definition of path or determine the path position of eidogo somehow...
 //    this.eidogoConfig.loadPath=this._sgfpath.slice(0);
+    this.eidogoConfig.loadPath=this._sgfnode.getEidogoPath();
     this.eidogo_player.loadSgf(this.eidogoConfig);
 };
 

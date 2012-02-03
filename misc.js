@@ -9,7 +9,8 @@ function Action(time,name,arg,position) {
 function RGFNode(time) {
     this.properties=[];
     this.children=[];
-//    this.position="";
+    this.parent=null;
+    this.index=null;
     this.time=(time==undefined || time==-1) ? -1 : time;
 };
 function RGFProperty(name,argument,time) {
@@ -18,8 +19,9 @@ function RGFProperty(name,argument,time) {
     this.time=(time==undefined || time==-1) ? -1 : time;
 };
 RGFNode.prototype.addNode=function(node) {
+    node.parent=this;
+    node.index=this.children.length;
     this.children.push(node);
-//    node.position=((this.position==="") ? "" : (this.position+"."))+(this.children.length-1);
     return node;
 }
 RGFNode.prototype.addProp=function(property) { this.properties.push(property); }
@@ -29,6 +31,24 @@ RGFNode.prototype.descend = function(path) {
     if (!path.length) return this;
     if (typeof path=='string') path=path.split('.');
     return this.children[path[0]].descend(path.slice(1));
+};
+
+/*  needed to get eidogo's position. */
+RGFNode.prototype.getEidogoPath = function() {
+    var n = this,
+        rpath = [],
+        mn = 0;
+    while (n && n.parent && n.parent.children.length == 1 && n.parent.parent) {
+        mn++;
+        n = n.parent;
+    }
+    rpath.push(mn);
+    while (n) {
+        if (n.parent && (n.parent.children.length > 1 || !n.parent.parent))
+            rpath.push(n.index || 0);
+        n = n.parent;
+    }
+    return rpath.reverse();
 };
 
 /*  New definition of position, compatible with eidogo */

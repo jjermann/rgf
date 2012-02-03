@@ -39,7 +39,7 @@ function GameStream(game_id,board,max_duration) {
     this._rgfnode=this._rgftree;
 
     /* just for testing */
-    this.html=createBox(this.id+"_rgf","Current RGF Tree",500,500,10,600);
+    this.html=createBox(this.id+"_rgf","Current RGF Tree",500,500,10,550);
 };
 
 // Adds actions to the _action_list.

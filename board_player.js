@@ -36,7 +36,7 @@ BoardPlayer.prototype._initHTML=function() {
     el.id=this.id;
 
     /* Textbox to output the current pseudo SGF file */
-    var el_sgf=createBox(this.id+"_sgf","Current (pseudo) SGF tree",350,500,530,600);
+    var el_sgf=createBox(this.id+"_sgf","Current (pseudo) SGF tree",350,500,530,550);
     
     /* A container for the Eidogo Player (to display the board). */
     var el_eidogo = document.createElement("div");

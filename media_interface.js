@@ -80,6 +80,9 @@ MediaInterface.prototype._initHTML=function() {
         container.appendChild(singletype);
       el.appendChild(container);
 
+    el.style.position="absolute";
+    el.style.left=644+"px";
+    el.style.top=440+"px";
     return el;
 };
 

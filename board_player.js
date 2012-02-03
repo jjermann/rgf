@@ -37,6 +37,9 @@ BoardPlayer.prototype._initHTML=function() {
 
     /* Textbox to output the current pseudo SGF file */
     var el_sgf=createBox(this.id+"_sgf","Current (pseudo) SGF tree",350,500,530,550);
+
+    /* Textbox to output the currently applied action list */
+    var el_actions=createBox(this.id+"_actions","Currently applied actions",540,500,900,550);
     
     /* A container for the Eidogo Player (to display the board). */
     var el_eidogo = document.createElement("div");
@@ -49,6 +52,7 @@ BoardPlayer.prototype._initHTML=function() {
 //    el_eidogo.style.overflow = "hidden";
 
     el.appendChild(el_sgf);
+    el.appendChild(el_actions);
     el.appendChild(el_eidogo);
     return el;
 };
@@ -58,6 +62,10 @@ BoardPlayer.prototype.init=function() {
 };
 
 BoardPlayer.prototype.apply=function(action) {
+    if (action.name=="KeyFrame") {
+        $('div#'+this.id+"_actions").text("");
+    }
+    
     // modify pseudo sgf tree
     if (action.name=="KeyFrame") {
         // temporary solution, since we didn't specify the KeyFrame format yet...
@@ -87,11 +95,19 @@ BoardPlayer.prototype.apply=function(action) {
             if (action.name!="VT") this._sgfnode.addProp(new RGFProperty(action.name,action.arg,action.time));
         }
     }
+
+    var new_actiontxt="board.apply({"
+         + "time: " + ((action.time!==undefined)  ? (action.time)                               : "-1")
+         + ((action.name!==undefined)             ? (", name: \"" + action.name +"\"")          :   "")
+         + ((action.arg!==undefined)              ? (", arg: \"" + action.arg + "\"")           :   "")
+         + ((action.position!==undefined)         ? (", position: \"" + action.position + "\"") :   "")
+    + "});\n";
+    
     var new_sgf=this.getSGF();
     $('div#'+this.id+"_sgf").text(new_sgf);
+    $('div#'+this.id+"_actions").append(document.createTextNode(new_actiontxt));
+
     this.eidogoConfig.sgf=new_sgf;
-//  TODO: either update our definition of path or determine the path position of eidogo somehow...
-//    this.eidogoConfig.loadPath=this._sgfpath.slice(0);
     this.eidogoConfig.loadPath=this._sgfnode.getEidogoPath();
     this.eidogo_player.loadSgf(this.eidogoConfig);
 };

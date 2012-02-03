@@ -5,6 +5,7 @@ function DisplayGUI(base_id,sources,media_type,max_duration,width,height) {
        MediaInterface:  ID_interface
        BoardPlayer:     ID_board
                         ID_board_sgf
+                        ID_board_actions
                         ID_board_eidogo
        GameStream:      ID_game
                         ID_game_rgf

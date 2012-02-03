@@ -26,11 +26,10 @@ function GameStream(game_id,board,max_duration) {
     /* List of all KeyFrames:
        A KeyFrame describes how to get the whole current SGF tree.
        The resulting SGF tree must be identical to the one we get by successively applying actions.
-       The first action is set here to be an "empty" KeyFrame.
     */
-    this._keyframe_list=[0];
+    this._keyframe_list=[];
     // list of all actions
-    this._action_list=[new Action(-2,"KeyFrame","")];
+    this._action_list=[];
     // current RGF tree/content
     this._rgftree=new RGFNode();
     // current RGF path
@@ -40,6 +39,12 @@ function GameStream(game_id,board,max_duration) {
 
     /* just for testing */
     this.html=createBox(this.id+"_rgf","Current RGF Tree",500,500,10,550);
+    
+    /* The first action is set here to be an "empty" KeyFrame. */
+    this.queueActions([new Action(-2,"KeyFrame","",undefined)]);
+    
+    // called outside of GameStream:
+    // this.update(0);
 };
 
 // Adds actions to the _action_list.
@@ -51,7 +56,7 @@ GameStream.prototype.queueActions=function(actions) {
         
         // modify action list
         if (action.name=="KeyFrame") {
-            this._keyframe_list.push(this._action_list.length-1);
+            this._keyframe_list.push(this._action_list.length);
             // TODO: parse the KeyFrame?
         }
         this._action_list.push(new Action(action.time, action.name, action.arg, action.position));
@@ -177,6 +182,9 @@ GameStream.prototype._advanceTo = function(next_time) {
             So the length of arrays in the tree may only increase and deleted indices may not be used
             again for new purposes (because the RGF tree behaves that way). */
         if (this._action_list[this.status.time_index].name!="KeyFrame") {
+            this.board.apply(this._action_list[this.status.time_index]);
+        } else if (this.status.time_index==0) {
+            // ok, we apply the very first keyframe...
             this.board.apply(this._action_list[this.status.time_index]);
         }
         this.status.time_index++;

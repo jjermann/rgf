@@ -4,7 +4,7 @@
     audio/video/control gui
 */
 function MediaStream(media_id,sources,media_type,max_duration,width,height) {
-    this.media_id=media_id;
+    this.id=media_id;
     
     /* fixed header informations */
     // none (no media), audio/video (audio video file/address), youtube, vimeo
@@ -40,7 +40,7 @@ function MediaStream(media_id,sources,media_type,max_duration,width,height) {
     };
 
     // HTML element for this media stream
-    this.media_element=this._initMediaElement(this.media_id);
+    this.html=this._initHTML();
     // Popcorn instance
     this.player;
     // associated interfaces that need to be updated
@@ -66,10 +66,10 @@ MediaStream.prototype.convertTime = function(s) {
     return strHour + ":" + strMin + ":" + strSec;
 };
 
-MediaStream.prototype._initMediaElement=function(id) {
+MediaStream.prototype._initHTML=function() {
     var el, container;
     //el=document.createElement("div");
-    //el.id=id;
+    //el.id=this.id;
       if (this.media_type=="none") {
           container=document.createElement("div");
       } else if (this.media_type=="audio") {
@@ -99,29 +99,29 @@ MediaStream.prototype._initMediaElement=function(id) {
           if (this.width!=null) container.style.width=this.width+"px";
           if (this.width!=null) container.style.height=this.height+"px";
       } else { alert("illegal type: "+this.media_type); }
-      container.id=id;
+      container.id=this.id;
       //container.className="jp-jplayer";
     //el.appendChild(container);
 
     return container;
 };
 
-// create a Popcorn instance, this needs the corresponding id (this.media_element) in the document first...
-MediaStream.prototype.initPlayer=function() {
+// create a Popcorn instance, this needs the corresponding id (this.html) in the document first...
+MediaStream.prototype.init=function() {
     var pl;
     var self=this;
     
     if (this.media_type=="none") {
         Popcorn.player("baseplayer");
-        pl=Popcorn.baseplayer("#"+this.media_id);
+        pl=Popcorn.baseplayer("#"+this.id);
     } else if (this.media_type=="audio") {
-        pl=Popcorn("#"+this.media_id);
+        pl=Popcorn("#"+this.id);
     } else if (this.media_type=="video") {
-        pl=Popcorn("#"+this.media_id);
+        pl=Popcorn("#"+this.id);
     } else if (this.media_type=="youtube") {
-        pl=Popcorn.youtube("#"+this.media_id,this.source[0]);
+        pl=Popcorn.youtube("#"+this.id,this.source[0]);
     } else if (this.media_type=="vimeo") {
-        pl=Popcorn.vimeo("#"+this.media_id,this.source[0]);
+        pl=Popcorn.vimeo("#"+this.id,this.source[0]);
     } else { alert("illegal type: "+this.media_type); }
 
 //this.date=new Date();

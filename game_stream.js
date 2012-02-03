@@ -4,7 +4,7 @@
     current board drawing accordingly. It kind of "hijacks" the board...
 */
 function GameStream(game_id,board,max_duration) {
-    this.game_id=game_id;
+    this.id=game_id;
     this.board=board;
     
     /* status information */
@@ -37,6 +37,9 @@ function GameStream(game_id,board,max_duration) {
     this._rgfpath=[];
     // current RGF parent node (equal to this._rgftree.descend(this._rgfpath))
     this._rgfnode=this._rgftree;
+
+    /* just for testing */
+    this.html=createBox(this.id+"_rgf","Current RGF Tree",500,500,10,600);
 };
 
 // Adds actions to the _action_list.
@@ -83,7 +86,7 @@ GameStream.prototype.queueActions=function(actions) {
     this.status.duration=(this.status.duration>0) ? this.status.duration : 0;
 
     // For testing:
-    $('div#'+this.game_id+"_rgftree").text(this.getRGF());
+    $('div#'+this.id+"_rgf").text(this.getRGF());
 };
 
 GameStream.prototype.getRGF = function() {

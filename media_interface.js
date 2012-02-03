@@ -3,19 +3,19 @@
     Defines the standard audio/video/control gui
 */
 function MediaInterface(interface_id) {
-    this.interface_id=interface_id;
+    this.id=interface_id;
     this.media_stream;
-    this.interface_element=this._initInterfaceElement(this.interface_id);
+    this.html=this._initHTML();
 }
 
 // to simplify selecting interface elements...
-MediaInterface.prototype.sel=function(s) { return $('div#'+this.interface_id+' .'+s); };
+MediaInterface.prototype.sel=function(s) { return $('div#'+this.id+' .'+s); };
 
-MediaInterface.prototype._initInterfaceElement=function(id) {
+MediaInterface.prototype._initHTML=function() {
     var el, container, singletype, gui, lvl1, lvl2, lvl3;
     /* jp-controls */
     el=document.createElement("div");
-    el.id=id;
+    el.id=this.id;
       container=document.createElement("div");
       container.className="jp-audio";
         singletype=document.createElement("div");
@@ -83,7 +83,7 @@ MediaInterface.prototype._initInterfaceElement=function(id) {
     return el;
 };
 
-MediaInterface.prototype.initMediaInterface=function(media_stream) {
+MediaInterface.prototype.init=function(media_stream) {
     this.media_stream=media_stream;
     this.media_stream.addInterface(this.updatedStatus.bind(this),this.updatedTime.bind(this));
     var self=this;

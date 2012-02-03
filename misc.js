@@ -9,7 +9,7 @@ function Action(time,name,arg,position) {
 function RGFNode(time) {
     this.properties=[];
     this.children=[];
-    this.position="";
+//    this.position="";
     this.time=(time==undefined || time==-1) ? -1 : time;
 };
 function RGFProperty(name,argument,time) {
@@ -19,16 +19,40 @@ function RGFProperty(name,argument,time) {
 };
 RGFNode.prototype.addNode=function(node) {
     this.children.push(node);
-    node.position=((this.position==="") ? "" : (this.position+"."))+(this.children.length-1);
+//    node.position=((this.position==="") ? "" : (this.position+"."))+(this.children.length-1);
     return node;
 }
 RGFNode.prototype.addProp=function(property) { this.properties.push(property); }
+
+/*  Old definition of position... */
 RGFNode.prototype.descend = function(path) {
     if (!path.length) return this;
     if (typeof path=='string') path=path.split('.');
     return this.children[path[0]].descend(path.slice(1));
 };
 
+/*  New definition of position, compatible with eidogo */
+/*  (I never tried this, it's probably buggy)
+RGFNode.prototype.descend = function(path) {
+    if (!path.length || (path.length==1 && path[0]==0)) {
+        return this;
+    } else if (path.length==1 && path.children.length==1 && path[0]>0) {
+        var newpath=path.slice(0);
+        newpath[0]--;
+        return this.children[0].descend(newpath);
+    } else if (path.length==1) {
+        alert("Illegal path!");
+        return this;
+    } else if (this.children.length==1) {
+        return this.children[0].descend(path);
+    } else if (path[0]>=0 && path[0]<this.children.length) {
+        return this.children[path[0]].descend(path.slice(1));
+    } else {
+        alert("Illegal path!");
+        return this;
+    }
+};
+*/
 
 // the following two functions are used to get stable sorting, which is needed
 function merge(left,right,comparison) {
@@ -89,96 +113,3 @@ function createBox(id,title,width,height,left,top) {
         el.appendChild(tmp);
     return el;
 };
-
-function BoardWidget(board_id) {
-/*  Go board internals/etc (should already exist)
-    Has no information about time...
-    Maybe also responsible for the drawing of the go board and/or variations (no idea)
-    This is just here for testing!
-*/
-    this.board_id=board_id;
-    this.board_element=this._initBoardElement(this.board_id);
-
-    /* for testing */
-    // current SGF tree/content
-    this._sgftree=new RGFNode();
-    // current SGF path
-    this._sgfpath=[];
-    // current SGF parent node (equal to this._sgftree.descend(this._sgfpath))
-    this._sgfnode=this._sgftree;
-};
-BoardWidget.prototype._initBoardElement=function(id) {
-    // only for testing at the moment
-    return createBox(id,"Current (pseudo) SGF tree",350,500,1160,10);
-};
-
-BoardWidget.prototype.apply=function(action) {
-    /* all this is for testing/demo */
-
-    // modify sgf tree
-    if (action.name=="KeyFrame") {
-        // temporary solution, since we didn't specify the KeyFrame format yet...
-        this._sgftree.children.length=0;
-        this._sgfpath=[];
-        this._sgfnode=this._sgftree;
-    } else {
-        if (action.position!=undefined) {
-            if (typeof action.position=='string') this._sgfpath=(action.position).split('.');
-            else this._sgfpath=action.position;
-            this._sgfnode=this._sgftree.descend(this._sgfpath);
-        }
-        // if a node is added
-        if (action.name[0]==";") {
-            this._sgfpath.push(this._sgfnode.children.length);
-            this._sgfnode=this._sgfnode.addNode(new RGFNode(action.time));
-            if (action.name==";") {
-            } else if (action.name==";B") {
-                this._sgfnode.addProp(new RGFProperty("B",action.arg,action.time));
-            } else if (action.name==";W") {
-                this._sgfnode.addProp(new RGFProperty("W",action.arg,action.time));
-            } else {
-                alert("Invalid node action: "+action.name);
-            }
-        // if a property is added
-        } else {
-            if (action.name!="VT") this._sgfnode.addProp(new RGFProperty(action.name,action.arg,action.time));
-        }
-    }
-    $('div#'+this.board_id).text(this.getSGF());
-};
-
-BoardWidget.prototype.getSGF = function() {
-    var output="";
-    if (!this._sgftree.children.length) {
-        output=";";
-    } else {
-        for (var i=0; i<this._sgftree.children.length; i++) {
-            output += "(\n";
-            output += this.getSGFSub("    ",this._sgftree.children[i]);
-            output += ")\n";
-        }
-    }
-    return output;
-};
-
-BoardWidget.prototype.getSGFSub = function(indent,node) {
-    var output=indent;
-    output += ";";
-    for (var i=0; i<node.properties.length; i++) {
-        output +=  node.properties[i].name + "[" + node.properties[i].argument + "]"
-    }
-    output += "\n";
-
-    if (!node.children.length) {
-    } else if (node.children.length==1) {
-        output += this.getSGFSub(indent,node.children[0]);
-    } else {
-        for (var i=0; i<node.children.length; i++) {
-            output += indent + "(\n";
-            output += this.getSGFSub(indent + "    ",node.children[i]);
-            output += indent + ")\n";
-        }
-    }
-    return output;
-};
-

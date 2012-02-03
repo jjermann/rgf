@@ -23,7 +23,7 @@ function DisplayGUI(base_id,sources,media_type,max_duration,width,height) {
 
     // Initialize the MediaStream and its interface(s)
     this.media_stream.initPlayer();
-    this.gui.initMediaInterface(this.media_stream);
+    this.media_interface.initMediaInterface(this.media_stream);
     this.media_stream.addInterface(this.game_stream.updatedStatus.bind(this.game_stream),this.game_stream.updatedTime.bind(this.game_stream));
     
     // Initialize the the starting Board position

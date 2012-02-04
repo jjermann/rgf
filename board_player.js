@@ -28,33 +28,14 @@ function BoardPlayer(board_id) {
         sgf:             ";",
         loadPath:        [0,0]
     };
-    this.html=this._initHTML();
 };
 
-BoardPlayer.prototype._initHTML=function() {
-    var el=document.createElement("div");
-    el.id=this.id;
-
-    /* Textbox to output the current pseudo SGF file */
-    var el_sgf=createBox(this.id+"_sgf","Current (pseudo) SGF tree",350,500,530,550);
-
-    /* Textbox to output the currently applied action list */
-    var el_actions=createBox(this.id+"_actions","Currently applied actions",540,500,900,550);
-    
-    /* A container for the Eidogo Player (to display the board). */
-    var el_eidogo = document.createElement("div");
-    el_eidogo.id = this.id+"_eidogo";
-    el_eidogo.style.position = "absolute";
-    el_eidogo.style.left = 640+"px";
-    el_eidogo.style.top = 10+"px";
-    el_eidogo.style.width = 431+"px";
-    el_eidogo.style.width = 431+"px";
-//    el_eidogo.style.overflow = "hidden";
-
-    el.appendChild(el_sgf);
-    el.appendChild(el_actions);
-    el.appendChild(el_eidogo);
-    return el;
+// Returns the html element for the board player
+BoardPlayer.prototype.html=function(style) {
+    var el_eidogo=document.createElement("div");
+    el_eidogo.id=this.id+"_eidogo";
+    extend(el_eidogo.style,style);
+    return el_eidogo;
 };
 
 BoardPlayer.prototype.init=function() {

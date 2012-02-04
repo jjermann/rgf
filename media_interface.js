@@ -5,13 +5,12 @@
 function MediaInterface(interface_id) {
     this.id=interface_id;
     this.media_stream;
-    this.html=this._initHTML();
 }
 
 // to simplify selecting interface elements...
 MediaInterface.prototype.sel=function(s) { return $('div#'+this.id+' .'+s); };
 
-MediaInterface.prototype._initHTML=function() {
+MediaInterface.prototype.html=function(style) {
     var el, container, singletype, gui, lvl1, lvl2, lvl3;
     /* jp-controls */
     el=document.createElement("div");
@@ -80,9 +79,7 @@ MediaInterface.prototype._initHTML=function() {
         container.appendChild(singletype);
       el.appendChild(container);
 
-    el.style.position="absolute";
-    el.style.left=644+"px";
-    el.style.top=440+"px";
+    extend(el.style,style);
     return el;
 };
 

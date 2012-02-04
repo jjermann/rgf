@@ -37,12 +37,8 @@ function GameStream(game_id,board,max_duration) {
     // current RGF parent node (equal to this._rgftree.descend(this._rgfpath))
     this._rgfnode=this._rgftree;
 
-    /* just for testing */
-    this.html=createBox(this.id+"_rgf","Current RGF Tree",500,500,10,550);
-    
     /* The first action is set here to be an "empty" KeyFrame. */
     this.queueActions([new Action(-2,"KeyFrame","",undefined)]);
-    
     // called outside of GameStream:
     // this.update(0);
 };

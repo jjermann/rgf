@@ -3,7 +3,7 @@
     Responsible for initializing Popcorn and getting the html body for the corresponding
     audio/video/control gui
 */
-function MediaStream(media_id,sources,media_type,max_duration,width,height) {
+function MediaStream(media_id,sources,media_type,max_duration) {
     this.id=media_id;
     
     /* fixed header informations */
@@ -11,23 +11,33 @@ function MediaStream(media_id,sources,media_type,max_duration,width,height) {
     this.media_type=media_type;
     // Array of sources, only 1 entry for "youtube", "vimeo", irrelevant for "none"
     this.source=sources;
-    // Media properties: width, height, duration
-    this.width=width;
-    this.height=height;
 
     this.status={
-        // either Infinity (stream) or a positive number (known_duration)
+        // If this is set all durationchanges are ignored and max_duration is used instead.
+        // Also this means that the stream_type will be set to "known_duration".
         set_duration: (max_duration>0),
         
         // options for updatedTime()
         currentTime: 0,
         seekable: false,
+        // For the interface: where we can maximally seek to
         seekEnd: 0,
         seekPercent: 0,
+        // For the interface: where we currently are in relative/absolute percentages
         currentPercentRelative: 0,
         currentPercentAbsolute: 0,
+        // If set_suration is not set, duration will be set initially in "canplay",
+        // until then it is set to 0 (which produces an error later if it is not changed)
         duration: (max_duration>0) ? max_duration : 0,
-        
+        /* 
+            This will be set later depending on the duration:
+            no_media         : The media was not found.
+            stream           : The media is a stream with "infinite duration"
+            unknown_duration : The media is not a stream but we do not know the duration.
+            known_duration   : (standard) The media has a known duration (might change later though)
+        */
+        stream_type: "",
+
         // options for updatedStatus()
         paused: true,
         muted: false,
@@ -35,22 +45,27 @@ function MediaStream(media_id,sources,media_type,max_duration,width,height) {
         verticalVolume: false,
         volume: 0.8,
         playbackRate: 1,
+        // This is set to true when we reached the end of the media
         ended: false,
-        ready: false
+        // This is set to true in "canplay"
+        ready: false,
+        // If true the fallback media should be loaded
+        failed: false
     };
 
-    // HTML element for this media stream
-    this.html=this._initHTML();
     // Popcorn instance
     this.player;
+    // used for fallback trigger "not_ready"
+    this.timeoutTime=5;
+    this.timeoutValue;
     // associated interfaces that need to be updated
     this.interfaces=[];
 }
 
 MediaStream.prototype.addInterface=function(updatedStatusFun,updatedTimeFun) {
     this.interfaces.push({
-        updatedStatus: updatedStatusFun,
-        updatedTime: updatedTimeFun
+        updatedStatus: (updatedStatusFun!=undefined) ? updatedStatusFun : function() {},
+        updatedTime: (updatedTimeFun!=undefined) ? updatedTimeFun : function() {}
     });
 };
 
@@ -66,7 +81,8 @@ MediaStream.prototype.convertTime = function(s) {
     return strHour + ":" + strMin + ":" + strSec;
 };
 
-MediaStream.prototype._initHTML=function() {
+// Returns the html element for media stream
+MediaStream.prototype.html=function(style) {
     var el, container;
     //el=document.createElement("div");
     //el.id=this.id;
@@ -74,8 +90,6 @@ MediaStream.prototype._initHTML=function() {
           container=document.createElement("div");
       } else if (this.media_type=="audio") {
           container=document.createElement("audio");
-          container.width=this.width;
-          container.height=this.height;
           for (var i=0; i<this.source.length; i++) {
               var src=document.createElement("source");
               src.src=this.source[i];
@@ -83,8 +97,6 @@ MediaStream.prototype._initHTML=function() {
           }
       } else if (this.media_type=="video") {
           container=document.createElement("video");
-          container.width=this.width;
-          container.height=this.height;
           for (var i=0; i<this.source.length; i++) {
               var src=document.createElement("source");
               src.src=this.source[i];
@@ -92,21 +104,20 @@ MediaStream.prototype._initHTML=function() {
           }
       } else if (this.media_type=="youtube") {
           container=document.createElement("div");
-          if (this.width!=null) container.style.width=this.width+"px";
-          if (this.height!=null) container.style.height=this.height+"px";
       } else if (this.media_type=="vimeo") {
           container=document.createElement("div");
-          if (this.width!=null) container.style.width=this.width+"px";
-          if (this.width!=null) container.style.height=this.height+"px";
-      } else { alert("illegal type: "+this.media_type); }
+      } else {
+          alert("illegal type: "+this.media_type);
+      }
       container.id=this.id;
+      extend(container.style,style);
       //container.className="jp-jplayer";
     //el.appendChild(container);
 
     return container;
 };
 
-// create a Popcorn instance, this needs the corresponding id (this.html) in the document first...
+// create a Popcorn instance, this needs the corresponding id (from this.html) in the document first...
 MediaStream.prototype.init=function() {
     var pl;
     var self=this;
@@ -123,6 +134,10 @@ MediaStream.prototype.init=function() {
     } else if (this.media_type=="vimeo") {
         pl=Popcorn.vimeo("#"+this.id,this.source[0]);
     } else { alert("illegal type: "+this.media_type); }
+
+    this.timeoutValue=setTimeout(function() {
+        if (!self.status.ready) self.player.trigger("not_ready");
+    },this.timeoutTime*1000);
 
 //this.date=new Date();
 //this.date_zero=this.date.getTime();
@@ -172,12 +187,15 @@ MediaStream.prototype.init=function() {
             this.trigger("timeupdate");
         }
     });
+    this.player.listen("not_ready", function() {
+        self.fallback();
+    });
 
     this.player.listen("timeupdate", function() {
         if (self.status.ready) {
             self.status.currentTime=this.currentTime();
             // TODO: seeking in stream?
-            if (self.stream_type!= "stream" && this.seekable() && this.seekable().length>0) {
+            if (self.status.stream_type!= "stream" && this.seekable() && this.seekable().length>0) {
                 self.status.seekable=true;
             } else {
                 self.status.seekable=false;
@@ -255,14 +273,35 @@ MediaStream.prototype.init=function() {
 MediaStream.prototype.streamtypeupdate = function(duration) {
     if (duration==0) {
         this.status.stream_type="no_media";
-        // TODO: load next fallback, resp. baseplayer
+        this.player.trigger("not_ready");
     } else if (duration!=duration) {
         this.status.stream_type="unknown_duration";
     } else if (duration===Infinity) {
         this.status.stream_type="stream";
     } else if (duration>0) {
         this.status.stream_type="known_duration";
-    } else alert("unknown stream type (?)");
+    } else {
+        // unknown stream type (?)
+        this.player.trigger("not_ready");
+    }
 
     return this.status.stream_type;
-}
+};
+
+MediaStream.prototype.fallback = function() {
+    clearTimeout(this.timeoutValue);
+    this.status.ready="false";
+    this.status.failed="true";
+    this.player.unlisten("play");
+    this.player.unlisten("pause");
+    this.player.unlisten("ended");
+    this.player.unlisten("canplay");
+    this.player.unlisten("not_ready");
+    this.player.unlisten("timeupdate");
+    this.player.unlisten("durationchange");
+    this.player.unlisten("volumechange");
+    
+    for (var i=0; i<this.interfaces.length; i++) {
+        this.interfaces[i].updatedStatus(this.status);
+    }
+};

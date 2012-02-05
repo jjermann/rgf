@@ -87,7 +87,7 @@ GameStream.prototype.queueActions=function(actions) {
     this.status.duration=(this.status.duration>0) ? this.status.duration : 0;
 
     // For testing:
-    $('div#'+this.id+"_rgf").text(this.getRGF());
+    $('div#'+this.id+"_rgf").text(this.writeRGF());
 };
 
 GameStream.prototype.writeRGF = function() {

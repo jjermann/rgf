@@ -187,7 +187,6 @@ MediaStream.prototype.init=function() {
         if (!self.status.ready) {
             self.status.ready=true;
             if (!self.status.set_duration) self.status.duration=this.duration();
-if (!self.status.set_duration) console.log(self.status.duration);
             self.streamtypeupdate(self.status.duration);
                 
             for (var i=0; i<self.interfaces.length; i++) {

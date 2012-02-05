@@ -3,19 +3,27 @@
     Responsible for initializing Popcorn and getting the html body for the corresponding
     audio/video/control gui
 */
-function MediaStream(media_id,sources,media_type,max_duration) {
+function MediaStream(media_id,ms_sources,duration) {
     this.id=media_id;
     
     /* fixed header informations */
     // none (no media), audio/video (audio video file/address), youtube, vimeo
-    this.media_type=media_type;
-    // Array of sources, only 1 entry for "youtube", "vimeo", irrelevant for "none"
-    this.source=sources;
+    if (ms_sources.length) {
+        this.media_type=ms_sources[0].type.split("/")[0];
+    } else {
+        this.media_type="none";
+    }
+    // Array of media stream source objects, only 1 entry for "youtube", "vimeo", irrelevant for "none"
+    // src:  the web/file/etc url for the source
+    // type: the html5 media type
+    this.sources=ms_sources;
 
     this.status={
         // If this is set all durationchanges are ignored and max_duration is used instead.
         // Also this means that the stream_type will be set to "known_duration".
-        set_duration: (max_duration>0),
+        set_duration: (this.media_type=="none"),
+        // we store the rgf duration in case we need to fallback to the baseplayer
+        rgf_duration: duration,
         
         // options for updatedTime()
         currentTime: 0,
@@ -28,7 +36,7 @@ function MediaStream(media_id,sources,media_type,max_duration) {
         currentPercentAbsolute: 0,
         // If set_suration is not set, duration will be set initially in "canplay",
         // until then it is set to 0 (which produces an error later if it is not changed)
-        duration: (max_duration>0) ? max_duration : 0,
+        duration: (this.media_type=="none") ? duration : 0,
         /* 
             This will be set later depending on the duration:
             no_media         : The media was not found.
@@ -55,7 +63,7 @@ function MediaStream(media_id,sources,media_type,max_duration) {
 
     // Popcorn instance
     this.player;
-    // used for fallback trigger "not_ready"
+    // used for fallback trigger "failed_loading"
     this.timeoutTime=5;
     this.timeoutValue;
     // associated interfaces that need to be updated
@@ -90,16 +98,16 @@ MediaStream.prototype.html=function(style) {
           container=document.createElement("div");
       } else if (this.media_type=="audio") {
           container=document.createElement("audio");
-          for (var i=0; i<this.source.length; i++) {
+          for (var i=0; i<this.sources.length; i++) {
               var src=document.createElement("source");
-              src.src=this.source[i];
+              src.src=this.sources[i].src;
               container.appendChild(src);
           }
       } else if (this.media_type=="video") {
           container=document.createElement("video");
-          for (var i=0; i<this.source.length; i++) {
+          for (var i=0; i<this.sources.length; i++) {
               var src=document.createElement("source");
-              src.src=this.source[i];
+              src.src=this.sources[i].src;
               container.appendChild(src);
           }
       } else if (this.media_type=="youtube") {
@@ -130,13 +138,13 @@ MediaStream.prototype.init=function() {
     } else if (this.media_type=="video") {
         pl=Popcorn("#"+this.id);
     } else if (this.media_type=="youtube") {
-        pl=Popcorn.youtube("#"+this.id,this.source[0]);
+        pl=Popcorn.youtube("#"+this.id,this.sources[0].src);
     } else if (this.media_type=="vimeo") {
-        pl=Popcorn.vimeo("#"+this.id,this.source[0]);
+        pl=Popcorn.vimeo("#"+this.id,this.sources[0].src);
     } else { alert("illegal type: "+this.media_type); }
 
     this.timeoutValue=setTimeout(function() {
-        if (!self.status.ready) self.player.trigger("not_ready");
+        if (!self.status.ready) self.player.trigger("failed_loading");
     },this.timeoutTime*1000);
 
 //this.date=new Date();
@@ -179,6 +187,7 @@ MediaStream.prototype.init=function() {
         if (!self.status.ready) {
             self.status.ready=true;
             if (!self.status.set_duration) self.status.duration=this.duration();
+if (!self.status.set_duration) console.log(self.status.duration);
             self.streamtypeupdate(self.status.duration);
                 
             for (var i=0; i<self.interfaces.length; i++) {
@@ -187,9 +196,7 @@ MediaStream.prototype.init=function() {
             this.trigger("timeupdate");
         }
     });
-    this.player.listen("not_ready", function() {
-        self.fallback();
-    });
+    this.player.listen("failed_loading", function() { self.fallback(); });
 
     this.player.listen("timeupdate", function() {
         if (self.status.ready) {
@@ -256,9 +263,14 @@ MediaStream.prototype.init=function() {
         self.player.trigger("canplay");
     }
     
+    // youtube is horribly broken
     if (this.media_type=="youtube" || this.media_type=="vimeo") {
         this.player.listen("canplaythrough", function() {
-            self.player.trigger("canplay");
+            setTimeout(function() {
+                self.player.pause();
+                self.player.currentTime(0);
+                self.player.trigger("canplay");
+            },1000);
         });
     }
     
@@ -273,7 +285,7 @@ MediaStream.prototype.init=function() {
 MediaStream.prototype.streamtypeupdate = function(duration) {
     if (duration==0) {
         this.status.stream_type="no_media";
-        this.player.trigger("not_ready");
+        this.player.trigger("failed_loading");
     } else if (duration!=duration) {
         this.status.stream_type="unknown_duration";
     } else if (duration===Infinity) {
@@ -282,7 +294,7 @@ MediaStream.prototype.streamtypeupdate = function(duration) {
         this.status.stream_type="known_duration";
     } else {
         // unknown stream type (?)
-        this.player.trigger("not_ready");
+        this.player.trigger("failed_loading");
     }
 
     return this.status.stream_type;
@@ -296,7 +308,7 @@ MediaStream.prototype.fallback = function() {
     this.player.unlisten("pause");
     this.player.unlisten("ended");
     this.player.unlisten("canplay");
-    this.player.unlisten("not_ready");
+    this.player.unlisten("failed_loading");
     this.player.unlisten("timeupdate");
     this.player.unlisten("durationchange");
     this.player.unlisten("volumechange");

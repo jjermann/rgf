@@ -1,4 +1,4 @@
-function DisplayGUI(base_id,sources,media_type,max_duration,dwidth,dheight) {
+function DisplayGUI(base_id,ms_sources,duration) {
     /*
        DisplayGUI:      ID
        MediaStream:     ID_media
@@ -14,8 +14,8 @@ function DisplayGUI(base_id,sources,media_type,max_duration,dwidth,dheight) {
     
     // create components
     this.board=new BoardPlayer(this.id+"_board");
-    this.game_stream=new GameStream(this.id+"_game",this.board,max_duration);
-    this.media_stream=new MediaStream(this.id+"_media_stream",sources,media_type,max_duration);
+    this.game_stream=new GameStream(this.id+"_game",this.board,duration);
+    this.media_stream=new MediaStream(this.id+"_media_stream",ms_sources,duration);
     this.media_interface=new MediaInterface(this.id+"_media_interface");
 
     // initialize the main HTML elements

@@ -6,7 +6,7 @@ function extend(from,to) {
 };
 
 function Action(time,name,arg,position) {
-    this.time=time;
+    this.time=+time;
     this.name=name;
     this.arg=arg;
     this.position=position;
@@ -18,20 +18,29 @@ function RGFNode(time) {
     this.children=[];
     this.parent=null;
     this.index=null;
-    this.time=(time==undefined || time==-1) ? -1 : time;
+    this.position="";
+    this.time=(time==undefined) ? -1 : +time;
 };
 function RGFProperty(name,argument,time) {
     this.name=name;
     this.argument=argument;
-    this.time=(time==undefined || time==-1) ? -1 : time;
+    this.time=(time==undefined) ? -1 : +time;
 };
 RGFNode.prototype.addNode=function(node) {
     node.parent=this;
     node.index=this.children.length;
+    if (this.parent==null) {
+        node.position=""+node.index;
+    } else {
+        node.position=this.position+"."+node.index;
+    }
     this.children.push(node);
     return node;
 }
-RGFNode.prototype.addProp=function(property) { this.properties.push(property); }
+RGFNode.prototype.addProp=function(property) {
+    this.properties.push(property);
+    return property;
+}
 
 /*  Old definition of position... */
 RGFNode.prototype.descend = function(path) {

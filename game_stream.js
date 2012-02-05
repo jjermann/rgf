@@ -90,37 +90,44 @@ GameStream.prototype.queueActions=function(actions) {
     $('div#'+this.id+"_rgf").text(this.getRGF());
 };
 
-GameStream.prototype.getRGF = function() {
-    var output="";
-    if (!this._rgftree.children.length) {
-        output=";TS[0]";
-    } else {
-        for (var i=0; i<this._rgftree.children.length; i++) {
-            output += "(\n";
-            output += this.getRGFSub("    ",this._rgftree.children[i]);
-            output += ")\n";
-        }
-    }
-    return output;
+GameStream.prototype.getRGF = function(indent,base_indent) {
+    return this.getRGFSub(this._rgftree,indent,base_indent);
 };
 
-GameStream.prototype.getRGFSub = function(indent,node) {
-    var output=indent;
-    output += ";" + ((node.time==-1) ? "" : "TS["+node.time+"] ");
-    for (var i=0; i<node.properties.length; i++) {
-        output +=  node.properties[i].name + "[" + node.properties[i].argument + "]"
-        output += (node.properties[i].time==-1) ? " " : "TS[" + node.properties[i].time + "] ";
-    }
-    output += "\n";
-    
-    if (!node.children.length) {
-    } else if (node.children.length==1) {
-        output += this.getRGFSub(indent,node.children[0]);
+GameStream.prototype.getRGFSub = function(node,indent,base_indent) {
+    var output;
+    if (indent==null) indent="    ";
+    if (base_indent==null) base_indent=indent;
+
+    if (node.parent==null) {
+        if (!node.children.length) {
+            output=";TS[0]";
+        } else {
+            output="";
+            for (var i=0; i<node.children.length; i++) {
+                output += "(\n";
+                output += this.getRGFSub(node.children[i],indent,base_indent);
+                output += ")\n";
+            }
+        }
     } else {
-        for (var i=0; i<node.children.length; i++) {
-            output += indent + "(\n";
-            output += this.getRGFSub(indent + "    ",node.children[i]);
-            output += indent + ")\n";
+        output=indent;
+        output += ";" + ((node.time==-1) ? "" : "TS["+node.time+"] ");
+        for (var i=0; i<node.properties.length; i++) {
+            output +=  node.properties[i].name + "[" + node.properties[i].argument + "]"
+            output += (node.properties[i].time==-1) ? " " : "TS[" + node.properties[i].time + "] ";
+        }
+        output += "\n";
+
+        if (!node.children.length) {
+        } else if (node.children.length==1) {
+            output += this.getRGFSub(node.children[0],indent,base_indent);
+        } else {
+            for (var i=0; i<node.children.length; i++) {
+                output += indent + "(\n";
+                output += this.getRGFSub(node.children[i],indent+base_indent,base_indent);
+                output += indent + ")\n";
+            }
         }
     }
     return output;

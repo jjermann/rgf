@@ -94,37 +94,43 @@ BoardPlayer.prototype.apply=function(action) {
 };
 
 BoardPlayer.prototype.getSGF = function() {
-    var output="";
-    if (!this._sgftree.children.length) {
-        output=";";
+    return output=this.getSGFSub(this._sgftree);
+};
+
+BoardPlayer.prototype.getSGFSub = function(node,indent,base_indent) {
+    var output;
+    if (indent==null) indent="    ";
+    if (base_indent==null) base_indent=indent;
+
+    if (node.parent==null) {
+        if (!node.children.length) {
+            output=";";
+        } else {
+            output="";
+            for (var i=0; i<node.children.length; i++) {
+                output += "(\n";
+                output += this.getSGFSub(node.children[i],indent,base_indent);
+                output += ")\n";
+            }
+        }
     } else {
-        for (var i=0; i<this._sgftree.children.length; i++) {
-            output += "(\n";
-            output += this.getSGFSub("    ",this._sgftree.children[i]);
-            output += ")\n";
+        output=indent;
+        output += ";";
+        for (var i=0; i<node.properties.length; i++) {
+            output +=  node.properties[i].name + "[" + node.properties[i].argument + "]"
+        }
+        output += "\n";
+
+        if (!node.children.length) {
+        } else if (node.children.length==1) {
+            output += this.getSGFSub(node.children[0],indent,base_indent);
+        } else {
+            for (var i=0; i<node.children.length; i++) {
+                output += indent + "(\n";
+                output += this.getSGFSub(node.children[i],indent+base_indent,base_indent);
+                output += indent + ")\n";
+            }
         }
     }
     return output;
 };
-
-BoardPlayer.prototype.getSGFSub = function(indent,node) {
-    var output=indent;
-    output += ";";
-    for (var i=0; i<node.properties.length; i++) {
-        output +=  node.properties[i].name + "[" + node.properties[i].argument + "]"
-    }
-    output += "\n";
-
-    if (!node.children.length) {
-    } else if (node.children.length==1) {
-        output += this.getSGFSub(indent,node.children[0]);
-    } else {
-        for (var i=0; i<node.children.length; i++) {
-            output += indent + "(\n";
-            output += this.getSGFSub(indent + "    ",node.children[i]);
-            output += indent + ")\n";
-        }
-    }
-    return output;
-};
-

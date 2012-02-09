@@ -1125,7 +1125,8 @@ eidogo.Player.prototype = {
             for (var i = 0; i < this.variations.length; i++) {
                 var varPt = this.sgfCoordToPoint(this.variations[i].move);
                 if (varPt.x == x && varPt.y == y) {
-                    this.variation(this.variations[i].varNum);
+                    // GAMESTREAM (removed for now)
+                    // this.variation(this.variations[i].varNum);
                     stopEvent(e);
                     return;
                 }
@@ -1141,7 +1142,9 @@ eidogo.Player.prototype = {
             while (node) {
                 if (node.getMove() == coord) {
                     path.push(mn);
-                    this.goTo(path);
+                    // GAMESTREAM (removed for now)
+                    // create a VT[N] action
+                    // this.goTo(path);
                     break;
                 }
                 mn++;
@@ -1160,10 +1163,12 @@ eidogo.Player.prototype = {
                 var nextMoves = this.cursor.getNextMoves();
                 if (nextMoves && coord in nextMoves) {
                     // move already exists
-                    this.variation(nextMoves[coord]);
+                    // GAMESTREAM
+                    // this.variation(nextMoves[coord]);
                 } else {
                     // move doesn't exist yet
-                    this.createMove(coord);
+                    // GAMESTREAM
+                    // this.createMove(coord);
                 }
             }
         } else if (this.mode == "region" && x >= -1 && y >= -1 && this.regionBegun) {
@@ -1211,30 +1216,35 @@ eidogo.Player.prototype = {
                     case "number":
                         prop = "LB";
                         coord = coord + ":" + this.labelLastNumber;
-                        this.labelLastNumber++;
+                        // GAMESTREAM: TODO
+                        // this.labelLastNumber++;
                         break;
                     case "letter":
                         prop = "LB";
                         coord = coord + ":" + this.labelLastLetter;
-                        this.labelLastLetter = String.fromCharCode(
-                            this.labelLastLetter.charCodeAt(0)+1);
+                        // GAMESTREAM: TODO
+                        // this.labelLastLetter = String.fromCharCode(
+                        //     this.labelLastLetter.charCodeAt(0)+1);
                         break;
                     case "label":
                         prop = "LB";
                         coord = coord + ":" + this.dom.labelInput.value;
                         break;
                     case "clear":
-                        this.cursor.node.deletePropertyValue(
-                            ['TR', 'SQ', 'CR', 'MA', 'DD', 'LB'], new RegExp("^" + coord));
+                        // GAMESTREAM
+                        // this.cursor.node.deletePropertyValue(
+                        //    ['TR', 'SQ', 'CR', 'MA', 'DD', 'LB'], new RegExp("^" + coord));
                         break;
                 }
                 if (this.cursor.node.hasPropertyValue(prop, coord)) {
-                    this.cursor.node.deletePropertyValue(prop, coord);
+                    // GAMESTREAM
+                    // this.cursor.node.deletePropertyValue(prop, coord);
                     prop = null;
                 }
             }
-            if (prop)
-                this.cursor.node.pushProperty(prop, coord);
+            // GAMESTREAM
+            // if (prop)
+            //     this.cursor.node.pushProperty(prop, coord);
             this.unsavedChanges = true;
             var deleted = this.checkForEmptyNode();
             this.refresh();
@@ -1643,6 +1653,17 @@ eidogo.Player.prototype = {
         this.variation(this.cursor.node._children.length-1);
     },
 
+    // GAMESTREAM
+    createNode: function() {
+        var varNode = new eidogo.GameNode(null, {});
+        varNode._cached = true;
+        this.totalMoves++;
+        this.cursor.node.appendChild(varNode);
+        this.unsavedChanges = [this.cursor.node._children.last(), this.cursor.node];
+        this.updatedNavTree = false;
+        this.variation(this.cursor.node._children.length-1);
+    },
+
     /**
      * Keyboard shortcut handling
     **/
@@ -1929,7 +1950,11 @@ eidogo.Player.prototype = {
             addEvent(
                 varNav,
                 "click",
-                function(e, arg) { arg.me.variation(arg.varNum); },
+                function(e, arg) {
+                    // GAMESTREAM: (NAV 1) This was not so easy to spot but still not the right place...
+                    // we still need to deactivate it though for the naviagtion button
+                    // arg.me.variation(arg.varNum);
+                },
                 {me: this, varNum: this.variations[i].varNum}
             );
             this.dom.variations.appendChild(varNav);
@@ -2289,6 +2314,7 @@ eidogo.Player.prototype = {
          ['optionSave',       'save'],
          ['commentsEditDone', 'finishEditComment'],
          ['gameInfoEditDone', 'finishEditGameInfo'],
+         // GAMESTREAM: (NAV 2) This was quite hard to spot but still the wrong place
          ['navTree',          'navTreeClick']
         ].forEach(function(eh) {
             if (this.dom[eh[0]]) onClick(this.dom[eh[0]], this[eh[1]], this);
@@ -2528,7 +2554,8 @@ eidogo.Player.prototype = {
         var target = e.target || e.srcElement;
         if (!target || !target.id) return;
         var path = target.id.replace(/^navtree-node-/, "").split("-");
-        this.goTo(path, true);
+        // GAMESTREAM: (NAV 3) this is finally the right spot!
+        // this.goTo(path, true);
         stopEvent(e);
     },
 

@@ -61,7 +61,8 @@ GameStream.prototype.queueActions=function(actions) {
         if (action.name=="KeyFrame") {
         } else {
             if (action.position!=undefined) {
-                if (typeof action.position=='string') this._rgfpath=(action.position).split('.');
+                if (action.position=="") this._rgfpath=[];
+                else if (typeof action.position=='string') this._rgfpath=(action.position).split('.');
                 else this._rgfpath=action.position;
                 this._rgfnode=this._rgftree.descend(this._rgfpath);
             }

@@ -40,43 +40,80 @@ BoardPlayer.prototype.html=function(style) {
 
 BoardPlayer.prototype.init=function() {
     this.eidogo_player = new eidogo.Player(this.eidogoConfig);
+    this.eidogo_player.loadSgf(this.eidogoConfig);
 };
 
 BoardPlayer.prototype.apply=function(action) {
+    // modify action list
     if (action.name=="KeyFrame") {
         $('div#'+this.id+"_actions").text("");
     }
     
-    // modify pseudo sgf tree
+    // modify pseudo sgf tree and apply eidogo stuff
     if (action.name=="KeyFrame") {
         // temporary solution, since we didn't specify the KeyFrame format yet...
         this._sgftree.children.length=0;
         this._sgfpath=[];
         this._sgfnode=this._sgftree;
+
+        // EIDOGO
+        this.eidogoConfig.sgf="";
+        this.eidogoConfig.loadPath=[0];
+        // this.eidogoConfig.sgf=new_sgf;
+        // this.eidogoConfig.loadPath=this._sgfnode.getEidogoPath();
+        this.eidogo_player.loadSgf(this.eidogoConfig);
     } else {
         if (action.position!=undefined) {
-            if (typeof action.position=='string') this._sgfpath=(action.position).split('.');
+            if (action.position=="") this._sgfpath=[];
+            else if (typeof action.position=='string') this._sgfpath=(action.position).split('.');
             else this._sgfpath=action.position;
             this._sgfnode=this._sgftree.descend(this._sgfpath);
+            
+            // EIDOGO
+            // unfortunately we need an accurate sgf representation to determine the eidogo path
+            this.eidogo_player.goTo(this._sgfnode.getEidogoPath());
         }
         // if a node is added
         if (action.name[0]==";") {
             this._sgfpath.push(this._sgfnode.children.length);
             this._sgfnode=this._sgfnode.addNode(new RGFNode(action.time));
+
+            // EIDOGO
+            this.eidogo_player.totalMoves++;
+            this.eidogo_player.cursor.node.appendChild(new eidogo.GameNode(null, {}));
+            this.eidogo_player.unsavedChanges = [this.eidogo_player.cursor.node._children.last(), this.eidogo_player.cursor.node];
+            this.eidogo_player.updatedNavTree = false;
+            this.eidogo_player.variation(this.eidogo_player.cursor.node._children.length-1);
+
             if (action.name==";") {
             } else if (action.name==";B") {
                 this._sgfnode.addProp(new RGFProperty("B",action.arg,action.time));
+
+                // EIDOGO
+                this.eidogo_player.cursor.node.pushProperty("B",action.arg);
             } else if (action.name==";W") {
                 this._sgfnode.addProp(new RGFProperty("W",action.arg,action.time));
+
+                // EIDOGO
+                this.eidogo_player.cursor.node.pushProperty("W",action.arg);
             } else {
                 alert("Invalid node action: "+action.name);
             }
         // if a property is added
         } else {
-            if (action.name!="VT") this._sgfnode.addProp(new RGFProperty(action.name,action.arg,action.time));
+            if (action.name!="VT") {
+                this._sgfnode.addProp(new RGFProperty(action.name,action.arg,action.time));
+
+                // EIDOGO
+                this.eidogo_player.cursor.node.pushProperty(action.name,action.arg);
+            }
         }
+        
+        // EIDOGO
+        this.eidogo_player.refresh();
     }
 
+    // demo output
     var new_actiontxt="board.apply({"
          + "time: " + ((action.time!==undefined)  ? (action.time)                               : "-1")
          + ((action.name!==undefined)             ? (", name: \"" + action.name +"\"")          :   "")
@@ -87,10 +124,6 @@ BoardPlayer.prototype.apply=function(action) {
     var new_sgf=this.getSGF();
     $('div#'+this.id+"_sgf").text(new_sgf);
     $('div#'+this.id+"_actions").append(document.createTextNode(new_actiontxt));
-
-    this.eidogoConfig.sgf=new_sgf;
-    this.eidogoConfig.loadPath=this._sgfnode.getEidogoPath();
-    this.eidogo_player.loadSgf(this.eidogoConfig);
 };
 
 BoardPlayer.prototype.getSGF = function() {

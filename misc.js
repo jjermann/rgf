@@ -6,7 +6,7 @@ function extend(from,to) {
 };
 
 function Action(time,name,arg,position) {
-    this.time=+time;
+    this.time=time;
     this.name=name;
     this.arg=arg;
     this.position=position;
@@ -45,6 +45,7 @@ RGFNode.prototype.addProp=function(property) {
 /*  Old definition of position... */
 RGFNode.prototype.descend = function(path) {
     if (!path.length) return this;
+    if (path=="") path=[];
     if (typeof path=='string') path=path.split('.');
     return this.children[path[0]].descend(path.slice(1));
 };

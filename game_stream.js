@@ -122,6 +122,8 @@ GameStream.prototype.insertAction=function(action) {
         // NOWTODO: maybe we want to clearly distinguish between queuing and inserting (not done yet here)!!
         // But in that case we would have to update this._last_* and this.status.duration too!
         this.queueTimedActions([action]);
+        // we should also inform the board...
+        this.update(this.status.time);
         return true;
     }
 

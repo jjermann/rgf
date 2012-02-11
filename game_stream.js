@@ -99,10 +99,11 @@ GameStream.prototype.queueTimedActions=function(actions) {
         // set the node for the action
         new_action.node=new_node;
 
-        // update the last postion and node
+        // update the last postion and node, the same happens in insertAction (at the end)!
         this._last_rgfpath=new_path;
         this._last_rgfnode=new_node;
     }
+    // the same happens in insertAction (at the end)!
     if (this._action_list.length) this.status.duration=this._action_list[this._action_list.length-1].time;
     this.status.duration=(this.status.duration>0) ? this.status.duration : 0;
 
@@ -117,14 +118,6 @@ GameStream.prototype.insertAction=function(action) {
     if (this.status.time_index===0 && action.name!="KeyFrame") {
         alert("The first Action must be a KeyFrame!");
         return false;
-    }
-    if (this.status.time_index==this._action_list.length) {
-        // NOWTODO: maybe we want to clearly distinguish between queuing and inserting (not done yet here)!!
-        // But in that case we would have to update this._last_* and this.status.duration too!
-        this.queueTimedActions([action]);
-        // we should also inform the board...
-        this.update(this.status.time);
-        return true;
     }
 
     // determine the new position and node
@@ -149,10 +142,12 @@ GameStream.prototype.insertAction=function(action) {
         }
     }
     // For simplicity we force that the action has to have an as of yet unused time.
-    if (this._action_list.length>0 && action.time==this._action_list[this.status.time_index].time) {
+    // Note that this.status.time_index points to the action right after "this" action and
+    // this.status.time_index-1 points to the action right before "this" action...
+    if (this.status.time_index<this._action_list.length && action.time>=this._action_list[this.status.time_index].time) {
         return false;
     }
-    if (this.status.time_index<this._action_list.length && action.time==this._action_list[this.status.time_index].time) {
+    if (this.status.time_index>0 && action.time<=this._action_list[this.status.time_index-1].time) {
         return false;
     }
     
@@ -193,6 +188,15 @@ GameStream.prototype.insertAction=function(action) {
     // set the node for the action
     new_action.node=new_node;
     
+    // In case we are changing the end of the action list: update the duration status
+    // and the last rgf path/node accordingly. The same happens in queueActions (at the end)!
+    if (this.status.time_index==this._action_list.length) {
+        this._last_rgfpath=new_path;
+        this._last_rgfnode=new_node;
+        if (this._action_list.length) this.status.duration=this._action_list[this._action_list.length-1].time;
+        this.status.duration=(this.status.duration>0) ? this.status.duration : 0;
+    }
+
     // For testing:
     $('div#'+this.id+"_rgf").text(this.writeRGF());
 

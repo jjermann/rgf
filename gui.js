@@ -40,7 +40,10 @@ function DisplayGUI(base_id,ms_sources,duration) {
     document.body.appendChild(this.media_interface.html({
         position: "absolute",
         left:     "654px",
-        top:      "434px"
+//        top:      "434px"
+        top:      "471px"
+//          left:     "1080px",
+//          top:      "8px"
     }));
 
     /* Textbox to output the current RGF tree */
@@ -48,7 +51,7 @@ function DisplayGUI(base_id,ms_sources,duration) {
         position: "absolute",
         width:    "640px",
         height:   "500px",
-        top:      "530px",
+        top:      "560px",
         left:     "4px"
     }));
     /* Textbox to output the current pseudo SGF file */
@@ -56,7 +59,7 @@ function DisplayGUI(base_id,ms_sources,duration) {
         position: "absolute",
         width:    "422px",
         height:   "500px",
-        top:      "530px",   
+        top:      "560px",   
         left:     "650px"
     }));
     /* Textbox to output the currently applied action list */
@@ -64,13 +67,14 @@ function DisplayGUI(base_id,ms_sources,duration) {
         position: "absolute",
         width:    "382px",
         height:   "500px",
-        top:      "530px",   
+        top:      "560px",   
         left:     "1078px"
     }));
 
 
 
     // initialize all components
+    this.board.eidogoConfig.GS_insertAction=this.game_stream.insertAction.bind(this.game_stream);
     this.board.init();
     this.media_stream.init();
     this.media_interface.init(this.media_stream);

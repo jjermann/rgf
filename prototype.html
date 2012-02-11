@@ -11,9 +11,7 @@
 -->
     <script type="text/javascript" src="js/jquery-1.7.1.js"></script>
     <script type="text/javascript" src="js/popcorn-complete.js"></script>
-<!--
-    <script type="text/javascript" src="player/js/all.compressed.js"></script>
--->
+
     <script type="text/javascript" src="player/js/lang.js"></script>
     <script type="text/javascript" src="player/js/eidogo.js"></script>
     <script type="text/javascript" src="player/js/util.js"></script>
@@ -26,7 +24,6 @@
     <script type="text/javascript" src="player/js/init.js"></script>
 
     <script type="text/javascript" src="data.js"></script>
-
     <script type="text/javascript" src="misc.js"></script>
     <script type="text/javascript" src="rgfparser.js"></script>
     <script type="text/javascript" src="board_player.js"></script>
@@ -57,7 +54,7 @@
              example.duration
          );
          var parser=new RGFParser(example.rgf);
-         display_gui.game_stream.queueActions(parser.action_list);
+         display_gui.game_stream.queueTimedActions(parser.action_list);
 
 
       }, false);

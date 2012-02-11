@@ -10,12 +10,12 @@ function BoardPlayer(board_id) {
     // Eidogo Player (initialized later)
     this.eidogo_player;
     this.eidogoConfig = {
-//        theme:          "compact", // "standard" or "compact"
+        theme:          "standard", // "standard" or "compact"
         mode:           "play", // "play" or "view"
         showComments:    true,
         showPlayerInfo:  false,
-        showGameInfo:    false,
-        showTools:       false,
+        showGameInfo:    true,
+        showTools:       true,
         showOptions:     false,
         showNavTree:     true,
         markCurrent:     true,
@@ -26,7 +26,7 @@ function BoardPlayer(board_id) {
         
         container:       this.id+"_eidogo",
         sgf:             ";",
-        loadPath:        [0,0]
+        loadPath:        [0,0],
     };
 };
 

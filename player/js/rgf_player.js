@@ -52,6 +52,9 @@ eidogo.Player.prototype = {
     
         cfg = cfg || {};
         
+        // add gamestream hooks to eidogo
+        this.GS_insertAction = cfg.GS_insertAction ? cfg.GS_insertAction : function(action) { }
+
         // play, add_b, add_w, region, tr, sq, cr, label, number, score(?)
         this.mode = cfg.mode ? cfg.mode : "play";
     
@@ -1169,6 +1172,9 @@ eidogo.Player.prototype = {
                     // move doesn't exist yet
                     // GAMESTREAM
                     // this.createMove(coord);
+                    // GS
+//                    this.GS_insertAction({name: ";"});
+                    this.GS_insertAction({name: ";"+this.currentColor, arg: coord});
                 }
             }
         } else if (this.mode == "region" && x >= -1 && y >= -1 && this.regionBegun) {
@@ -1245,6 +1251,9 @@ eidogo.Player.prototype = {
             // GAMESTREAM
             // if (prop)
             //     this.cursor.node.pushProperty(prop, coord);
+            // GS
+            if (prop) this.GS_insertAction({name: prop, arg: coord});
+
             this.unsavedChanges = true;
             var deleted = this.checkForEmptyNode();
             this.refresh();

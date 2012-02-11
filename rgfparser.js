@@ -111,15 +111,15 @@ RGFParser.prototype.curChar=function() {
 RGFParser.prototype._getUnsortedActions=function(node) {
     var actions=[];
     if (node.parent==null && !node.children.length) {
-        actions=[new Action(0,";",node.position)];
+        actions=[{time:0, name:";", arg:"", arg:node.position}];
         return actions;
     } else if (node.parent!=null) {
-        // We use the argument of the node creation action to store the node position (used later, see below)
-        actions.push(new Action(node.time,";",node.position,node.parent.position));
+        // We store the node position temporarly in _node_pos (used later, see below)
+        actions.push({time:node.time, name:";", arg:"", position:node.parent.position, _node_pos:node.position});
     }
 
     for (var i=0; i<node.properties.length; i++) {
-        actions.push(new Action(node.properties[i].time,node.properties[i].name,node.properties[i].argument,node.position));
+        actions.push({time:node.properties[i].time, name:node.properties[i].name, arg:node.properties[i].argument, position:node.position});
     }
     for (var i=0; i<node.children.length; i++) {
         actions=actions.concat(this._getUnsortedActions(node.children[i]));
@@ -134,8 +134,8 @@ RGFParser.prototype.getActions=function(action_list) {
     for (var i=0; i<actions.length; i++) {
         if (actions[i].name==";") {
             if (actions[i].position==last_position) delete actions[i].position;
-            last_position=actions[i].arg;
-            actions[i].arg="";
+            last_position=actions[i]._node_pos;
+            delete actions[i]._node_pos;
         } else {
             if (actions[i].position==last_position) delete actions[i].position;
             else last_position=actions[i].position;

@@ -7,6 +7,18 @@ function GameStream(game_id,board,max_duration) {
     this.id=game_id;
     this.board=board;
     
+    /* List of all KeyFrames:
+       A KeyFrame describes how to get the whole current SGF tree and the current position.
+       So a keyframe action at a certain time has to have a position argument corresponding
+       to the now current position (note that the position is equal to the last position if it exists).
+       The resulting SGF tree must be identical to the one we get by successively applying actions.
+    */
+    this._keyframe_list=[];
+    // list of all actions
+    this._action_list=[];
+    // RGF tree/content
+    this._rgftree=new RGFNode();
+
     /* status information */
     this.status = {
         // current game stream time
@@ -22,30 +34,26 @@ function GameStream(game_id,board,max_duration) {
         waiting:false,
         ended:false
     }
-
-    /* List of all KeyFrames:
-       A KeyFrame describes how to get the whole current SGF tree.
-       The resulting SGF tree must be identical to the one we get by successively applying actions.
-    */
-    this._keyframe_list=[];
-    // list of all actions
-    this._action_list=[];
-    // current RGF tree/content
-    this._rgftree=new RGFNode();
-    // current RGF path
+    
+    /* internal status */
+    // current rgf position
     this._rgfpath=[];
-    // current RGF parent node (equal to this._rgftree.descend(this._rgfpath))
+    // current rgf node (equal to this._rgftree.descend(this._rgfpath))
     this._rgfnode=this._rgftree;
+    // the last position from _action_list
+    this._last_rgfpath=[];
+    // the last node from _action_list (equal to this._rgftree.descend(this._last_rgfpath))
+    this._last_rgfnode=this._rgftree;
 
     /* The first action is set here to be an "empty" KeyFrame. */
-    this.queueActions([new Action(-2,"KeyFrame","",undefined)]);
+    this.queueTimedActions([{time:-2, name:"KeyFrame", arg:"", position:[]}]);
     // called outside of GameStream:
     // this.update(0);
 };
 
-// Adds actions to the _action_list.
+// Adds timed actions to the end of _action_list. This is independant of the current time/position.
 // TODO: be more flexible with "initial" time, resp. the start of the _action_list...
-GameStream.prototype.queueActions=function(actions) {
+GameStream.prototype.queueTimedActions=function(actions) {
     if (this._action_list.length && this._action_list[0].name!="KeyFrame") alert("The first Action must be a KeyFrame!");
     for(var i=0;i<actions.length;i++) {
         var action = actions[i];
@@ -53,42 +61,138 @@ GameStream.prototype.queueActions=function(actions) {
         // modify action list
         if (action.name=="KeyFrame") {
             this._keyframe_list.push(this._action_list.length);
-            // TODO: parse the KeyFrame?
         }
-        this._action_list.push(new Action(action.time, action.name, action.arg, action.position));
+        var new_action={time:action.time, name:action.name, arg:action.arg, position:action.position};
+        this._action_list.push(new_action);
+
+        // determine the new position and node
+        var new_path=this._last_rgfpath;
+        var new_node=this._last_rgfnode;
+        if (action.position!=undefined) {
+            if (action.position=="") new_path=[];
+            else if (typeof action.position=='string') new_path=(action.position).split('.');
+            else new_path=action.position;
+            new_node=this._rgftree.descend(new_path);
+        }
 
         // modify rgf tree
         if (action.name=="KeyFrame") {
         } else {
-            if (action.position!=undefined) {
-                if (action.position=="") this._rgfpath=[];
-                else if (typeof action.position=='string') this._rgfpath=(action.position).split('.');
-                else this._rgfpath=action.position;
-                this._rgfnode=this._rgftree.descend(this._rgfpath);
-            }
             // if a node is added
             if (action.name[0]==";") {
-                this._rgfpath.push(this._rgfnode.children.length);
-                this._rgfnode=this._rgfnode.addNode(new RGFNode(action.time));
+                new_path.push(new_node.children.length);
+                new_node=new_node.addNode(new RGFNode(action.time));
                 if (action.name==";") {
                 } else if (action.name==";B") {
-                    this._rgfnode.addProp(new RGFProperty("B",action.arg,action.time));
+                    new_node.addProp(new RGFProperty("B",action.arg,action.time));
                 } else if (action.name==";W") {
-                    this._rgfnode.addProp(new RGFProperty("W",action.arg,action.time));
+                    new_node.addProp(new RGFProperty("W",action.arg,action.time));
                 } else {
                     alert("Invalid node action: "+action.name);
                 }
             // if a property is added
             } else {
-                this._rgfnode.addProp(new RGFProperty(action.name,action.arg,action.time));
+                new_node.addProp(new RGFProperty(action.name,action.arg,action.time));
             }
         }
+        
+        // set the node for the action
+        new_action.node=new_node;
+
+        // update the last postion and node
+        this._last_rgfpath=new_path;
+        this._last_rgfnode=new_node;
     }
     if (this._action_list.length) this.status.duration=this._action_list[this._action_list.length-1].time;
     this.status.duration=(this.status.duration>0) ? this.status.duration : 0;
 
     // For testing:
     $('div#'+this.id+"_rgf").text(this.writeRGF());
+};
+
+// Adds an action at the current time index if possible, return false if not.
+GameStream.prototype.insertAction=function(action) {
+    action.time=this.status.time;
+
+    if (this.status.time_index===0 && action.name!="KeyFrame") {
+        alert("The first Action must be a KeyFrame!");
+        return false;
+    }
+    if (this.status.time_index==this._action_list.length) {
+        // NOWTODO: maybe we want to clearly distinguish between queuing and inserting (not done yet here)!!
+        // But in that case we would have to update this._last_* and this.status.duration too!
+        this.queueTimedActions([action]);
+        return true;
+    }
+
+    // determine the new position and node
+    var new_path=this._rgfpath;
+    var new_node=this._rgfnode;
+    if (action.position!=undefined) {
+        if (action.position=="") new_path=[];
+        else if (typeof action.position=='string') new_path=(action.position).split('.');
+        else new_path=action.position;
+        new_node=this._rgftree.descend(new_path);
+    }
+
+    // Check if the insertion is "valid"! If not: return false
+    // For simplicity we force that the action has to have an as of yet unused time and that it is the
+    // last action (time-wise) of the current node...
+    if (action.name[0]==";") {
+        if (new_node.time>=action.time) return false;
+    } else {
+        if (new_node.children.length>0 && new_node.children[new_node.children.length-1].time>=action.time) return false;
+    }   
+    if (this._action_list.length>0 && action.time==this._action_list[this.status.time_index].time) {
+        return false;
+    }
+    if (this.status.time_index<this._action_list.length && action.time==this._action_list[this.status.time_index].time) {
+        return false;
+    }
+    
+    // since we insert a property inbetween we have to update the keyframe list accordingly
+    for (var i=this.status.last_keyframe_index+1;i<this._keyframe_list.length; i++) {
+        this._keyframe_list[i]++;
+    }
+    
+    // modify action list
+    if (action.name=="KeyFrame") {
+        this._keyframe_list.splice(this.status.last_keyframe_index+1,0,this.status.time_index);
+        // TODO: parse the KeyFrame?
+    }
+    var new_action={time:action.time, name:action.name, arg:action.arg, position:action.position};
+    this._action_list.splice(this.status.time_index,0,new_action);
+
+    // modify/update rgf tree
+    if (action.name=="KeyFrame") {
+    } else {
+        // if a node is added
+        if (action.name[0]==";") {
+            new_path.push(new_node.children.length);
+            new_node=new_node.addNode(new RGFNode(action.time));
+            if (action.name==";") {
+            } else if (action.name==";B") {
+                new_node.addProp(new RGFProperty("B",action.arg,action.time));
+            } else if (action.name==";W") {
+                new_node.addProp(new RGFProperty("W",action.arg,action.time));
+            } else {
+                alert("Invalid node action: "+action.name);
+            }
+        // if a property is added
+        } else {
+            new_node.addProp(new RGFProperty(action.name,action.arg,action.time));
+        }
+    }
+
+    // set the node for the action
+    new_action.node=new_node;
+    
+    // For testing:
+    $('div#'+this.id+"_rgf").text(this.writeRGF());
+
+    // only here the status and internal status is updated
+    this.update(this.status.time);
+    return true;
 };
 
 GameStream.prototype.writeRGF = function() {
@@ -140,18 +244,26 @@ GameStream.prototype._advanceTo = function(next_time) {
        If we reached the final game stream time we update the status accordingly. */
 
     while (this.status.time_index<this._action_list.length && this._action_list[this.status.time_index].time<=next_time) {
+        var action=this._action_list[this.status.time_index];
+
         /*  Since the SGFtree given by a KeyFrame should be _exactly_ identical to the SGFtree given by applying
             all actions up to that point, we don't need to apply the Keyframe here...
             Also note that the position argument has to remain valid throughout the game stream.
             I.e. it should always correspond to the position in the RGF tree.
             So the length of arrays in the tree may only increase and deleted indices may not be used
             again for new purposes (because the RGF tree behaves that way). */
-        if (this._action_list[this.status.time_index].name!="KeyFrame") {
-            this.board.apply(this._action_list[this.status.time_index]);
+        if (action.name!="KeyFrame") {
+            this.board.apply(action);
         } else if (this.status.time_index==0) {
             // ok, we apply the very first keyframe...
-            this.board.apply(this._action_list[this.status.time_index]);
+            this.board.apply(action);
         }
+
+        // update the current node position, the current node and the current time index
+        this._rgfnode=action.node;
+        if (action.node.position=="") this._rgfpath=[];
+        else if (typeof action.node.position=='string') this._rgfpath=(action.node.position).split('.');
+        else this._rgfpath=action.node.position;
         this.status.time_index++;
     }
 
@@ -178,7 +290,15 @@ GameStream.prototype._reverseTo = function(next_time) {
     // apply all actions up to next_time (a reduced version of advanceTo)
     // note that the first action is applying the KeyFrame...
     while (this.status.time_index<this._action_list.length && this._action_list[this.status.time_index].time<=next_time) {
-        this.board.apply(this._action_list[this.status.time_index]);
+        var action=this._action_list[this.status.time_index];
+
+        this.board.apply(action);
+
+        // update the current node position, the current node and the current time index
+        this._rgfnode=action.node;
+        if (action.node.position=="") this._rgfpath=[];
+        else if (typeof action.node.position=='string') this._rgfpath=(action.node.position).split('.');
+        else this._rgfpath=action.node.position;
         this.status.time_index++;
     }
 };

@@ -5,13 +5,6 @@ function extend(from,to) {
     return from;
 };
 
-function Action(time,name,arg,position) {
-    this.time=time;
-    this.name=name;
-    this.arg=arg;
-    this.position=position;
-};
-
 /*  Tree stuff */
 function RGFNode(time) {
     this.properties=[];

@@ -1,6 +1,7 @@
-/* This should already exist! So all content is for testing only... */
+/* This should already exist! So _all_ content is for testing only... */
 function BoardPlayer(board_id) {
     this.id=board_id;
+    
     // current SGF tree/content, note that this is just a "pseudo" SGF tree
     this._sgftree=new RGFNode();
     // current SGF path

@@ -135,14 +135,18 @@ GameStream.prototype.insertAction=function(action) {
         new_node=this._rgftree.descend(new_path);
     }
 
-    // Check if the insertion is "valid"! If not: return false
-    // For simplicity we force that the action has to have an as of yet unused time and that it is the
-    // last action (time-wise) of the current node...
-    if (action.name[0]==";") {
-        if (new_node.time>=action.time) return false;
-    } else {
-        if (new_node.children.length>0 && new_node.children[new_node.children.length-1].time>=action.time) return false;
-    }   
+    // If board_player knows what he is doing he can force an insertion...
+    if (!action.force) {
+        // ... Otherwise we make sure that the action doesn't influence any already existing future actions
+        // and return false if that was the case.
+        // if (new_node.time>=action.time) return false;
+        if (action.name[0]==";") {
+            if (new_node.children.length && new_node.children[new_node.children.length-1].time>=action.time) return false;
+        } else {
+            if (new_node.getDuration()>=action.time) return false;
+        }
+    }
+    // For simplicity we force that the action has to have an as of yet unused time.
     if (this._action_list.length>0 && action.time==this._action_list[this.status.time_index].time) {
         return false;
     }

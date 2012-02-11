@@ -43,6 +43,17 @@ RGFNode.prototype.descend = function(path) {
     return this.children[path[0]].descend(path.slice(1));
 };
 
+RGFNode.prototype.getDuration=function() {
+    var duration=this.time;
+    if (this.properties.length) duration=(this.properties[this.properties.length-1].time>duration) ? this.properties[this.properties.length-1].time : duration;
+    
+    for (var i=0; i<this.children.length; i++) {
+        duration=Math.max(duration,this.children[i].getDuration());
+    }
+    
+    return duration;
+}
+
 /*  needed to get eidogo's position. */
 RGFNode.prototype.getEidogoPath = function() {
     var n = this,

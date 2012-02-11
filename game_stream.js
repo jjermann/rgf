@@ -200,7 +200,10 @@ GameStream.prototype.insertAction=function(action) {
 };
 
 GameStream.prototype.writeRGF = function() {
-    return RGFParser.writeRGF(this._rgftree);
+    var output=RGFParser.writeRGF(this._rgftree);
+    // TODO: maybe make this check somewhere else
+    if (output=="") output=";TS[0]";
+    return output;
 };
 
 GameStream.prototype.updatedStatus = function(newstatus) {
@@ -208,44 +211,29 @@ GameStream.prototype.updatedStatus = function(newstatus) {
 };
 
 GameStream.prototype.updatedTime = function(newstatus) {
-    var next_time=newstatus.currentTime;
-    // we only update the internal (this.status.time) clock if we still
-    // have actions to process resp. if the "game stream" is
-    // ahead of the "current time"
-    if (next_time<=this.status.duration) {
-        if (this.status.waiting) {
-            this.status.waiting=false;
-        }
-        this.update(next_time);
-    } else if (this.status.ended) {
-        this.update(next_time);
-    } else {
-        next_time=this.status.duration;
-        this.update(next_time);
-        // we should tell the media stream to react appropriately, e.g. pause?
-        // it should furthermore give some hint to the user and continue playing
-        // once it caught up...
-        // otherwise the "media stream" and "game stream" get out of sync...
-        if (!this.status.waiting && !this.status.ended) {
-            this.status.waiting=true;
-        }
-    }
+    // TODO: maybe more happens depending on the new status...
+    this.update(newstatus.currentTime);
 };
 
 GameStream.prototype.update = function(next_time) {
     if (next_time>=this.status.time) {
         this._advanceTo(next_time);
-        this.status.time=next_time;
     } else {
         this._reverseTo(next_time);
-        this.status.time=next_time;
     }
+
+    // maybe the GS is past (or equal to) its final time in which case it has ended.
+    if (this.status.time>=this.status.max_duration) this.status.ended=true;
+    else this.status.ended=false;
+    // maybe the GS is behind the media stream but still has not ended
+    // in which case we are "waiting" for recording commands...
+    if (this.status.time<=this.status.duration || this.status.ended) this.status.waiting=false;
+    else this.status.waiting=true;
 };
 
 GameStream.prototype._advanceTo = function(next_time) {
     /* Applies all actions from the current time_index (resp. this.status.time) up to next_time.
-       The last_keyframe_index is also updated.
-       If we reached the final game stream time we update the status accordingly. */
+       The last_keyframe_index is also updated. */
 
     while (this.status.time_index<this._action_list.length && this._action_list[this.status.time_index].time<=next_time) {
         var action=this._action_list[this.status.time_index];
@@ -275,8 +263,7 @@ GameStream.prototype._advanceTo = function(next_time) {
         this.status.last_keyframe_index++;
     }
     this.status.last_keyframe_index--;
-
-    if (next_time>=this.status.max_duration) this.status.ended=true;
+    this.status.time=next_time;
 };
 
 GameStream.prototype._reverseTo = function(next_time) {
@@ -305,4 +292,5 @@ GameStream.prototype._reverseTo = function(next_time) {
         else this._rgfpath=action.node.position;
         this.status.time_index++;
     }
+    this.status.time=next_time;
 };

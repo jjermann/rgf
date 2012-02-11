@@ -127,7 +127,10 @@ BoardPlayer.prototype.apply=function(action) {
 };
 
 BoardPlayer.prototype.getSGF = function() {
-    return output=this.getSGFSub(this._sgftree);
+    var output=this.getSGFSub(this._sgftree);
+    // TODO: maybe make this check somewhere else
+    if (output=="") output=";";
+    return output;
 };
 
 BoardPlayer.prototype.getSGFSub = function(node,indent,base_indent) {
@@ -136,10 +139,10 @@ BoardPlayer.prototype.getSGFSub = function(node,indent,base_indent) {
     if (base_indent==null) base_indent=indent;
 
     if (node.parent==null) {
+        output="";
         if (!node.children.length) {
-            output=";";
+            // Someone else should check for output=="" then and react approrpiately
         } else {
-            output="";
             for (var i=0; i<node.children.length; i++) {
                 output += "(\n";
                 output += this.getSGFSub(node.children[i],indent,base_indent);

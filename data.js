@@ -1,6 +1,5 @@
 /* Alexander Dinerchtein giving a go lecture */
-
-dinerchtein=new Object;
+dinerchtein=new Object();
 dinerchtein.id="dinerchtein";
 dinerchtein.rgf ="(" + "\n";
 dinerchtein.rgf+="    ;TS[20]    B[cp]TS[20]" + "\n";
@@ -104,7 +103,18 @@ vimeo.ms=[{
 /* baseplayer */
 baseplayer=new Object();
 baseplayer.id="baseplayer";
-baseplayer=new Object();
 baseplayer.rgf=";TS[3]W[aa]TS[3] ;TS[10]B[ee]TS[10] ;TS[12]W[ab]TS[12] VT[ENDED]TS[20]";
 baseplayer.duration=20;
 baseplayer.ms=[];
+
+
+/* For recording of: Alexander Dinerchtein giving a go lecture */
+rec_dinerchtein=new Object();
+rec_dinerchtein.id="rec_dinerchtein";
+rec_dinerchtein.rgf="";
+rec_dinerchtein.duration=Infinity;
+
+rec_dinerchtein.ms=[{
+    src:  "example/lecture.ogv",
+    type: "video/ogg"
+}];

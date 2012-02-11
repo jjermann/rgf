@@ -12,10 +12,12 @@ it should work as is for any game. Other games are not officially supported
 so far though. If you are interested whether it can be made to work
 for other games then please contact me.
 
-Each added RGF file is referenced in a game-info node in the SGF file which
-also  contains all of its "header" information, stored in two new properties
-named "GS" (game stream) and "MS" (media stream). See below for a more
-detailed specification. We call such a node a game stream node.
+Each added RGF file is referenced in a game-info node in the SGF file
+by the property "GS" (for game stream).
+We call such a node a game stream node.
+
+If media streams are present they are referenced by the property "MS"
+(for media stream). See below for a more detailed specification.
 
 The syntax of an RGF file is very similar to the SGF syntax but it is not
 strictly backwards compatible to SGF. The (main) SGF file remains valid
@@ -41,11 +43,11 @@ The recorded "game stream" of the RGF reflects a time-accurate recording of
 all performed "actions" during the recording. Hence it is not intended to be
 changed after its creation (it is not strictly forbidden either though).
 
-If a media stream is present it MUST start at time 0.
+If a media stream is present in a game stream node then it MUST start at time 0.
 
 The RGF file describes how to get an "SGF content" for an arbitrary time of
-the recording. It is recommended to add the initial and/or final SGF file
-at the corresponding game stream node.
+the recording. It is recommended to use the "GD" property (see below) to
+store the initial and/or final SGF content in the SGF file.
 
 If additional variations are added later they should be added outside the
 game stream since they are most probably not part of the recording and use
@@ -63,18 +65,17 @@ GS[RGF_FILE:DURATION]: Defines this to be a game stream node.
     The RGF_FILE <string> is the file name of the correspond RGF file.
     The DURATION <double> is the DURATION of the "game stream".
     It MUST be equal to the last timestamp of the RGF (see below).
+    If media streams are present DURATION SHOULD be smaller than all
+    durations of the media streams.
 
-MS[SOURCE:TYPE]...[SOURCE:TYPE]: Specifies a list of media streams
-    associated to the game stream. SOURCE <string> may be a local file
-    (also stored in the .rgt file) or a web address.
+MS[SOURCE:TYPE]...[SOURCE:TYPE]: Specifies a list of media streams.
+    SOURCE <string> may be a local file (also stored in the .rgt file)
+    or a web address.
 
     TYPE <string> could be a HTML5 video type of the SOURCE (i.e. "audio/type"
     or "video/type") or just "audio" resp. "video" (base types). Another
     possible (base) type is "youtube" or "vimeo" in case SOURCE is a youtube
     or vimeo link. Two base TYPES SHOULD NOT be mixed (in the list).
-
-    The duration of all SOURCES SHOULD be bigger than the DURATION of the
-    game stream. This is a strong recommendation.
 
 GD[RGF_FILE:TIME]: Defines this to be the SGF content corresponding to the
     game stream given by the file name RGF_FILE <string> at time TIME <double>.

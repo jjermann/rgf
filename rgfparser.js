@@ -111,7 +111,6 @@ RGFParser.prototype.curChar=function() {
 RGFParser.prototype._getUnsortedActions=function(node) {
     var actions=[];
     if (node.parent==null && !node.children.length) {
-        actions=[{time:0, name:";", arg:"", arg:node.position}];
         return actions;
     } else if (node.parent!=null) {
         // We store the node position temporarly in _node_pos (used later, see below)
@@ -154,10 +153,11 @@ RGFParser.writeRGF = function(node,indent,base_indent) {
     if (base_indent==null) base_indent=indent;
 
     if (node.parent==null) {
+        output="";
         if (!node.children.length) {
-            output=";TS[0]";
+            // Someone else should check for output=="" then and react approrpiately (e.g. by not creating a game stream)
+            // Note that if we create an rgf _file_ it necessarily has to contain a timestamp to be valid! 
         } else {
-            output="";
             for (var i=0; i<node.children.length; i++) {
                 output += "(\n"; 
                 output += RGFParser.writeRGF(node.children[i],indent,base_indent);

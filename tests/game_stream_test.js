@@ -1,9 +1,16 @@
 // mock board
-function MockBoard() { };
-MockBoard.prototype.apply=function(action) { };
+function MockBoard() {
+    // just for testing
+    this.applied_actions=[];
+};
+MockBoard.prototype.apply=function(action) {
+    // just for testing
+    this.applied_actions.push(action);
+};
 MockBoard.prototype.insertActionIntoGS;
 
 
+// initializing board and game stream...
 var board=new MockBoard();
 var duration=20;
 var game_stream=new GameStream("test1",board,duration);
@@ -18,11 +25,13 @@ var initial_status={
     waiting:false,
     ended:false
 };
+// how the intial keyframe should be
+var initial_keyframe={time: -2, name: "KeyFrame", arg:"",position:[],node:game_stream._rgftree};
 
 
 module("GameStream (before update)");
 test("Internal GameStream properties", function(){
-    deepEqual(game_stream._action_list,[{time: -2, name: "KeyFrame", arg:"",position:[],node:game_stream._rgftree}],"The Action List consists of one KeyFrame.");
+    deepEqual(game_stream._action_list,[initial_keyframe],"The Action List consists of one KeyFrame.");
     deepEqual(game_stream._keyframe_list,[0],"The KeyFrame List has one entry pointing to the first KeyFrame in the ActionList.");
     deepEqual(game_stream._rgftree,new RGFNode(),"The rgf tree is an empty root node (without parent).");
     deepEqual(game_stream._rgfpath,[],"The current path points to the root node.");
@@ -41,19 +50,21 @@ test("GameStream status", function(){
 });
 
 
-module("");
+module("GameStream (init and update)");
 test("Creating a hook for the board to call gamestream's insertAction function...", function(){
     board.insertActionIntoGS=game_stream.insertAction.bind(game_stream);
 });
 test("Updating the GameStream to time 0...", function(){
     game_stream.update(0);
+    deepEqual(board.applied_actions,[initial_keyframe],"board.apply should have been called once with the initial keyframe.");
+    board.applied_actions=[];
 });
 
 
 module("GameStream (after update)");
 test("Internal GameStream properties", function(){
     // all properties remain the same
-    deepEqual(game_stream._action_list,[{time: -2, name: "KeyFrame", arg:"",position:[],node:game_stream._rgftree}],"The Action List consists of one KeyFrame.");
+    deepEqual(game_stream._action_list,[initial_keyframe],"The Action List consists of one KeyFrame.");
     deepEqual(game_stream._keyframe_list,[0],"The KeyFrame List has one entry pointing to the first KeyFrame in the ActionList.");
     deepEqual(game_stream._rgftree,new RGFNode(),"The rgf tree is an empty root node (without parent).");
     deepEqual(game_stream._rgfpath,[],"The current path points to the root node.");
@@ -61,7 +72,7 @@ test("Internal GameStream properties", function(){
     deepEqual(game_stream._last_rgfpath,[],"The last path points to the root node.");
     deepEqual(game_stream._last_rgfnode,game_stream._rgftree,"The last node is the root node.");
 });
-test("Initial GameStream status (after the update)", function(){
+test("GameStream status (after the update)", function(){
     var updated_status=initial_status;
     // only the time index changed
     updated_status.time_index=1;

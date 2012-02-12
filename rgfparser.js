@@ -4,6 +4,9 @@ function RGFParser(rgf) {
     this.rgftree=new RGFNode();
     this._parseTree(this.rgftree);
     this.action_list=RGFParser.getActions(this.rgftree);
+    if (this.action_list.length) {
+        this.duration=this.action_list[this.action_list.length-1].time;
+    }
 };
 
 RGFParser.prototype._parseTree = function(curnode) {

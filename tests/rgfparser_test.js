@@ -1,5 +1,5 @@
 // variables
-var rgf, rgfparser;
+var rgf, rgfparser, max_duration;
 
 
 // Empty rgf parsing
@@ -11,11 +11,13 @@ module("Empty rgf parsing", {
     teardown: function() {
         rgf=undefined;
         rgfparser=undefined;
+        max_duration=undefined;
     }
 });
 test("Basic RGFParser properties", function(){
     equal(rgfparser.rgf, rgf, "RGF Content (rgfparser.rgf): "+rgfparser.rgf);
-    equal(rgfparser.index,  0, "Character index after parsing (rgfparser.index): "+rgfparser.index);
+    equal(rgfparser.index, 0, "Character index after parsing (rgfparser.index): "+rgfparser.index);
+    equal(rgfparser.duration, undefined, "Maximal time of all actions (rgfparser.duration): "+ ((rgfparser.duration==undefined) ? "undefined" : rgfparser.duration));
 });
 test("RGF Tree", function(){
     var root=new RGFNode();
@@ -44,14 +46,18 @@ module("Simple RGF tree parsing", {
     setup: function() {
         rgf=";B[aa]VT[N]TS[49]VT[ENDED]TS[50](;W[bb]VT[N]TS[19];TS[20]B[dd]TS[20])(;W[bc]AB[ef][fg]VT[N]TS[29]AW[cd]TS[30]AB[gh]TS[40])";
         rgfparser=new RGFParser(rgf);
+        max_duration=50;
     },
     teardown: function() {
+        rgf=undefined;
         rgfparser=undefined;
+        max_duration=undefined;
     }
 });
 test("Basic RGFParser properties", function(){
     equal(rgfparser.rgf, rgf, "RGF Content (rgfparser.rgf): "+rgfparser.rgf);
     equal(rgfparser.index, rgf.length, "Character index after parsing (rgfparser.index): "+rgfparser.index);
+    equal(rgfparser.duration, max_duration, "Maximal time of all actions (rgfparser.duration): "+ ((rgfparser.duration==undefined) ? "undefined" : rgfparser.duration));
 });
 test("RGF Tree", function(){
     // here we construct the tree manually

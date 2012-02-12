@@ -26,17 +26,17 @@ test("RGF Tree", function(){
 test("Action List", function(){
     var unsorted_actions=[];
     var sorted_actions=[];
-    deepEqual(RGFParser._getUnsortedActions(rgfparser.rgftree),unsorted_actions, "Step 1: Unsorted Action List created by rgfparser._getUnsortedActions(rgfparser.rgftree), it contains temporary node position information");
-    deepEqual(RGFParser._sortActions(RGFParser._getUnsortedActions(rgfparser.rgftree)),sorted_actions, "Step 2: Sorted Action List created by rgfparser._sortActions(<result from above>), it uses the temporary information and removes it");
-    deepEqual(rgfparser.action_list,sorted_actions, "Step 3: The Action List created by rgfparser.getActions(rgfparser.rgftree), it should be the same as <result from above> => (rgfparser.action_list): "+rgfparser.action_list);
+    deepEqual(rgfparser.rgftree._getUnsortedActions(),unsorted_actions, "Step 1: Unsorted Action List created by rgfparser._getUnsortedActions(rgfparser.rgftree), it contains temporary node position information");
+    deepEqual(RGFNode._sortActions(rgfparser.rgftree._getUnsortedActions()),sorted_actions, "Step 2: Sorted Action List created by rgfparser._sortActions(<result from above>), it uses the temporary information and removes it");
+    deepEqual(rgfparser.action_list,sorted_actions, "Step 3: The Action List created by rgfparser.rgftree.getActions(), it should be the same as <result from above> => (rgfparser.action_list): "+rgfparser.action_list);
 });
 test("Writing RGF", function(){
-    equal(RGFParser.writeRGF(rgfparser.rgftree),"", "Generated RGF file, with standard indentations, created by RGFParser.writeRGF(rgfparser.rgftree): "+RGFParser.writeRGF(rgfparser.rgftree));
-    equal(RGFParser.writeRGF(rgfparser.rgftree,"  ","  "),"", "Generated RGF file, with 2 indentations, created by RGFParser.writeRGF(rgfparser.rgftree,\"<2 spaces>\",\"<2 spaces>\"): "+RGFParser.writeRGF(rgfparser.rgftree,"  ","  "));
-    equal(RGFParser.writeRGF(rgfparser.rgftree,"",""),"", "Generated RGF file, without indentations, created by RGFParser.writeRGF(rgfparser.rgftree,\"\",\"\"): "+RGFParser.writeRGF(rgfparser.rgftree,"",""));
+    equal(rgfparser.rgftree.writeRGF(),"", "Generated RGF file, with standard indentations, created by rgfparser.rgftree.writeRGF(): "+rgfparser.rgftree.writeRGF());
+    equal(rgfparser.rgftree.writeRGF("  "),"", "Generated RGF file, with 2 indentations, created by rgfparser.rgftree.writeRGF(\"<2 spaces>\"): "+rgfparser.rgftree.writeRGF("  "));
+    equal(rgfparser.rgftree.writeRGF(""),"", "Generated RGF file, without indentations, created by rgfparser.rgftree.writeRGF(\"\"): "+rgfparser.rgftree.writeRGF(""));
 });
 test("Consistency", function(){
-    var new_rgfparser=new RGFParser(RGFParser.writeRGF(rgfparser.rgftree));
+    var new_rgfparser=new RGFParser(rgfparser.rgftree.writeRGF());
     deepEqual(rgfparser.rgftree,new_rgfparser.rgftree,"The generated RGF should give the same tree as the original one...");
 });
 
@@ -118,9 +118,9 @@ test("Action List", function(){
     sorted_actions.push(   {time:  49, name: "VT", arg:     "N", position: "0"     } );
     sorted_actions.push(   {time:  50, name: "VT", arg: "ENDED"                    } );
 
-    deepEqual(RGFParser._getUnsortedActions(rgfparser.rgftree),unsorted_actions, "Step 1: Unsorted Action List created by rgfparser._getUnsortedActions(rgfparser.rgftree), it contains temporary node position information");
-    deepEqual(RGFParser._sortActions(RGFParser._getUnsortedActions(rgfparser.rgftree)),sorted_actions, "Step 2: Sorted Action List created by rgfparser._sortActions(<result from above>), it uses the temporary information and removes it");
-    deepEqual(rgfparser.action_list,sorted_actions, "Step 3: The Action List created by rgfparser.getActions(rgfparser.rgftree), it should be the same as <result from above> => (rgfparser.action_list): "+rgfparser.action_list);
+    deepEqual(rgfparser.rgftree._getUnsortedActions(),unsorted_actions, "Step 1: Unsorted Action List created by rgfparser.rgftree._getUnsortedActions(), it contains temporary node position information");
+    deepEqual(RGFNode._sortActions(rgfparser.rgftree._getUnsortedActions()),sorted_actions, "Step 2: Sorted Action List created by rgfparser._sortActions(<result from above>), it uses the temporary information and removes it");
+    deepEqual(rgfparser.action_list,sorted_actions, "Step 3: The Action List created by rgfparser.rgftree.getActions(), it should be the same as <result from above> => (rgfparser.action_list): "+rgfparser.action_list);
 });
 test("Writing RGF", function(){
     final_rgf="";
@@ -135,11 +135,11 @@ test("Writing RGF", function(){
     final_rgf+="    )" + "\n";
     final_rgf+=")"+"\n";
 
-    equal(RGFParser.writeRGF(rgfparser.rgftree),final_rgf, "Generated RGF file, with standard indentations, created by RGFParser.writeRGF(rgfparser.rgftree): "+RGFParser.writeRGF(rgfparser.rgftree));
-    //equal(RGFParser.writeRGF(rgfparser.rgftree,"  ","  "),"", "Generated RGF file, with 2 indentations, created by RGFParser.writeRGF(rgfparser.rgftree,\"<2 spaces>\",\"<2 spaces>\"): "+RGFParser.writeRGF(rgfparser.rgftree,"  ","  "));
-    //equal(RGFParser.writeRGF(rgfparser.rgftree,"",""),"", "Generated RGF file, without indentations, created by RGFParser.writeRGF(rgfparser.rgftree,\"\",\"\"): "+RGFParser.writeRGF(rgfparser.rgftree,"",""));
+    equal(rgfparser.rgftree.writeRGF(),final_rgf, "Generated RGF file, with standard indentations, created by rgfparser.rgftree.writeRGF(): "+rgfparser.rgftree.writeRGF());
+    //equal(rgfparser.rgftree.writeRGF(),final_rgf, "Generated RGF file, with 2 spaced indentations, created by rgfparser.rgftree.writeRGF(\"<2 spaces>\"): "+rgfparser.rgftree.writeRGF("  "));
+    //equal(rgfparser.rgftree.writeRGF(),final_rgf, "Generated RGF file, without indentations, created by rgfparser.rgftree.writeRGF(\"\"): "+rgfparser.rgftree.writeRGF(""));
 });
 test("Consistency", function(){
-    var new_rgfparser=new RGFParser(RGFParser.writeRGF(rgfparser.rgftree));
+    var new_rgfparser=new RGFParser(rgfparser.rgftree.writeRGF());
     ok(_.isEqual(rgfparser.rgftree,new_rgfparser.rgftree),"The generated RGF should give the same tree as the original one...");
 });

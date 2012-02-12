@@ -3,7 +3,7 @@ function RGFParser(rgf) {
     this.index=0;
     this.rgftree=new RGFNode();
     this._parseTree(this.rgftree);
-    this.action_list=RGFParser.getActions(this.rgftree);
+    this.action_list=this.rgftree.getActions();
     if (this.action_list.length) {
         this.duration=this.action_list[this.action_list.length-1].time;
     }
@@ -109,91 +109,5 @@ RGFParser.prototype._parseProperties = function(node) {
 
 RGFParser.prototype._curChar = function() {
     return this.rgf.charAt(this.index);
-};
-
-RGFParser._getUnsortedActions = function(node) {
-    var actions=[];
-    if (node.parent==null && !node.children.length) {
-        return actions;
-    } else if (node.parent!=null) {
-        // We store the node position temporarly in _node_pos (used later, see below)
-        actions.push({time:node.time, name:";", arg:"", position:node.parent.position, _node_pos:node.position});
-    }
-
-    for (var i=0; i<node.properties.length; i++) {
-        actions.push({time:node.properties[i].time, name:node.properties[i].name, arg:node.properties[i].argument, position:node.position});
-    }
-    for (var i=0; i<node.children.length; i++) {
-        actions=actions.concat(this._getUnsortedActions(node.children[i]));
-    }
-    return actions;
-};
-
-RGFParser._sortActions = function(action_list) {
-    var actions=merge_sort(action_list,function(a, b) {return a.time - b.time});
-    var last_position="";
-
-    for (var i=0; i<actions.length; i++) {
-        if (actions[i].name==";") {
-            if (actions[i].position==last_position) delete actions[i].position;
-            last_position=actions[i]._node_pos;
-            delete actions[i]._node_pos;
-        } else {
-            if (actions[i].position==last_position) delete actions[i].position;
-            else last_position=actions[i].position;
-        }
-    }
-    return actions;
-};
-
-RGFParser.getActions = function(node) {
-    return RGFParser._sortActions(RGFParser._getUnsortedActions(node));
-};
-
-RGFParser.writeRGF = function(node,indent,base_indent) {
-    var output;
-    if (indent==null) indent="    ";
-    if (base_indent==null) base_indent=indent;
-
-    if (node.parent==null) {
-        output="";
-        if (!node.children.length) {
-            // Someone else should check for output=="" then and react approrpiately (e.g. by not creating a game stream)
-            // Note that if we create an rgf _file_ it necessarily has to contain a timestamp to be valid! 
-        } else {
-            for (var i=0; i<node.children.length; i++) {
-                output += "(\n"; 
-                output += RGFParser.writeRGF(node.children[i],indent,base_indent);
-                output += ")\n";
-            }
-        }
-    } else {
-        var last_propname=undefined;
-        output=indent;
-        output += ";" + ((node.time==-1) ? "" : "TS["+node.time+"] ");
-        for (var i=0; i<node.properties.length; i++) {
-            if (node.properties[i].time==-1 && node.properties[i].name===last_propname) {
-                output=output.slice(0, -1);
-                output += "[" + node.properties[i].argument + "]";
-            } else {
-                last_propname=node.properties[i].name;
-                output +=  node.properties[i].name + "[" + node.properties[i].argument + "]";
-                output += (node.properties[i].time==-1) ? " " : "TS[" + node.properties[i].time + "] ";
-            }
-        }
-        output += "\n";
-
-        if (!node.children.length) {
-        } else if (node.children.length==1) {
-            output += RGFParser.writeRGF(node.children[0],indent,base_indent);
-        } else {
-            for (var i=0; i<node.children.length; i++) {
-                output += indent + "(\n";
-                output += RGFParser.writeRGF(node.children[i],indent+base_indent,base_indent);
-                output += indent + ")\n";
-            }
-        }
-    }
-    return output;
 };
 

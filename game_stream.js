@@ -205,8 +205,8 @@ GameStream.prototype.insertAction=function(action) {
     return true;
 };
 
-GameStream.prototype.writeRGF = function() {
-    var output=RGFParser.writeRGF(this._rgftree);
+GameStream.prototype.writeRGF = function(node,base) {
+    var output=this._rgftree.writeRGF(node,base);
     // TODO: maybe make this check somewhere else
     if (output=="") output=";TS[0]";
     return output;

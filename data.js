@@ -103,8 +103,8 @@ vimeo.ms=[{
 /* baseplayer */
 baseplayer=new Object();
 baseplayer.id="baseplayer";
-baseplayer.rgf=";TS[3]W[aa]TS[3] ;TS[10]B[ee]TS[10] ;TS[12]W[ab]TS[12] VT[ENDED]TS[20]";
-baseplayer.duration=20;
+baseplayer.rgf=";B[aa]VT[N]TS[4.9]VT[ENDED]TS[5](;W[bb]VT[N]TS[1.9];TS[2]B[dd]TS[2])(;W[bc]AB[ef][fg]VT[N]TS[2.9]AW[cd]TS[3]AB[gh]TS[4])";
+baseplayer.duration=5;
 baseplayer.ms=[];
 
 

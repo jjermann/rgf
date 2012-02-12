@@ -42,7 +42,7 @@ test("Consistency", function(){
 // Empty rgf parsing
 module("Simple RGF tree parsing", {
     setup: function() {
-        rgf=";B[aa]VT[N]TS[4.9]VT[ENDED]TS[5](;W[bb]VT[N]TS[1.9];TS[2]B[dd]TS[2])(;W[bc]AB[ef][fg]VT[N]TS[2.9]AW[cd]TS[3]AB[gh]TS[4])";
+        rgf=";B[aa]VT[N]TS[49]VT[ENDED]TS[50](;W[bb]VT[N]TS[19];TS[20]B[dd]TS[20])(;W[bc]AB[ef][fg]VT[N]TS[29]AW[cd]TS[30]AB[gh]TS[40])";
         rgfparser=new RGFParser(rgf);
     },
     teardown: function() {
@@ -60,18 +60,18 @@ test("RGF Tree", function(){
         root.children[0].addProp(new RGFProperty("B","aa"));
         root.children[0].addNode(new RGFNode());
             root.children[0].children[0].addProp(new RGFProperty("W","bb"));
-            root.children[0].children[0].addProp(new RGFProperty("VT","N",1.9));
-            root.children[0].children[0].addNode(new RGFNode(2));
-                root.children[0].children[0].children[0].addProp(new RGFProperty("B","dd",2));
+            root.children[0].children[0].addProp(new RGFProperty("VT","N",19));
+            root.children[0].children[0].addNode(new RGFNode(20));
+                root.children[0].children[0].children[0].addProp(new RGFProperty("B","dd",20));
         root.children[0].addNode(new RGFNode());
             root.children[0].children[1].addProp(new RGFProperty("W","bc"))
             root.children[0].children[1].addProp(new RGFProperty("AB","ef"))
             root.children[0].children[1].addProp(new RGFProperty("AB","fg"))
-            root.children[0].children[1].addProp(new RGFProperty("VT","N",2.9));
-            root.children[0].children[1].addProp(new RGFProperty("AW","cd",3))
-            root.children[0].children[1].addProp(new RGFProperty("AB","gh",4))
-        root.children[0].addProp(new RGFProperty("VT","N",4.9));
-        root.children[0].addProp(new RGFProperty("VT","ENDED",5));
+            root.children[0].children[1].addProp(new RGFProperty("VT","N",29));
+            root.children[0].children[1].addProp(new RGFProperty("AW","cd",30))
+            root.children[0].children[1].addProp(new RGFProperty("AB","gh",40))
+        root.children[0].addProp(new RGFProperty("VT","N",49));
+        root.children[0].addProp(new RGFProperty("VT","ENDED",50));
     ok(_.isEqual(rgfparser.rgftree,root), "RGF Tree created by rgfparser._parseTree(new RGFNode()) based on rgfparser.rgf => (rgfparser.rgftree)");
 });
 test("Action List", function(){
@@ -79,20 +79,20 @@ test("Action List", function(){
     var unsorted_actions=[];
     unsorted_actions.push( {time:  -1, name:  ";", arg:      "", position: "",     _node_pos: "0"     } );
     unsorted_actions.push( {time:  -1, name:  "B", arg:    "aa", position: "0"                        } );
-    unsorted_actions.push( {time: 4.9, name: "VT", arg:     "N", position: "0"                        } );
-    unsorted_actions.push( {time:   5, name: "VT", arg: "ENDED", position: "0"                        } );
+    unsorted_actions.push( {time:  49, name: "VT", arg:     "N", position: "0"                        } );
+    unsorted_actions.push( {time:  50, name: "VT", arg: "ENDED", position: "0"                        } );
     unsorted_actions.push( {time:  -1, name:  ";", arg:      "", position: "0",    _node_pos: "0.0"   } );
     unsorted_actions.push( {time:  -1, name:  "W", arg:    "bb", position: "0.0"                      } );
-    unsorted_actions.push( {time: 1.9, name: "VT", arg:     "N", position: "0.0"                      } );
-    unsorted_actions.push( {time:   2, name:  ";", arg:      "", position: "0.0",  _node_pos: "0.0.0" } );
-    unsorted_actions.push( {time:   2, name:  "B", arg:    "dd", position: "0.0.0"                    } );
+    unsorted_actions.push( {time:  19, name: "VT", arg:     "N", position: "0.0"                      } );
+    unsorted_actions.push( {time:  20, name:  ";", arg:      "", position: "0.0",  _node_pos: "0.0.0" } );
+    unsorted_actions.push( {time:  20, name:  "B", arg:    "dd", position: "0.0.0"                    } );
     unsorted_actions.push( {time:  -1, name:  ";", arg:      "", position: "0",    _node_pos: "0.1"   } );
     unsorted_actions.push( {time:  -1, name:  "W", arg:    "bc", position: "0.1"                      } );
     unsorted_actions.push( {time:  -1, name: "AB", arg:    "ef", position: "0.1"                      } );
     unsorted_actions.push( {time:  -1, name: "AB", arg:    "fg", position: "0.1"                      } );
-    unsorted_actions.push( {time: 2.9, name: "VT", arg:     "N", position: "0.1"                      } );
-    unsorted_actions.push( {time:   3, name: "AW", arg:    "cd", position: "0.1"                      } );
-    unsorted_actions.push( {time:   4, name: "AB", arg:    "gh", position: "0.1"                      } );
+    unsorted_actions.push( {time:  29, name: "VT", arg:     "N", position: "0.1"                      } );
+    unsorted_actions.push( {time:  30, name: "AW", arg:    "cd", position: "0.1"                      } );
+    unsorted_actions.push( {time:  40, name: "AB", arg:    "gh", position: "0.1"                      } );
 
     var sorted_actions=[];
     sorted_actions.push(   {time:  -1, name:  ";", arg:      ""                    } );
@@ -103,14 +103,14 @@ test("Action List", function(){
     sorted_actions.push(   {time:  -1, name:  "W", arg:    "bc"                    } );
     sorted_actions.push(   {time:  -1, name: "AB", arg:    "ef"                    } );
     sorted_actions.push(   {time:  -1, name: "AB", arg:    "fg"                    } );
-    sorted_actions.push(   {time: 1.9, name: "VT", arg:     "N", position: "0.0"   } );
-    sorted_actions.push(   {time:   2, name:  ";", arg:      ""                    } );
-    sorted_actions.push(   {time:   2, name:  "B", arg:    "dd"                    } );
-    sorted_actions.push(   {time: 2.9, name: "VT", arg:     "N", position: "0.1"   } );
-    sorted_actions.push(   {time:   3, name: "AW", arg:    "cd"                    } );
-    sorted_actions.push(   {time:   4, name: "AB", arg:    "gh"                    } );
-    sorted_actions.push(   {time: 4.9, name: "VT", arg:     "N", position: "0"     } );
-    sorted_actions.push(   {time:   5, name: "VT", arg: "ENDED"                    } );
+    sorted_actions.push(   {time:  19, name: "VT", arg:     "N", position: "0.0"   } );
+    sorted_actions.push(   {time:  20, name:  ";", arg:      ""                    } );
+    sorted_actions.push(   {time:  20, name:  "B", arg:    "dd"                    } );
+    sorted_actions.push(   {time:  29, name: "VT", arg:     "N", position: "0.1"   } );
+    sorted_actions.push(   {time:  30, name: "AW", arg:    "cd"                    } );
+    sorted_actions.push(   {time:  40, name: "AB", arg:    "gh"                    } );
+    sorted_actions.push(   {time:  49, name: "VT", arg:     "N", position: "0"     } );
+    sorted_actions.push(   {time:  50, name: "VT", arg: "ENDED"                    } );
 
     deepEqual(RGFParser._getUnsortedActions(rgfparser.rgftree),unsorted_actions, "Step 1: Unsorted Action List created by rgfparser._getUnsortedActions(rgfparser.rgftree), it contains temporary node position information");
     deepEqual(RGFParser._sortActions(RGFParser._getUnsortedActions(rgfparser.rgftree)),sorted_actions, "Step 2: Sorted Action List created by rgfparser._sortActions(<result from above>), it uses the temporary information and removes it");
@@ -119,13 +119,13 @@ test("Action List", function(){
 test("Writing RGF", function(){
     final_rgf="";
     final_rgf+="("+"\n";
-    final_rgf+="    ;B[aa] VT[N]TS[4.9] VT[ENDED]TS[5]" + " \n";
+    final_rgf+="    ;B[aa] VT[N]TS[49] VT[ENDED]TS[50]" + " \n";
     final_rgf+="    (" + "\n";
-    final_rgf+="        ;W[bb] VT[N]TS[1.9]" + " \n";
-    final_rgf+="        ;TS[2] B[dd]TS[2]" + " \n";
+    final_rgf+="        ;W[bb] VT[N]TS[19]" + " \n";
+    final_rgf+="        ;TS[20] B[dd]TS[20]" + " \n";
     final_rgf+="    )" + "\n";
     final_rgf+="    (" + "\n";
-    final_rgf+="        ;W[bc] AB[ef][fg]VT[N]TS[2.9] AW[cd]TS[3] AB[gh]TS[4]" + " \n";
+    final_rgf+="        ;W[bc] AB[ef][fg]VT[N]TS[29] AW[cd]TS[30] AB[gh]TS[40]" + " \n";
     final_rgf+="    )" + "\n";
     final_rgf+=")"+"\n";
 

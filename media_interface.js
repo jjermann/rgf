@@ -85,6 +85,7 @@ MediaInterface.prototype.html=function(style) {
 
 MediaInterface.prototype.init=function(media_stream) {
     this.media_stream=media_stream;
+    // TODO, BUG: this has to be called before "canplay" triggers! So better take it outside...?
     this.media_stream.addInterface(this.updatedStatus.bind(this),this.updatedTime.bind(this));
     var self=this;
     // initial setup, most of this is not really needed

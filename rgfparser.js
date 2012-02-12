@@ -2,20 +2,20 @@ function RGFParser(rgf) {
     this.rgf=rgf;
     this.index=0;
     this.rgftree=new RGFNode();
-    this.parseTree(this.rgftree);
-    this.action_list=this.getActions(this._getUnsortedActions(this.rgftree));
+    this._parseTree(this.rgftree);
+    this.action_list=RGFParser.getActions(this.rgftree);
 };
 
-RGFParser.prototype.parseTree=function(curnode) {
+RGFParser.prototype._parseTree = function(curnode) {
     while (this.index < this.rgf.length) {
-        var c=this.curChar();
+        var c=this._curChar();
         this.index++;
         switch (c) {
             case ';':
-                curnode = this.parseNode(curnode);
+                curnode = this._parseNode(curnode);
                 break;
             case '(':
-                this.parseTree(curnode);
+                this._parseTree(curnode);
                 break;
             case ')':
                 return;
@@ -24,14 +24,14 @@ RGFParser.prototype.parseTree=function(curnode) {
     }
 };
 
-RGFParser.prototype.parseNode=function(parent) {
+RGFParser.prototype._parseNode = function(parent) {
     var node=new RGFNode();
     if (parent)
         parent.addNode(node);
     else  
         // this should not happen unless called from the outside
         this.rgftree = node;
-    node = this.parseProperties(node);
+    node = this._parseProperties(node);
     if (parent && parent.children.length>1 && node.time < parent.children[parent.children.length-2].time) {
         alert("Invalid RGF file!");
     }
@@ -39,38 +39,38 @@ RGFParser.prototype.parseNode=function(parent) {
 };
 
 
-RGFParser.prototype.parseProperties=function(node) {
+RGFParser.prototype._parseProperties = function(node) {
     var prop = "";
     var last_property=null;
     var prop_time_before=+node.time;
     var arg = [];
     var i = 0;
     while (this.index < this.rgf.length) {
-        var c = this.curChar();
+        var c = this._curChar();
         // proceed to the next node/tree
         if (c == ';' || c == '(' || c == ')') {
             break;
         }
         // a new property starts
-        if (this.curChar() == '[') {
+        if (this._curChar() == '[') {
             // while we have a property list
-            while (this.curChar() == '[') {
+            while (this._curChar() == '[') {
                 this.index++;
                 arg[i] = "";
-                while (this.curChar() != ']' && this.index < this.rgf.length) {
-                    if (this.curChar() == '\\') {
+                while (this._curChar() != ']' && this.index < this.rgf.length) {
+                    if (this._curChar() == '\\') {
                         this.index++;
                         // not technically correct, but works in practice
-                        while (this.curChar() == "\r" || this.curChar() == "\n") {
+                        while (this._curChar() == "\r" || this._curChar() == "\n") {
                             this.index++;
                         }
                     }
                     // continue parsing the current argument
-                    arg[i] += this.curChar();
+                    arg[i] += this._curChar();
                     this.index++;
                 }
                 i++;
-                while (this.curChar() == ']' || this.curChar() == "\n" || this.curChar() == "\r") {
+                while (this._curChar() == ']' || this._curChar() == "\n" || this._curChar() == "\r") {
                     this.index++;
                 }
             }
@@ -104,11 +104,11 @@ RGFParser.prototype.parseProperties=function(node) {
     return node;
 };
 
-RGFParser.prototype.curChar=function() {
+RGFParser.prototype._curChar = function() {
     return this.rgf.charAt(this.index);
 };
 
-RGFParser.prototype._getUnsortedActions=function(node) {
+RGFParser._getUnsortedActions = function(node) {
     var actions=[];
     if (node.parent==null && !node.children.length) {
         return actions;
@@ -126,7 +126,7 @@ RGFParser.prototype._getUnsortedActions=function(node) {
     return actions;
 };
 
-RGFParser.prototype.getActions=function(action_list) {
+RGFParser._sortActions = function(action_list) {
     var actions=merge_sort(action_list,function(a, b) {return a.time - b.time});
     var last_position="";
 
@@ -143,8 +143,8 @@ RGFParser.prototype.getActions=function(action_list) {
     return actions;
 };
 
-RGFParser.prototype.writeParsedRGF = function(indent,base_indent) {
-    return RGFParser.writeRGF(this.rgftree,indent,base_indent);
+RGFParser.getActions = function(node) {
+    return RGFParser._sortActions(RGFParser._getUnsortedActions(node));
 };
 
 RGFParser.writeRGF = function(node,indent,base_indent) {

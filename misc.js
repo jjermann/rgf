@@ -1,3 +1,9 @@
+function pathToArray(path) {
+    if (path=="") return [];
+    else if (typeof path=='string') return path.split('.');
+    else return path;
+}
+
 function extend(from,to) {
     for (var prop in to) {
         from[prop] = to[prop];

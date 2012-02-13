@@ -47,7 +47,7 @@ function GameStream(game_id,board,max_duration) {
 
     /* The first action is set here to be an "empty" KeyFrame. */
     this.queueTimedActions([{time:-2, name:"KeyFrame", arg:"", position:[]}]);
-    // called outside of GameStream:
+    // called outside of GameStream since the board might not be ready yet:
     // this.update(0);
 };
 
@@ -69,9 +69,7 @@ GameStream.prototype.queueTimedActions=function(actions) {
         var new_path=this._last_rgfpath;
         var new_node=this._last_rgfnode;
         if (action.position!=undefined) {
-            if (action.position=="") new_path=[];
-            else if (typeof action.position=='string') new_path=(action.position).split('.');
-            else new_path=action.position;
+            new_path=pathToArray(action.position);
             new_node=this._rgftree.descend(new_path);
         }
 
@@ -109,6 +107,10 @@ GameStream.prototype.queueTimedActions=function(actions) {
 
     // For testing:
     $('div#'+this.id+"_rgf").text(this.writeRGF());
+
+    // Not running an update gives a way to exactly control _when_ updates are performed
+    // bit this also means that usually update has to be called to synchronize the status and board with the game stream...
+    // this.update(this.status.time);
 };
 
 // Adds an action at the current time index if possible, return false if not.
@@ -124,9 +126,7 @@ GameStream.prototype.insertAction=function(action) {
     var new_path=this._rgfpath;
     var new_node=this._rgfnode;
     if (action.position!=undefined) {
-        if (action.position=="") new_path=[];
-        else if (typeof action.position=='string') new_path=(action.position).split('.');
-        else new_path=action.position;
+        new_path=pathToArray(action.position);
         new_node=this._rgftree.descend(new_path);
     }
 
@@ -200,7 +200,7 @@ GameStream.prototype.insertAction=function(action) {
     // For testing:
     $('div#'+this.id+"_rgf").text(this.writeRGF());
 
-    // only here the status and internal status is updated
+    // update the time_index...
     this.update(this.status.time);
     return true;
 };
@@ -222,6 +222,7 @@ GameStream.prototype.updatedTime = function(newstatus) {
 };
 
 GameStream.prototype.update = function(next_time) {
+    if (next_time==undefined) next_time=this.status.time;
     if (next_time>=this.status.time) {
         this._advanceTo(next_time);
     } else {
@@ -259,9 +260,7 @@ GameStream.prototype._advanceTo = function(next_time) {
 
         // update the current node position, the current node and the current time index
         this._rgfnode=action.node;
-        if (action.node.position=="") this._rgfpath=[];
-        else if (typeof action.node.position=='string') this._rgfpath=(action.node.position).split('.');
-        else this._rgfpath=action.node.position;
+        this._rgfpath=pathToArray(action.node.position);
         this.status.time_index++;
     }
 
@@ -293,9 +292,7 @@ GameStream.prototype._reverseTo = function(next_time) {
 
         // update the current node position, the current node and the current time index
         this._rgfnode=action.node;
-        if (action.node.position=="") this._rgfpath=[];
-        else if (typeof action.node.position=='string') this._rgfpath=(action.node.position).split('.');
-        else this._rgfpath=action.node.position;
+        this._rgfpath=pathToArray(action.node.position);
         this.status.time_index++;
     }
     this.status.time=next_time;

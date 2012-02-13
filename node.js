@@ -29,9 +29,8 @@ RGFNode.prototype.addProp=function(property) {
 
 /*  Old definition of position... */
 RGFNode.prototype.descend = function(path) {
+    path=pathToArray(path);
     if (!path.length) return this;
-    if (path=="") path=[];
-    if (typeof path=='string') path=path.split('.');
     return this.children[path[0]].descend(path.slice(1));
 };
 
@@ -46,12 +45,12 @@ RGFNode.prototype.getDuration=function() {
     return duration;
 }
 
+// We store the node position temporarly in _node_pos (used later, see below)
 RGFNode.prototype._getUnsortedActions = function() {
     var actions=[];
     if (this.parent==null && !this.children.length) {
         return actions;
     } else if (this.parent!=null) {
-        // We store the node position temporarly in _node_pos (used later, see below)
         actions.push({time:this.time, name:";", arg:"", position:this.parent.position, _node_pos:this.position});
     }
 

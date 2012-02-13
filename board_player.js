@@ -65,9 +65,7 @@ BoardPlayer.prototype.apply=function(action) {
         this.eidogo_player.loadSgf(this.eidogoConfig);
     } else {
         if (action.position!=undefined) {
-            if (action.position=="") this._sgfpath=[];
-            else if (typeof action.position=='string') this._sgfpath=(action.position).split('.');
-            else this._sgfpath=action.position;
+            this._sgfpath=pathToArray(action.position);
             this._sgfnode=this._sgftree.descend(this._sgfpath);
             
             // EIDOGO

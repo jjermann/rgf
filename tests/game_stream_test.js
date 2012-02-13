@@ -235,7 +235,7 @@ test("Updating the game stream to time 0 again.", function(){
     equal(game_stream.status.ended,gs_status.ended,"The game stream has not ended yet because the current time is smaller than the maximal duration.");
     equal(game_stream.status.waiting,gs_status.waiting,"We are also not waiting because the current time is still not bigger than the current duration.");
 
-    ok(true,"[NEXT] We check the GameStream status.");
+    equal(game_stream.writeRGF(),rgf_tree.writeRGF(),"The generated RGF from GameStream should be equal to the RGF from RGFParser.");
 });
 
 

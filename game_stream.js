@@ -46,63 +46,68 @@ function GameStream(game_id,board,max_duration) {
     this._last_rgfnode=this._rgftree;
 
     /* The first action is set here to be an "empty" KeyFrame. */
-    this.queueTimedActions([{time:-2, name:"KeyFrame", arg:"", position:[]}]);
+    this.queueTimedAction({time:-2, name:"KeyFrame", arg:"", position:[]});
     // called outside of GameStream since the board might not be ready yet:
     // this.update(0);
 };
 
-// Adds timed actions to the end of _action_list. This is independant of the current time/position.
-// TODO: be more flexible with "initial" time, resp. the start of the _action_list...
-GameStream.prototype.queueTimedActions=function(actions) {
-    if (this._action_list.length && this._action_list[0].name!="KeyFrame") alert("The first Action must be a KeyFrame!");
+GameStream.prototype.queueTimedActionList=function(actions) {
     for(var i=0;i<actions.length;i++) {
-        var action = actions[i];
-        
-        // modify action list
-        if (action.name=="KeyFrame") {
-            this._keyframe_list.push(this._action_list.length);
-        }
-        var new_action={time:action.time, name:action.name, arg:action.arg, position:action.position};
-        this._action_list.push(new_action);
-
-        // determine the new position and node
-        var new_path=this._last_rgfpath;
-        var new_node=this._last_rgfnode;
-        if (action.position!=undefined) {
-            new_path=pathToArray(action.position);
-            new_node=this._rgftree.descend(new_path);
-        }
-
-        // modify rgf tree
-        if (action.name=="KeyFrame") {
-        } else {
-            // if a node is added
-            if (action.name[0]==";") {
-                new_path.push(new_node.children.length);
-                new_node=new_node.addNode(new RGFNode(action.time));
-                if (action.name==";") {
-                } else if (action.name==";B") {
-                    new_node.addProp(new RGFProperty("B",action.arg,action.time));
-                } else if (action.name==";W") {
-                    new_node.addProp(new RGFProperty("W",action.arg,action.time));
-                } else {
-                    alert("Invalid node action: "+action.name);
-                }
-            // if a property is added
-            } else {
-                new_node.addProp(new RGFProperty(action.name,action.arg,action.time));
-            }
-        }
-        
-        // set the node for the action
-        new_action.node=new_node;
-
-        // update the last postion and node, the same happens in insertAction (at the end)!
-        this._last_rgfpath=new_path;
-        this._last_rgfnode=new_node;
+        this.queueTimedAction(actions[i]);
     }
+}
+
+// Adds a timed action to the end of _action_list. This is independant of the current time/position.
+// TODO: maybe be more flexible with "initial" time, resp. the start of the _action_list...
+// TODO: check that the time increases, and report mitakes with a false return value
+// TODO: also implement support for adding actions inbetween...
+// TODO(?): maybe update the stream?
+GameStream.prototype.queueTimedAction=function(action) {
+    // modify keyframe list
+    if (action.name=="KeyFrame") {
+        this._keyframe_list.push(this._action_list.length);
+    }
+    var new_action={time:action.time, name:action.name, arg:action.arg, position:action.position};
+    this._action_list.push(new_action);
+
+    // determine the new position and node
+    var new_path=this._last_rgfpath;
+    var new_node=this._last_rgfnode;
+    if (new_action.position!=undefined) {
+        new_path=pathToArray(new_action.position);
+        new_node=this._rgftree.descend(new_path);
+    }
+
+    // modify rgf tree
+    if (new_action.name=="KeyFrame") {
+    } else {
+        // if a node is added
+        if (new_action.name[0]==";") {
+            new_path.push(new_node.children.length);
+            new_node=new_node.addNode(new RGFNode(new_action.time));
+            if (new_action.name==";") {
+            } else if (new_action.name==";B") {
+                new_node.addProp(new RGFProperty("B",new_action.arg,new_action.time));
+            } else if (new_action.name==";W") {
+                new_node.addProp(new RGFProperty("W",new_action.arg,new_action.time));
+            } else {
+                alert("Invalid node action: "+new_action.name);
+            }
+        // if a property is added
+        } else {
+            new_node.addProp(new RGFProperty(new_action.name,new_action.arg,new_action.time));
+        }
+    }
+    
+    // set the node for the action
+    new_action.node=new_node;
+
+    // update the last postion and node, the same happens in insertAction (at the end)!
+    this._last_rgfpath=new_path;
+    this._last_rgfnode=new_node;
+ 
     // the same happens in insertAction (at the end)!
-    if (this._action_list.length) this.status.duration=this._action_list[this._action_list.length-1].time;
+    this.status.duration=new_action.time;
     this.status.duration=(this.status.duration>0) ? this.status.duration : 0;
 
     // For testing:

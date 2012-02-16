@@ -1,0 +1,62 @@
+Big things / things I can't do alone:
+-------------------------------------
+- (MAIN) integrate it into kaya.gs
+- think about html elements and how to handle them: css/dynamic html/etc...
+- Streams, recording from microphone/webcame/webstream/etc
+- make a nice media stream/game stream interface design
+- add all necessary interface elements to kaya.gs (menu/buttons/etc)
+  at the right position (maybe with dynamic size).
+- maybe: change the spec to support game streams at non game-info nodes
+  (should be possible but do we want this?)...
+ 
+
+Medium things:
+--------------
+- finnish KeyFrame support
+- write tester for MediaStream, MediaInterface
+- (BUG) find out why the "node" comparison doesn't work...
+- When inserting an action the current status.time is used. Since the time
+  interval is usually not so small (~250ms) an insertion might fail because
+  it was attempted too quickly.
+
+  Solution 1:
+  Use the current time (not status.time) for everything, resp. update the
+  time to the current time for each insertion (makes more sense).
+  This has the disadvantage, that with this update the whole board might
+  change (it was based on status.time) so the move might no longer make any
+  sense from that new situation.
+
+  Solution 2:
+  As above we update the time but only if the new time does not cause any
+  changes (e.g. its time is still lower then the next action time),
+  otherwise we (update the time and?) return false.
+
+  Solution 3:
+  Reduce the update interval to something much smaller than 250ms...
+
+- Add support for updates within the same time (updates of time_index)
+- Add "step back" and "step forward" buttons which step back/forward one
+  action.
+- Replay with constant time for each action instead of a time accurate
+  replay.
+- Support loading linear SGF files as an RGF file by interpreting the "time
+  left" properties accordingly... -> thus supporting time accurate replays
+  of linear games even if it was not recorded with timestamps...
+- Undo/Redo?
+- Write a GSEditInterface?:
+  It consists of a bar of a certain length, where length might be a time
+  duration or something bounded by a certain maximal amount of actions...
+  In that bar we visually represent each action and allow operations:
+  o Use e.g. different colors to indicate different types of actions...
+  o Update the bar when we update the time...
+  o Selection of Action(s)
+  o Insertion and Deletion of Action(s)?
+  o Drag and drop of action(s) (within the time interval of its
+    neighbouring actions).
+
+
+Small things:
+-------------
+
+- Allow time delay for media stream -> adjust status.currentTime accordingly
+  (as if there was no delay)!

@@ -7,13 +7,92 @@ MockBoard.prototype.apply=function(action) {
     // just for testing
     this.applied_actions.push(action);
 };
-MockBoard.prototype.insertActionIntoGS;
+MockBoard.prototype.insertActionIntoGS=function() {};
+
+
+/* mock player */
+function MockPlayer(board,game_stream) {
+    this.board=board;
+    //this is just for testing
+    this.game_stream=game_stream;
+    this.interactions=[];
+    this.interactions.push({wait: 1.9});
+    this.interactions.push({name: "VT", arg:"N", position: "0.0"});
+    this.interactions.push({wait: 0.1});
+    this.interactions.push({name: ";B", arg: "dd"});
+    this.interactions.push({wait: 0.9});
+    this.interactions.push({name: "VT", arg:"N", position: "0.1"});
+    this.interactions.push({wait: 0.1});
+    this.interactions.push({name: "AW", arg: "cd"});
+    this.interactions.push({wait: 1});
+    this.interactions.push({name: "AB", arg: "gh"});
+    this.interactions.push({wait: 0.9});
+    this.interactions.push({name: "VT", arg:"N", position: "0"});
+    this.interactions.push({wait: 0.1});
+    this.interactions.push({name: "VT", arg: "ENDED"});
+};
+MockPlayer.prototype.start=function() {
+    this.update();
+};
+MockPlayer.prototype.update=function() {
+    var self=this;
+    var action=this.interactions.shift();
+    if (action==undefined) {
+    } else if (action.wait!=undefined) {
+        this.timeout=setTimeout(function(){self.update();},action.wait*1000);
+    } else {
+        cur_action=this.game_stream._action_list[this.game_stream.status.time_index-1];
+        ok(this.board.insertActionIntoGS(action),"Action before (was successfully inserted): "+simplePrintAction(cur_action));
+        cur_action=this.game_stream._action_list[this.game_stream.status.time_index-1];
+        ok(simpleCompareAction(cur_action,action),"Action after (agrees with the supplied Action): "+simplePrintAction(cur_action));
+        this.update();
+    }
+};
+
+
+/* mock media stream */
+function MockMediaStream(new_duration) {
+    this.status={
+        currentTime:0,
+        duration:new_duration,
+        ended:false
+    };
+    // this is just for testing
+    this.game_stream=game_stream;
+};
+MockMediaStream.prototype.timeupdate=function() {
+    var self=this;
+    if (!this.status.ended) {
+        this.date=new Date();
+        this.status.currentTime=this.date.getTime()/1000-this.initial_time;
+        if (this.status.currentTime>=this.status.duration) {
+            this.status.ended=true;
+            this.status.currentTime=this.status.duration;
+            self.timeupdate();
+        } else {
+            this.timeout=setTimeout(function(){self.timeupdate();},50);
+        }
+        this.updateGS(self.status);
+        ok(true,"Updated GS time:"+this.status.currentTime);
+    } else {
+        ok(true,"Media stream has ended...");
+        start();
+    }
+};
+MockMediaStream.prototype.start=function() {
+    this.date=new Date();
+    this.initial_time=this.date.getTime()/1000;
+    this.timeupdate();
+};
+MockMediaStream.prototype.updateGS=function() {};
 
 
 /* variables */
-var board,game_stream,gs_status,initial_keyframe,parser,rgf_tree,action_list;
+var board,player,game_stream,gs_status,initial_keyframe,parser,rgf_tree,action_list;
+var initial_sgf=";B[aa](;W[bb])(;W[bc]AB[ef][fg])";
 var rgf=";B[aa]VT[N]TS[49]VT[ENDED]TS[50](;W[bb]VT[N]TS[19];TS[20]B[dd]TS[20])(;W[bc]AB[ef][fg]VT[N]TS[29]AW[cd]TS[30]AB[gh]TS[40])";
 var duration=50;
+var ms_duration=55;
 
 /* helper functions */
 RGFNode.prototype.__getUnsortedActionsWithNode = function() {
@@ -32,6 +111,22 @@ RGFNode.prototype.__getUnsortedActionsWithNode = function() {
     }
     return actions;
 };
+function simplePrintAction(action) {
+    var output="";
+    if (action.wait) return action.wait;
+    output+=action.name;
+    if (action.arg && action.arg!="") output+="["+action.arg+"]";
+    if (action.position) output+=" (at "+action.position+")";
+    output+=" ";
+    return output;
+};
+function simpleCompareAction(a,b) {
+    //if (a.time!==b.time) return false;
+    if (a.name!==b.name) return false;
+    if (a.arg!==b.arg) return false;
+    if (!_.isEqual(a.position,b.position)) return false;
+    return true;
+}
 function compareActionLists(actions1,actions2) {
     if (actions1.length!==actions2.length) return false;
     for (var i=0; i<actions1.length; i++) {
@@ -51,9 +146,11 @@ function compareActionLists(actions1,actions2) {
 
 
 /* functions to initialize a certain state for the unit tester... */
-function init(new_duration) {
+function init(new_duration,ms_duration) {
     board=new MockBoard();
+    media_stream=new MockMediaStream(ms_duration);
     game_stream=new GameStream("test",board,new_duration);
+    player=new MockPlayer(board,game_stream);
 
     
     /* SHOULD BE VARIABLES */
@@ -71,9 +168,13 @@ function init(new_duration) {
     
     // how the initial keyframe should be
     initial_keyframe={time: -2, name: "KeyFrame", arg:"",position:[],node:game_stream._rgftree};
-}
-function update() {
+
+    // only needed for recording
     board.insertActionIntoGS=game_stream.insertAction.bind(game_stream);
+    // only needed for regular time updates
+    media_stream.updateGS=game_stream.updatedTime.bind(game_stream);
+}
+function setupGS() {
     game_stream.update(0);
     board.applied_actions=[];
 }
@@ -81,12 +182,16 @@ function loadRGF(new_rgf) {
     parser=new RGFParser(new_rgf);
     rgf_tree=parser.rgftree;
     action_list=parser.action_list;
-    game_stream.queueTimedActions(action_list);
+    game_stream.queueTimedActionList(action_list);
     game_stream.update(0);
     board.applied_actions=[];
 }
 function reset() {
+    if (player.timeout) clearTimeout(player.timeout);
+    player=undefined;
+    if (media_stream.timeout) clearTimeout(media_stream.timeout);
     board=undefined;
+    media_stream=undefined;
     game_stream=undefined;
     gs_status=undefined;
     initial_keyframe=undefined;
@@ -102,9 +207,9 @@ function reset() {
 
 /* TEST STARTS */
 
-module("GameStream (after init)", {
+module("GameStream (after creation)", {
     setup: function() {
-        init(duration);
+        init(duration,ms_duration);
     },
     teardown: reset
 });
@@ -126,20 +231,22 @@ test("GameStream status", function(){
     equal(game_stream.status.ended,gs_status.ended,"The game stream has not ended yet initially (not updated yet!).");
     equal(game_stream.status.waiting,gs_status.waiting,"We are also not waiting initially (not updated yet!).");
 });
-test("Loading into the basic setup", function(){
+test("Loading into the initial setup", function(){
     board.insertActionIntoGS=game_stream.insertAction.bind(game_stream);
-    ok(true,"[DONE] Created a hook for the board to call gamestream's insertAction function.");
+    media_stream.updateGS=game_stream.updatedTime.bind(game_stream);
+    ok(true,"[DONE] Created hook for the board and media stream to call gamestream's insertAction resp. updatedTime function.");
     game_stream.update(0);
-    ok(true,"[DONE] Updated the GameStream to time 0. [NEXT] board forgets the applied actions...");
+    ok(true,"[DONE] Updated the GameStream to time 0.");
     deepEqual(board.applied_actions,[initial_keyframe],"board.apply should have been called once with the initial keyframe.");
     board.applied_actions=[];
 });
 
 
-module("GameStream (ready to record)", {
+module("GameStream (after initial setup)", {
     setup: function() {
-        init(duration);
-        update();
+        init(duration,ms_duration);
+        game_stream.update(0);
+        board.applied_actions=[];
     },
     teardown: reset
 });
@@ -173,8 +280,8 @@ test("Loading a sorted timestamped action list, resp. loading from an RGF conten
     gs_status.time_index=1;
     gs_status.duration=parser.duration;
 
-    game_stream.queueTimedActions(action_list);
-    ok(true,"[DONE] Queued the actions from RGFParser (action_list). [NEXT] board forgets the applied actions...");
+    game_stream.queueTimedActionList(action_list);
+    ok(true,"[DONE] Queued the actions from RGFParser (action_list).");
     deepEqual(board.applied_actions,[],"board.apply should never habe been called since we didn't update the time yet!).");
     board.applied_actions=[];
 
@@ -198,14 +305,15 @@ test("Loading a sorted timestamped action list, resp. loading from an RGF conten
 });
 
 
-module("GameStream (after loading the RGF)", {
+module("GameStream (after loading the RGF, without updating)", {
     setup: function() {
-        init(duration);
-        update();
+        init(duration,ms_duration);
+        game_stream.update(0);
+        board.applied_actions=[];
         parser=new RGFParser(rgf);
         rgf_tree=parser.rgftree;
         action_list=parser.action_list;
-        game_stream.queueTimedActions(action_list);
+        game_stream.queueTimedActionList(action_list);
         board.applied_actions=[];
     },
     teardown: reset
@@ -234,15 +342,15 @@ test("Updating the game stream to time 0 again.", function(){
     equal(game_stream.status.max_duration,gs_status.max_duration,"The duration of the final RGF is the duration argument we passed at the beginning.");
     equal(game_stream.status.ended,gs_status.ended,"The game stream has not ended yet because the current time is smaller than the maximal duration.");
     equal(game_stream.status.waiting,gs_status.waiting,"We are also not waiting because the current time is still not bigger than the current duration.");
-
+});
+test("Writing an RGF.", function(){
     equal(game_stream.writeRGF(),rgf_tree.writeRGF(),"The generated RGF from GameStream should be equal to the RGF from RGFParser.");
 });
 
 
-module("GameStream (ready to play)", {
+module("GameStream (with RGF)", {
     setup: function() {
-        init(duration);
-        update();
+        init(duration,ms_duration);
         loadRGF(rgf);
     },
     teardown: reset
@@ -275,10 +383,9 @@ test("Jump to time 37.", function(){
 });
 
 
-module("GameStream (at time 37)", {
+module("GameStream (with RGF at time 37)", {
     setup: function() {
-        init(duration);
-        update();
+        init(duration,ms_duration);
         loadRGF(rgf);
         game_stream.update(37);
         board.applied_actions=[];
@@ -341,5 +448,15 @@ test("Jump back to time 24.", function(){
 });
 
 
-
-
+module("GameStream (with initial SGF)", {
+    setup: function() {
+        init(duration/10,ms_duration/10);
+        loadRGF(initial_sgf);
+    },
+    teardown: reset
+});
+test("Record a short game stream with timing based on a mock media stream", function(){
+    stop(ms_duration*1000+1000);
+    media_stream.start();
+    player.start();
+});

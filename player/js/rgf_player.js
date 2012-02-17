@@ -1216,7 +1216,6 @@ eidogo.Player.prototype = {
                 if (node.getMove() == coord) {
                     path.push(mn);
                     // GAMESTREAM (removed for now)
-                    // create a VT[N] action
                     // this.goTo(path);
                     this.GS_insertAction({name: "VT", arg: "N", position: this._getAbsolutePath(path)});
                     break;

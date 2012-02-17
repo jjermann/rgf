@@ -12,7 +12,7 @@ Big things / things I can't do alone:
 
 Medium things:
 --------------
-- finnish KeyFrame support
+- [DONE?] finnish KeyFrame support
 - write tester for MediaStream, MediaInterface
 - (BUG) find out why the "node" comparison doesn't work...
 - When inserting an action the current status.time is used. Since the time
@@ -58,5 +58,6 @@ Medium things:
 Small things:
 -------------
 
+- (BUG) bug when printing property lists, also the check for them should be better...
 - Allow time delay for media stream -> adjust status.currentTime accordingly
   (as if there was no delay)!

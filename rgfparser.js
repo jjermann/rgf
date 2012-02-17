@@ -7,6 +7,7 @@ function RGFParser(rgf) {
     if (this.action_list.length) {
         this.duration=this.action_list[this.action_list.length-1].time;
     }
+    this.rgf=this.rgftree.writeRGF();
 };
 
 RGFParser.prototype._parseTree = function(curnode) {

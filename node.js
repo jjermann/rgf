@@ -84,6 +84,7 @@ RGFNode.prototype.getActions = function() {
     return RGFNode._sortActions(this._getUnsortedActions());
 };
 
+// TODO: Fix property lists!!!
 RGFNode.prototype.writeRGF = function(indent,base_indent) {
     var output;
     if (indent==null) indent="    ";

@@ -55,7 +55,7 @@ function DisplayGUI(base_id,ms_sources,duration) {
         left:     "4px"
     }));
     /* Textbox to output the current pseudo SGF file */
-    document.body.appendChild(createBox(this.id+"_board_sgf","Current (pseudo) SGF tree", {
+    document.body.appendChild(createBox(this.id+"_board_sgf","Current SGF tree", {
         position: "absolute",
         width:    "422px",
         height:   "500px",

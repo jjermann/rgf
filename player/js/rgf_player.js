@@ -720,6 +720,76 @@ eidogo.Player.prototype = {
         }.bind(this), 200);
     },
     
+    // returns null for broken paths
+    _getEidogoPath: function(path) {
+        var node=this.cursor.getGameRoot()._parent;
+        var tmppath=path.slice(0);
+        var eidogo_path=[];
+        
+        if (!node || !node._children || node._children.length<=path[0]) return null;
+        else {
+            eidogo_path.push(tmppath[0]);
+            position=0;
+        }
+        node=node._children[tmppath[0]];
+        tmppath=tmppath.slice(1);
+
+        while (tmppath.length) {
+            if (!node || !node._children || node._children.length<=tmppath[0]) {
+                return null;
+            } else if (node._children.length==1) {
+                position++;
+            } else {
+                eidogo_path.push(tmppath[0]);
+                position=0;
+            }
+            node=node._children[tmppath[0]];
+            tmppath=tmppath.slice(1);
+        }
+        eidogo_path.push(position);
+        return eidogo_path;
+    },
+
+    // returns null for broken paths
+    _getAbsolutePath: function(path) {
+        var node=this.cursor.getGameRoot()._parent;
+        var tmppath=path.slice(0);
+        var absolute_path=[];
+        
+        if (!node || !node._children || !node._children.length) return null;
+        else {
+            absolute_path.push(tmppath[0]);
+            node=node._children[tmppath[0]];
+            tmppath=tmppath.slice(1);
+        }
+                
+        while (tmppath.length>1) {
+            if (!node || !node._children || !node._children.length) {
+                return null;
+            } else if (node._children.length==1) {
+                absolute_path.push(0);
+                node=node._children[0];
+            } else if (node._children.length>tmppath[0]) {
+                absolute_path.push(tmppath[0]);
+                node=node._children[tmppath[0]];
+                tmppath=tmppath.slice(1);
+            } else {
+                return null;
+            }
+        }
+        var position=tmppath[0];
+        while (position>0) {
+            if (!node || !node._children || node._children.length!=1) {
+                return null;
+            } else {
+                position-=1;
+                absolute_path.push(0);
+                node=node._children[0];
+            }
+        }
+        return absolute_path;
+    },
+    
     /**
      * Navigates to a location within the game. Takes progressive loading
      * into account.
@@ -1148,6 +1218,7 @@ eidogo.Player.prototype = {
                     // GAMESTREAM (removed for now)
                     // create a VT[N] action
                     // this.goTo(path);
+                    this.GS_insertAction({name: "VT", arg: "N", position: this._getAbsolutePath(path)});
                     break;
                 }
                 mn++;
@@ -2565,6 +2636,7 @@ eidogo.Player.prototype = {
         var path = target.id.replace(/^navtree-node-/, "").split("-");
         // GAMESTREAM: (NAV 3) this is finally the right spot!
         // this.goTo(path, true);
+        this.GS_insertAction({name: "VT", arg: "N", position: this._getAbsolutePath(path)});
         stopEvent(e);
     },
 

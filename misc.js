@@ -1,5 +1,5 @@
 function pathToArray(path) {
-    if (path=="") return [];
+    if (path=="" || path==undefined) return [];
     else if (typeof path=='string') return path.split('.');
     else return path;
 }

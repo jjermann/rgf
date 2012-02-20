@@ -54,19 +54,13 @@ BoardPlayer.prototype.apply=function(action) {
         if (action.position!=undefined) {
             path=this._getEidogoPath(action.position);
             if (path!=null) this.eidogo_player.goTo(path);
+            else {
+                // TODO
+            }
         }
         // if a node is added
-        if (action.name[0]==";") {
+        if (action.name==";") {
             this.eidogo_player.createNode();
-
-            if (action.name==";") {
-            } else if (action.name==";B") {
-                this.eidogo_player.cursor.node.pushProperty("B",action.arg);
-            } else if (action.name==";W") {
-                this.eidogo_player.cursor.node.pushProperty("W",action.arg);
-            } else {
-                alert("Invalid node action: "+action.name);
-            }
         // if a property is added
         } else {
             if (action.name!="VT") {

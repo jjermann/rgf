@@ -103,26 +103,27 @@ some additional properties:
 New RGF properties:
 -------------------
 
-TS[TIME]: Defines timestamps for the preceeding property (resp. node).
-    The preceeding property (resp. node) is called timestamped property (resp. node).
+TS[TIME<:COUNTER>]: Defines timestamps for the preceeding property/node.
+    The preceeding property (resp. node) is called timestamped property/node.
     TIME <double> is the time in seconds when the property was applied. It SHOULD
-    always be non-negative and (as mentiond) MUST NOT exceed the DURATION of
-    the game stream. If a property is not followed by a TS[TIME] it is considered
-    to be an "initial", non-timestamped PROPERTY. The initial properties
-    MUST be consistent with the classical SGF format (i.e. no conflicts or
-    repetitions).
+    always be non-negative and MUST NOT exceed the DURATION of the game stream.
+    If a property is not followed by a TS[TIME] it is considered to be an "initial",
+    non-timestamped PROPERTY. The initial properties MUST be consistent with the
+    classical SGF format (i.e. no conflicts or repetitions).
 
-    Properties for a given node MUST be sorted chronologically (increasing)
-    from left to right by the time they were added (in particular they MUST
-    be sorted by TIME). Two TIME's from two different timestamped nodes MUST
-    NOT be equal. The last timestamp MUST (must exist and) be unique (i.e. bigger
-    than any other timestamp). Note that 0 is still considered to be
-    "bigger" than no timestamp. It is recommended to use a visual trigger
-    (VT[ENDED]) to indicate the last timestamp.
+    If one or more properties/nodes have the same TIME as an already added
+    property they MUST be given an additional COUNTER <integer> parameter starting
+    from one and increasing by one in the order of their addition.
 
-    When viewing a the RGF properties SHOULD be applied according to
-    their timestamp. Later timestamped properties SHOULD override the arguments of
-    earlier properties. Except if the argument is a list in which case the new
+    The last TIME (resp. timestamp) MUST exist and be unique (i.e. no COUNTERs).
+    Note that 0 is still considered to be "bigger" than no timestamp.
+    It is recommended to use a visual trigger (VT[ENDED]) to indicate the last
+    timestamp.
+
+    When viewing an RGF properties SHOULD be applied according to their
+    timestamp. I.e. according to their TIME and COUNTER (in case two or more
+    TIME's are equal) parameters. Later timestamped properties SHOULD override the
+    arguments of earlier properties. Except if the argument is a list in which case the new
     arguments are added to that list instead. Also if the property is "C" (comment)
     the new comments are added to the old one.
     
@@ -156,6 +157,10 @@ VT[NAME]: Adds a visual trigger NAME <string>. The handling is up to the
             This trigger is used when the node position is "manually" changed
             (e.g. during naviagion), to select the initial node position and
             when we "move" (navigate) to an already existing node.
+        VT[PASS:B]: B passed
+        VT[PASS:W]: W passed
+        VT[RESIGN:B]: B resigned
+        VT[RESIGN:W]: W resigned
         VT[ENDED]: Does nothing more than indicating the end of the game
             stream. The corresponding time is set to the DURATION of
             the game stream. Note that it is not strictly required to
@@ -166,7 +171,6 @@ VT[NAME]: Adds a visual trigger NAME <string>. The handling is up to the
         Switch to the score/edit/etc tool
         mark a stone to be dead/alive in the score tool
         commands for pause/unpause during a recording...
-        A property that indicates that the game stream has ended...
 
 
 Example:
@@ -295,11 +299,11 @@ actualgame.rgf:
 ---------------
 (
     ;AB[pd][dp]PL[W]
-    ;TS[0]W[pp]TS[0]
-    ;TS[3.1]B[dd]TS[3.1]
-    ;TS[6.1]W[qf]TS[6.1]
-    ;TS[10.3]B[od]TS[10.3]
-    ;TS[13.6]W[rd]TS[13.6]VT[ENDED]TS[14]
+    ;TS[0]W[pp]TS[0:1]
+    ;TS[3.1]B[dd]TS[3.1:1]
+    ;TS[6.1]W[qf]TS[6.1:1]
+    ;TS[10.3]B[od]TS[10.3:1]
+    ;TS[13.6]W[rd]TS[13.6:1]VT[ENDED]TS[14]
 )
 
 review.rgf:
@@ -322,7 +326,7 @@ review.rgf:
         )
     )
     (
-        ;TS[41]AB[pp]TS[41]AB[qp]TS[42]AB[pq]TS[43]AB[qq]TS[44]C[This is an ugly dumpling...]TS[50.2]C[ So let's remove it]TS[52]RP[AB,pp]TS[53]RP[AB,qp]TS[54]RP[AB,pq]TS[55]RP[AB,qq]TS[56]
-        ;TS[51]W[or]TS[51]
+        ;TS[41]AB[pp]TS[41:1]AB[qp]TS[42]AB[pq]TS[43]AB[qq]TS[44]C[This is an ugly dumpling...]TS[50.2]C[ So let's remove it]TS[52]RP[AB,pp]TS[53]RP[AB,qp]TS[54]RP[AB,pq]TS[55]RP[AB,qq]TS[56]
+        ;TS[51]W[or]TS[51:1]
     )
 )

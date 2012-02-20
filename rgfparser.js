@@ -5,7 +5,7 @@ function RGFParser(rgf) {
     this._parseTree(this.rgftree);
     this.action_list=this.rgftree.getActions();
     if (this.action_list.length) {
-        this.duration=this.action_list[this.action_list.length-1].time;
+        this.max_duration=this.action_list[this.action_list.length-1].time;
     }
     this.rgf=this.rgftree.writeRGF();
 };
@@ -46,8 +46,8 @@ RGFParser.prototype._parseNode = function(parent) {
 RGFParser.prototype._parseProperties = function(node) {
     var prop = "";
     var last_property=null;
-    var prop_time_before=+node.time;
     var arg = [];
+    var ts_arg,time,counter;
     var i = 0;
     while (this.index < this.rgf.length) {
         var c = this._curChar();
@@ -78,15 +78,29 @@ RGFParser.prototype._parseProperties = function(node) {
                     this.index++;
                 }
             }
-            if (prop=="TS" && last_property==null) {
-                // set the time for this node
-                node.time=+arg[i-1];
-                prop_time_before=+arg[i-1];
-            } else if (prop=="TS") {
-                if (arg[i-1]<prop_time_before) alert("Invalid RGF file!");
-                // set the time for the last property
-                last_property.time=+arg[i-1];
-                prop_time_before=+arg[i-1];
+            if (prop=="TS"){
+                ts_arg=(arg[i-1]).split(":");
+                counter=0;
+                if (!ts_arg.length || ts_arg.length>2) {
+                    // invalid TS property
+                } else if (ts_arg.length==1) {
+                    time=+ts_arg[0];
+                } else if (ts_arg.length==2) {
+                    time=+ts_arg[0];
+                    counter=+ts_arg[1];
+                    if (counter <= 0) {
+                        // invalid TS property
+                    }
+                }
+                if (last_property==null) {
+                    // set the time for this node
+                    node.time=time;
+                    node.counter=counter;
+                } else {
+                    // set the time for the last property
+                    last_property.time=time;
+                    last_property.counter=counter;
+                }
             } else {
                 // we add each list entry as a property to the node
                 for (var j=0; j<i; j++) {

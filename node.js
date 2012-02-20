@@ -1,15 +1,17 @@
-function RGFNode(time) {
+function RGFNode(time,counter) {
     this.properties=[];
     this.children=[];
     this.parent=null;
     this.index=null;
     this.position="";
     this.time=(time==undefined) ? -1 : +time;
+    this.counter=(counter==undefined) ? 0: +counter;
 };
-function RGFProperty(name,argument,time) {
+function RGFProperty(name,argument,time,counter) {
     this.name=name;
     this.argument=argument;
     this.time=(time==undefined) ? -1 : +time;
+    this.counter=(counter==undefined) ? 0: +counter;
 };
 RGFNode.prototype.addNode=function(node) {
     node.parent=this;
@@ -34,28 +36,40 @@ RGFNode.prototype.descend = function(path) {
     return this.children[path[0]].descend(path.slice(1));
 };
 
+// returns the time/counter of the last property/node in the current subtree
 RGFNode.prototype.getDuration=function() {
-    var duration=this.time;
-    if (this.properties.length) duration=(this.properties[this.properties.length-1].time>duration) ? this.properties[this.properties.length-1].time : duration;
+    var duration={time: this.time, counter: this.counter};
+    if (this.properties.length) {
+        var last_prop=this.properties[this.properties.length-1];
+        if (last_prop.time>=duration.time) {
+            duration.time=last_prop.time;
+            if (last_prop.counter>duration.counter) duration.counter=last_prop.counter;
+        }
+    }
     
     for (var i=0; i<this.children.length; i++) {
-        duration=Math.max(duration,this.children[i].getDuration());
+        var child_duration=this.children[i].getDuration();
+        if (child_duration.time>=duration.time) {
+            duration.time=child_duration.time;
+            if (child_duration.counter>duration.counter) duration.counter=child_duration.counter;
+        }
     }
     
     return duration;
 }
 
 // We store the node position temporarly in _node_pos (used later, see below)
+// We also always store a counter to be able to make an easier comparison later...
 RGFNode.prototype._getUnsortedActions = function() {
     var actions=[];
     if (this.parent==null && !this.children.length) {
         return actions;
     } else if (this.parent!=null) {
-        actions.push({time:this.time, name:";", arg:"", position:this.parent.position, _node_pos:this.position});
+        actions.push({time:this.time, counter:this.counter, name:";", arg:"", position:this.parent.position, _node_pos:this.position});
     }
 
     for (var i=0; i<this.properties.length; i++) {
-        actions.push({time:this.properties[i].time, name:this.properties[i].name, arg:this.properties[i].argument, position:this.position});
+        actions.push({time:this.properties[i].time, counter:this.properties[i].counter, name:this.properties[i].name, arg:this.properties[i].argument, position:this.position});
     }
     for (var i=0; i<this.children.length; i++) {
         actions=actions.concat(this.children[i]._getUnsortedActions());
@@ -64,10 +78,11 @@ RGFNode.prototype._getUnsortedActions = function() {
 };
 
 RGFNode._sortActions = function(action_list) {
-    var actions=merge_sort(action_list,function(a, b) {return a.time - b.time});
+    var actions=merge_sort(action_list,function(a, b) {if (a.time!=b.time) return (a.time - b.time); else return (a.counter-b.counter);});
     var last_position="";
 
     for (var i=0; i<actions.length; i++) {
+        //if (!actions[i].counter) delete actions[i].counter;
         if (actions[i].name==";") {
             if (actions[i].position==last_position) delete actions[i].position;
             last_position=actions[i]._node_pos;
@@ -105,7 +120,7 @@ RGFNode.prototype.writeRGF = function(indent,base_indent) {
     } else {
         var last_propname=undefined;
         output=indent;
-        output += ";" + ((this.time==-1) ? "" : "TS["+this.time+"] ");
+        output += ";" + ((this.time==-1) ? "" : ("TS["+this.time+((this.counter)? ":"+this.counter:"")+"] "));
         for (var i=0; i<this.properties.length; i++) {
             if (this.properties[i].time==-1 && this.properties[i].name===last_propname) {
                 output=output.slice(0, -1);
@@ -113,7 +128,7 @@ RGFNode.prototype.writeRGF = function(indent,base_indent) {
             } else {
                 last_propname=this.properties[i].name;
                 output +=  this.properties[i].name + "[" + this.properties[i].argument + "]";
-                output += (this.properties[i].time==-1) ? " " : "TS[" + this.properties[i].time + "] ";
+                output += (this.properties[i].time==-1) ? " " : ("TS[" + this.properties[i].time + ((this.properties[i].counter) ? ":"+this.properties[i].counter : "")+"] ");
             }
         }
         output += "\n";
@@ -136,7 +151,8 @@ RGFNode.prototype.toString=function(indent,base) {
     return this.writeRGF(indent,base);
 }
 
-/*  needed to get eidogo's position. */
+/*  this was needed to get eidogo's position. */
+/*
 RGFNode.prototype.getEidogoPath = function() {
     var n = this,
         rpath = [],
@@ -153,6 +169,7 @@ RGFNode.prototype.getEidogoPath = function() {
     }
     return rpath.reverse();
 };
+*/
 
 /*  New definition of position, compatible with eidogo */
 /*  (I never tried this, it's probably buggy)

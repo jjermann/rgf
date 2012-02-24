@@ -1243,8 +1243,7 @@ eidogo.Player.prototype = {
                     // GAMESTREAM
                     // this.createMove(coord);
                     // GS
-                    this.GS_insertAction({name: ";"});
-                    this.GS_insertAction({name: this.currentColor, arg: coord});
+                    this.GS_insertAction([{name: ";"},{name: this.currentColor, arg: coord}]);
                 }
             }
         } else if (this.mode == "region" && x >= -1 && y >= -1 && this.regionBegun) {

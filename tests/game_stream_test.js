@@ -42,10 +42,10 @@ MockPlayer.prototype.update=function() {
     } else if (action.wait!=undefined) {
         this.timeout=setTimeout(function(){self.update();},action.wait*1000);
     } else {
+        var cur_action=this.game_stream._action_list[this.game_stream.status.time_index-1];
+        ok(this.board.insertActionIntoGS(action),"The new action was sucessfully inserted, the last action was: "+simplePrintAction(cur_action));
         cur_action=this.game_stream._action_list[this.game_stream.status.time_index-1];
-        ok(this.board.insertActionIntoGS(action),"Action before (was successfully inserted): "+simplePrintAction(cur_action));
-        cur_action=this.game_stream._action_list[this.game_stream.status.time_index-1];
-        ok(simpleCompareAction(cur_action,action),"Action after (agrees with the supplied Action): "+simplePrintAction(cur_action));
+        ok(simpleCompareAction(cur_action,action),"The (new) last action agrees with the supplied action, it is: "+simplePrintAction(cur_action));
         this.update();
     }
 };
@@ -89,7 +89,7 @@ MockMediaStream.prototype.updateGS=function() {};
 
 
 /* variables */
-var board,player,game_stream,gs_status,initial_keyframe,parser,rgf_tree,action_list;
+var board,player,game_stream,media_stream,gs_status,initial_keyframe,parser,rgf_tree,action_list;
 var initial_sgf=";B[aa](;W[bb])(;W[bc]AB[ef][fg])";
 var rgf=";B[aa]VT[N]TS[49]VT[ENDED]TS[50](;W[bb]VT[N]TS[19];TS[20]B[dd]TS[20:1])(;W[bc]AB[ef][fg]VT[N]TS[29]AW[cd]TS[30]AB[gh]TS[40])";
 var duration=50;
@@ -155,7 +155,7 @@ function init(new_duration,ms_duration) {
     initial_keyframe={time: -2, counter: 0, name: "KeyFrame", arg:"",position:[],node:game_stream._rgftree};
 
     // only needed for recording
-    board.insertActionIntoGS=game_stream.insertAction.bind(game_stream);
+    board.insertActionIntoGS=game_stream.applyActionList.bind(game_stream);
     // only needed for regular time updates
     media_stream.updateGS=game_stream.updatedTime.bind(game_stream);
 }
@@ -167,7 +167,7 @@ function loadRGF(new_rgf) {
     parser=new RGFParser(new_rgf);
     rgf_tree=parser.rgftree;
     action_list=parser.action_list;
-    game_stream.queueTimedActionList(action_list);
+    game_stream.applyTimedActionList(action_list);
     game_stream.update(0);
     board.applied_actions=[];
 }
@@ -219,7 +219,7 @@ test("GameStream status", function(){
     equal(game_stream.status.waiting,gs_status.waiting,"We are also not waiting initially (not updated yet!).");
 });
 test("Loading into the initial setup", function(){
-    board.insertActionIntoGS=game_stream.insertAction.bind(game_stream);
+    board.insertActionIntoGS=game_stream.applyActionList.bind(game_stream);
     media_stream.updateGS=game_stream.updatedTime.bind(game_stream);
     ok(true,"[DONE] Created hook for the board and media stream to call gamestream's insertAction resp. updatedTime function.");
     game_stream.update(0);
@@ -265,20 +265,21 @@ test("Loading a sorted timestamped action list, resp. loading from an RGF conten
     var game_action_list=[initial_keyframe];
     game_action_list=game_action_list.concat(rgf_tree.getActions());
     gs_status.time=0;
-    gs_status.time_index=1;
-    gs_status.waiting=true;
+    gs_status.time_index=9;
+    gs_status.waiting=false;
     gs_status.duration={time: parser.max_duration, counter:0};
 
-    game_stream.queueTimedActionList(action_list);
+    game_stream.applyTimedActionList(action_list);
+    var applied_actions=game_stream._action_list.slice(1,gs_status.time_index);
     ok(true,"[DONE] Queued the actions from RGFParser (action_list).");
-    deepEqual(board.applied_actions,[],"board.apply should never habe been called since we didn't update the time yet!).");
+    ok(_.isEqual(board.applied_actions,applied_actions),"All new actions with time smaller or equal to the current time (0) should have been applied.");
     board.applied_actions=[];
 
     ok(true,"[NEXT] We check the internal GameStream properties...");
     ok(compareActionLists(game_stream._action_list,game_action_list),"The Action List is equal to the supplied action list except for: one additional KeyFrame at the beginning and one further node parameter for each action (NOT checked atm!!).");
     deepEqual(game_stream._keyframe_list,[0],"Since no new KeyFrame was added, the list still has only one entry pointing to the first KeyFrame in the Action List.");
     ok(_.isEqual(game_stream._rgftree,parser.rgftree),"The rgf tree coincides with the rgf tree from RGFParser!");
-    ok(_.isEqual(game_stream._rgfnode,game_stream._rgftree),"The current node is the root node.");
+    // TODO: game_stream._rgfnode...
     ok(_.isEqual(game_stream._last_rgfnode,game_stream._action_list[game_stream._action_list.length-1].node),"The last node is given by the node corresponding to the last action of the action list.");
 
     ok(true,"[NEXT] We check the GameStream status.");
@@ -288,50 +289,8 @@ test("Loading a sorted timestamped action list, resp. loading from an RGF conten
     deepEqual(game_stream.status.duration,gs_status.duration,"The current duration is given by the time of the last supplied action (reported by RGFParser, it has count=0).");
     equal(game_stream.status.max_duration,gs_status.max_duration,"The duration of the final RGF is the duration argument we passed at the beginning.");
     equal(game_stream.status.ended,gs_status.ended,"The game stream has not ended yet because the current time is smaller than the maximal duration.");
-    equal(game_stream.status.waiting,gs_status.waiting,"We are waiting because the current time is bigger than the current duration.");
+    equal(game_stream.status.waiting,gs_status.waiting,"We are not waiting because the current time is not bigger than the current duration.");
 });
-
-
-module("GameStream (after loading the RGF, without updating)", {
-    setup: function() {
-        init(duration,ms_duration);
-        game_stream.update(0);
-        board.applied_actions=[];
-        parser=new RGFParser(rgf);
-        rgf_tree=parser.rgftree;
-        action_list=parser.action_list;
-        game_stream.queueTimedActionList(action_list);
-        board.applied_actions=[];
-    },
-    teardown: reset
-});
-test("Updating the game stream to time 0 again.", function(){
-    gs_status.time=0;
-    gs_status.time_index=9;
-    gs_status.duration={time: parser.max_duration, counter:0};
-    var applied_actions=game_stream._action_list.slice(1,gs_status.time_index);
-
-    game_stream.update(0);
-    ok(true,"[DONE] Updated the game stream to time 0.");
-    ok(_.isEqual(board.applied_actions,applied_actions),"All new actions with time smaller or equal to 0 should have been applied (those are the first eight actions _after_ the KeyFrame which was already applied).");
-    board.applied_actions=[];
-
-    ok(true,"[NEXT] We check the potentially changed internal GameStream properties. Note that the remaining internal properties are not touched by update anyway (unless the board would interfere)...");
-    //TODO
-    
-    ok(true,"[NEXT] We check the GameStream status.");
-    equal(game_stream.status.time,gs_status.time,"The time is 0.");
-    equal(game_stream.status.time_index,gs_status.time_index,"Now the time index points to the next action after the last applied action.");
-    equal(game_stream.status.last_keyframe_index,gs_status.last_keyframe_index,"The last KeyFrame is the initial KeyFrame (last_keyframe_index=0).");
-    deepEqual(game_stream.status.duration,gs_status.duration,"The current duration is given by the last supplied action (reported by RGFParser, it has count=0).");
-    equal(game_stream.status.max_duration,gs_status.max_duration,"The duration of the final RGF is the duration argument we passed at the beginning.");
-    equal(game_stream.status.ended,gs_status.ended,"The game stream has not ended yet because the current time is smaller than the maximal duration.");
-    equal(game_stream.status.waiting,gs_status.waiting,"We are also not waiting because the current time is not bigger than the current duration.");
-});
-test("Writing an RGF.", function(){
-    equal(game_stream.writeRGF(),rgf_tree.writeRGF(),"The generated RGF from GameStream should be equal to the RGF from RGFParser.");
-});
-
 
 module("GameStream (with RGF)", {
     setup: function() {
@@ -339,6 +298,9 @@ module("GameStream (with RGF)", {
         loadRGF(rgf);
     },
     teardown: reset
+});
+test("Writing an RGF.", function(){
+    equal(game_stream.writeRGF(),rgf_tree.writeRGF(),"The generated RGF from GameStream should be equal to the RGF from RGFParser.");
 });
 test("Jump to time 37.", function(){
     gs_status.time=37;

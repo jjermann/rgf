@@ -74,7 +74,7 @@ function DisplayGUI(base_id,ms_sources,duration) {
 
 
     // initialize all components
-    this.board.eidogoConfig.GS_insertAction=this.game_stream.insertAction.bind(this.game_stream);
+    this.board.eidogoConfig.GS_insertAction=this.game_stream.applyActionList.bind(this.game_stream);
     this.board.init();
     this.media_stream.init();
     this.media_interface.init(this.media_stream);

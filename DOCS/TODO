@@ -34,11 +34,9 @@ Medium things:
   Solution 3:
   Reduce the update interval to something much smaller than 250ms...
 
-- Add support for updates within the same time (updates of time_index)
-- Add "step back" and "step forward" buttons which step back/forward one
-  action.
-- Replay with constant time for each action instead of a time accurate
-  replay.
+- [DONE] Add support for updates within the same time (updates of time_index)
+- Add "step back" and "step forward" buttons which step back/forward one action.
+- Replay with constant time for each action instead of a time accurate replay.
 - Support loading linear SGF files as an RGF file by interpreting the "time
   left" properties accordingly... -> thus supporting time accurate replays
   of linear games even if it was not recorded with timestamps...

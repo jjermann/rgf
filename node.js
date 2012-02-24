@@ -124,7 +124,7 @@ RGFNode.prototype.writeRGF = function(indent,base_indent) {
         for (var i=0; i<this.properties.length; i++) {
             if (this.properties[i].time==-1 && this.properties[i].name===last_propname) {
                 output=output.slice(0, -1);
-                output += "[" + this.properties[i].argument + "]";
+                output += "[" + this.properties[i].argument + "] ";
             } else {
                 last_propname=this.properties[i].name;
                 output +=  this.properties[i].name + "[" + this.properties[i].argument + "]";

@@ -57,6 +57,7 @@ Small things:
 -------------
 
 - [DONE] (BUG) bug when printing property lists
-- At the moment no property lists are allowed for timestamped nodes...
+- At the moment no property lists are allowed for timestamped nodes (but not
+  they are not really needed either)...
 - Allow time delay for media stream -> adjust status.currentTime accordingly
   (as if there was no delay)!

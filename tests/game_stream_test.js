@@ -74,7 +74,8 @@ MockMediaStream.prototype.timeupdate=function() {
             this.timeout=setTimeout(function(){self.timeupdate();},50);
         }
         this.updateGS(self.status);
-        ok(true,"Updated GS time:"+this.status.currentTime);
+        // too much...
+        // ok(true,"Updated GS time:"+this.status.currentTime);
     } else {
         ok(true,"Media stream has ended...");
         start();
@@ -206,8 +207,6 @@ test("Internal GameStream properties", function(){
     deepEqual(game_stream._action_list,[initial_keyframe],"The Action List consists of one KeyFrame.");
     deepEqual(game_stream._keyframe_list,[0],"The KeyFrame List has one entry pointing to the first KeyFrame in the ActionList.");
     deepEqual(game_stream._rgftree,new RGFNode(),"The rgf tree is an empty root node (without parent).");
-    deepEqual(game_stream._rgfnode,game_stream._rgftree,"The current node is the root node.");
-    deepEqual(game_stream._last_rgfnode,game_stream._rgftree,"The last node is the root node.");
 });
 test("GameStream status", function(){
     equal(game_stream.status.time,gs_status.time,"The time is set to 0 (not updated yet!).");
@@ -242,8 +241,6 @@ test("Internal GameStream properties", function(){
     deepEqual(game_stream._action_list,[initial_keyframe],"The Action List consists of one KeyFrame.");
     deepEqual(game_stream._keyframe_list,[0],"The KeyFrame List has one entry pointing to the first KeyFrame in the ActionList.");
     deepEqual(game_stream._rgftree,new RGFNode(),"The rgf tree is an empty root node (without parent).");
-    deepEqual(game_stream._rgfnode,game_stream._rgftree,"The current node is the root node.");
-    deepEqual(game_stream._last_rgfnode,game_stream._rgftree,"The last node is the root node.");
 });
 test("GameStream status", function(){
     gs_status.time=0;
@@ -279,8 +276,6 @@ test("Loading a sorted timestamped action list, resp. loading from an RGF conten
     ok(compareActionLists(game_stream._action_list,game_action_list),"The Action List is equal to the supplied action list except for: one additional KeyFrame at the beginning and one further node parameter for each action (NOT checked atm!!).");
     deepEqual(game_stream._keyframe_list,[0],"Since no new KeyFrame was added, the list still has only one entry pointing to the first KeyFrame in the Action List.");
     ok(_.isEqual(game_stream._rgftree,parser.rgftree),"The rgf tree coincides with the rgf tree from RGFParser!");
-    // TODO: game_stream._rgfnode...
-    ok(_.isEqual(game_stream._last_rgfnode,game_stream._action_list[game_stream._action_list.length-1].node),"The last node is given by the node corresponding to the last action of the action list.");
 
     ok(true,"[NEXT] We check the GameStream status.");
     equal(game_stream.status.time,gs_status.time,"The time is 0.");
@@ -388,7 +383,7 @@ test("Jump back to time 24.", function(){
 
 module("GameStream (with initial SGF)", {
     setup: function() {
-        init(duration/10,ms_duration/10);
+        init(null,ms_duration/10);
         loadRGF(initial_sgf);
     },
     teardown: reset

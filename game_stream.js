@@ -152,7 +152,7 @@ GameStream.prototype.insertAction=function(action) {
     if (!action.force) {
         // ... otherwise we make sure that the action doesn't influence any already existing future actions
         // and return false if that might be the case.
-        if (this.status.time_index===0) return false;
+        if (this.status.time_index===0 || this.status.ended) return false;
         if (action.name==";" && new_node.children.length) {
             var last_node=new_node.children[new_node.children.length-1];
             if (new_action.time<last_node.time) return false;

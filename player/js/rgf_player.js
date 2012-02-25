@@ -1273,6 +1273,7 @@ eidogo.Player.prototype = {
             if (this.mode == "add_b" || this.mode == "add_w") {
                 // if a stone was placed previously, we add an empty point (AE);
                 // otherwise, we remove the stone property from the current node
+                // GAMESTREAM: TODO => THE NEXT COMMAND IS NOT PROPERLY RECORDED!!!
                 var deleted = this.cursor.node.emptyPoint(this.pointToSgfCoord({x:x,y:y}));
                 if (stone != this.board.BLACK && this.mode == "add_b") {
                     prop = "AB";
@@ -1291,15 +1292,10 @@ eidogo.Player.prototype = {
                     case "number":
                         prop = "LB";
                         coord = coord + ":" + this.labelLastNumber;
-                        // GAMESTREAM: TODO
-                        // this.labelLastNumber++;
                         break;
                     case "letter":
                         prop = "LB";
                         coord = coord + ":" + this.labelLastLetter;
-                        // GAMESTREAM: TODO
-                        // this.labelLastLetter = String.fromCharCode(
-                        //     this.labelLastLetter.charCodeAt(0)+1);
                         break;
                     case "label":
                         prop = "LB";
@@ -1318,10 +1314,20 @@ eidogo.Player.prototype = {
                 }
             }
             // GAMESTREAM
-            // if (prop)
-            //     this.cursor.node.pushProperty(prop, coord);
-            // GS
-            if (prop) this.GS_insertAction({name: prop, arg: coord});
+            if (prop && this.GS_insertAction({name: prop, arg: coord})) {
+                switch (this.mode) {
+                    case "number":
+                        this.labelLastNumber++;
+                        break;
+                    case "letter":
+                        this.labelLastLetter = String.fromCharCode(this.labelLastLetter.charCodeAt(0)+1);
+                        break;
+                    case "clear":
+                        // TODO: this.cursor.node.deletePropertyValue(
+                        //    ['TR', 'SQ', 'CR', 'MA', 'DD', 'LB'], new RegExp("^" + coord));
+                        break;
+                }
+            }
 
             this.unsavedChanges = true;
             var deleted = this.checkForEmptyNode();

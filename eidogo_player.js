@@ -82,7 +82,8 @@ BoardPlayer.prototype.apply=function(action) {
          + ((action.position!==undefined)         ? (", position: \"" + action.position + "\"") :   "")
     + "});\n";
     
-    var parser=new RGFParser(this.eidogo_player.cursor.getGameRoot().toSgf());
+    var parser=new RGFParser;
+    parser.loadRGF(this.eidogo_player.cursor.getGameRoot().toSgf());
     $('div#'+this.id+"_sgf").text(parser.rgf);
     $('div#'+this.id+"_actions").append(document.createTextNode(new_actiontxt));
 };

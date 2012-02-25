@@ -165,7 +165,8 @@ function setupGS() {
     board.applied_actions=[];
 }
 function loadRGF(new_rgf) {
-    parser=new RGFParser(new_rgf);
+    parser=new RGFParser;
+    parser.loadRGF(new_rgf);
     rgf_tree=parser.rgftree;
     action_list=parser.action_list;
     game_stream.applyTimedActionList(action_list);
@@ -255,7 +256,8 @@ test("GameStream status", function(){
     equal(game_stream.status.waiting,gs_status.waiting,"We are waiting because the current time is bigger than the current duration.");
 });
 test("Loading a sorted timestamped action list, resp. loading from an RGF content/file", function(){
-    parser=new RGFParser(rgf);
+    parser=new RGFParser;
+    parser.loadRGF(rgf);
     rgf_tree=parser.rgftree;
     action_list=parser.action_list;
     // TODO: check the node parameter too

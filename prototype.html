@@ -49,14 +49,15 @@
             rec_dinerchtein:  Used for recording (no rgf)
          */
 
-         var example=rec_dinerchtein;
+         var example=dinerchtein;
 
          var display_gui=new DisplayGUI(
              example.id,
              example.ms,
              example.duration
          );
-         var parser=new RGFParser(example.rgf);
+         var parser=new RGFParser;
+         parser.loadRGF(example.rgf);
          if (!display_gui.game_stream.applyTimedActionList(parser.action_list)) {
              alert("invalid action list!");
          }

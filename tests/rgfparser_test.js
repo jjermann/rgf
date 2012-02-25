@@ -6,7 +6,8 @@ var rgf, rgfparser, max_duration;
 module("Empty rgf parsing", {
     setup: function() {
         rgf="";
-        rgfparser=new RGFParser("");
+        rgfparser=new RGFParser;
+        rgfparser.loadRGF("");
     },
     teardown: function() {
         rgf=undefined;
@@ -36,7 +37,8 @@ test("Writing RGF", function(){
     equal(rgfparser.rgftree.writeRGF(""),"", "Generated RGF file, without indentations, created by rgfparser.rgftree.writeRGF(\"\"): "+rgfparser.rgftree.writeRGF(""));
 });
 test("Consistency", function(){
-    var new_rgfparser=new RGFParser(rgfparser.rgftree.writeRGF());
+    var new_rgfparser=new RGFParser;
+    new_rgfparser.loadRGF(rgfparser.rgftree.writeRGF());
     deepEqual(rgfparser.rgftree,new_rgfparser.rgftree,"The generated RGF should give the same tree as the original one...");
 });
 
@@ -45,7 +47,8 @@ test("Consistency", function(){
 module("Simple RGF tree parsing", {
     setup: function() {
         rgf=";B[aa]VT[N]TS[49]VT[ENDED]TS[50](;W[bb]VT[N]TS[19];TS[20]B[dd]TS[20])(;W[bc]AB[ef][fg]VT[N]TS[29]AW[cd]TS[30]AB[gh]TS[40])";
-        rgfparser=new RGFParser(rgf);
+        rgfparser=new RGFParser;
+        rgfparser.loadRGF(rgf);
         max_duration=50;
     },
     teardown: function() {
@@ -138,6 +141,7 @@ test("Writing RGF", function(){
     equal(rgfparser.rgf,final_rgf, "Generated RGF file, with standard indentations, created by rgfparser.rgftree.writeRGF()");
 });
 test("Consistency", function(){
-    var new_rgfparser=new RGFParser(rgfparser.rgftree.writeRGF());
+    var new_rgfparser=new RGFParser;
+    new_rgfparser.loadRGF(rgfparser.rgftree.writeRGF());
     ok(_.isEqual(rgfparser.rgftree,new_rgfparser.rgftree),"The generated RGF should give the same tree as the original one...");
 });

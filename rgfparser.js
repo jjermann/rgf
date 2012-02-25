@@ -1,7 +1,10 @@
-function RGFParser(rgf) {
+function RGFParser() { };
+
+RGFParser.prototype.loadRGF = function(rgf) {
     this.rgf=rgf;
     this.index=0;
     this.rgftree=new RGFNode();
+    this.max_duration=undefined;
     this._parseTree(this.rgftree);
     this.action_list=this.rgftree.getActions();
     if (this.action_list.length) {

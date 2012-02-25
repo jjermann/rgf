@@ -131,7 +131,7 @@ test("Writing RGF", function(){
     final_rgf+="        ;TS[20] B[dd]TS[20]" + " \n";
     final_rgf+="    )" + "\n";
     final_rgf+="    (" + "\n";
-    final_rgf+="        ;W[bc] AB[ef][fg]VT[N]TS[29] AW[cd]TS[30] AB[gh]TS[40]" + " \n";
+    final_rgf+="        ;W[bc] AB[ef][fg] VT[N]TS[29] AW[cd]TS[30] AB[gh]TS[40]" + " \n";
     final_rgf+="    )" + "\n";
     final_rgf+=")"+"\n";
 

@@ -2,7 +2,6 @@ function RGFNode(time,counter) {
     this.properties=[];
     this.children=[];
     this.parent=null;
-    this.index=null;
     this.position="";
     this.time=(time==undefined) ? -1 : +time;
     this.counter=(counter==undefined) ? 0: +counter;
@@ -15,11 +14,10 @@ function RGFProperty(name,argument,time,counter) {
 };
 RGFNode.prototype.addNode=function(node) {
     node.parent=this;
-    node.index=this.children.length;
     if (this.parent==null) {
-        node.position=""+node.index;
+        node.position=""+this.children.length;
     } else {
-        node.position=this.position+"."+node.index;
+        node.position=this.position+"."+this.children.length;
     }
     this.children.push(node);
     return node;

@@ -81,7 +81,7 @@ BoardPlayer.prototype.apply=function(action) {
          + ((action.arg!==undefined)              ? (", arg: \"" + action.arg + "\"")           :   "")
          + ((action.position!==undefined)         ? (", position: \"" + action.position + "\"") :   "")
     + "});\n";
-    
+
     var parser=new RGFParser;
     parser.loadRGF(this.eidogo_player.cursor.getGameRoot().toSgf());
     $('div#'+this.id+"_sgf").text(parser.rgf);

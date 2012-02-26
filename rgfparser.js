@@ -4,11 +4,34 @@ RGFParser.prototype.loadRGF = function(rgf) {
     this.rgf=rgf;
     this.index=0;
     this.rgftree=new RGFNode();
+    this.times=undefined;
     this.max_duration=undefined;
     this._parseTree(this.rgftree);
     this.action_list=this.rgftree.getActions();
     if (this.action_list.length) {
         this.max_duration=this.action_list[this.action_list.length-1].time;
+    } else {
+        this.max_duration=0;
+    }
+    this.rgf=this.rgftree.writeRGF();
+};
+
+// expects an SGF _content_, e.g. no root or game-info properties...
+// not that the rgftree is _not_ valid at the end, just the action_list!
+RGFParser.prototype.importLinearSGF = function(sgf,mode) {
+    this.rgf=sgf;
+    this.index=0;
+    this.rgftree=new RGFNode();
+    this.times=new Object();
+    this.max_duration=undefined;
+    this._parseTree(this.rgftree);
+    this._updateTimemode(mode,"init");
+    this.applySGFTimes(this.rgftree,mode);
+    this.action_list=this.rgftree.getActions();
+    if (this.action_list.length) {
+        this.max_duration=this.action_list[this.action_list.length-1].time;
+    } else {
+        this.max_duration=0;
     }
     this.rgf=this.rgftree.writeRGF();
 };
@@ -58,14 +81,15 @@ RGFParser.prototype._parseProperties = function(node) {
         if (c == ';' || c == '(' || c == ')') {
             break;
         }
-        // a new property starts
+        // a new property argument starts
         if (this._curChar() == '[') {
-            // while we have a property list
+            // while we have a property list (not that the index still points to the '[')
             while (this._curChar() == '[') {
                 this.index++;
                 arg[i] = "";
                 while (this._curChar() != ']' && this.index < this.rgf.length) {
                     if (this._curChar() == '\\') {
+                        //arg[i] += this._curChar();
                         this.index++;
                         // not technically correct, but works in practice
                         while (this._curChar() == "\r" || this._curChar() == "\n") {
@@ -77,6 +101,7 @@ RGFParser.prototype._parseProperties = function(node) {
                     this.index++;
                 }
                 i++;
+                // ignore the following characters if they come after a property argument:
                 while (this._curChar() == ']' || this._curChar() == "\n" || this._curChar() == "\r") {
                     this.index++;
                 }
@@ -124,6 +149,81 @@ RGFParser.prototype._parseProperties = function(node) {
     }
     return node;
 };
+
+// use the timings BL and WL from a linear SGF content to get the RGF timestamps...
+RGFParser.prototype.applySGFTimes = function(node, mode) {
+    for (var i=0; i<node.properties.length; i++) {
+        var prop=node.properties[i];
+        if (prop.name=="BL" && prop.time==-1) {
+            this._updateTimemode(mode,"BL",prop.argument);
+        } else if (prop.name=="WL" && prop.time==-1) {
+            this._updateTimemode(mode,"WL",prop.argument);
+        }
+    }
+    if (node.parent!=null && node.time==-1) {
+        node.time=mode.time;
+        if (this.times[node.time]==null) this.times[node.time]=0;
+        else this.times[node.time]++;
+        node.counter=this.times[node.time];
+        for (var i=0; i<node.properties.length; i++) {
+            var prop=node.properties[i];
+            if (prop.time==-1) {
+                this.times[node.time]++;
+                prop.time=node.time;
+                prop.counter=this.times[prop.time];
+            }
+        }
+    }
+
+    for (var i=0; i<node.children.length; i++) {
+        // copy mode...
+        this.applySGFTimes(node.children[i], mode);
+    }
+};
+
+RGFParser.prototype._updateTimemode = function(mode,change,arg) {
+    switch(mode.type) {
+        case "absolute":
+            switch(change) {
+                case "init":
+                    mode.time=0;
+                    mode.last_bl=mode.time_limit;
+                    mode.last_wl=mode.time_limit;
+                    if (mode.step==undefined) mode.step=5;
+                    break;
+                case "BL":
+                    if (arg<=mode.time_limit) {
+                        var diff=mode.last_bl-arg;
+                        mode.last_bl=arg;
+                        if (diff>0) {
+                            mode.time+=diff;
+                        } else {
+                            // if time was added
+                            mode.time+=mode.step;
+                        }
+                    }
+                    break;
+                case "WL":
+                    if (arg<=mode.time_limit) {
+                        var diff=mode.last_wl-arg;
+                        mode.last_wl=arg;
+                        if (diff>0) {
+                            mode.time+=diff;
+                        } else {
+                            // if time was added
+                            mode.time+=mode.step;
+                        }
+                    }
+                    break;
+            }
+            break;
+        case "fischer":
+        case "japanese":
+        case "canadian":
+        case "hourglass":
+        default:
+    }
+}
 
 RGFParser.prototype._curChar = function() {
     return this.rgf.charAt(this.index);

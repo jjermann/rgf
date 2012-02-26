@@ -149,49 +149,6 @@ RGFNode.prototype.toString=function(indent,base) {
     return this.writeRGF(indent,base);
 }
 
-/*  this was needed to get eidogo's position. */
-/*
-RGFNode.prototype.getEidogoPath = function() {
-    var n = this,
-        rpath = [],
-        mn = 0;
-    while (n && n.parent && n.parent.children.length == 1 && n.parent.parent) {
-        mn++;
-        n = n.parent;
-    }
-    rpath.push(mn);
-    while (n) {
-        if (n.parent && (n.parent.children.length > 1 || !n.parent.parent))
-            rpath.push(n.index || 0);
-        n = n.parent;
-    }
-    return rpath.reverse();
-};
-*/
-
-/*  New definition of position, compatible with eidogo */
-/*  (I never tried this, it's probably buggy)
-RGFNode.prototype.descend = function(path) {
-    if (!path.length || (path.length==1 && path[0]==0)) {
-        return this;
-    } else if (path.length==1 && path.children.length==1 && path[0]>0) {
-        var newpath=path.slice(0);
-        newpath[0]--;
-        return this.children[0].descend(newpath);
-    } else if (path.length==1) {
-        alert("Illegal path!");
-        return this;
-    } else if (this.children.length==1) {
-        return this.children[0].descend(path);
-    } else if (path[0]>=0 && path[0]<this.children.length) {
-        return this.children[path[0]].descend(path.slice(1));
-    } else {
-        alert("Illegal path!");
-        return this;
-    }
-};
-*/
-
 // the following two functions are used to get stable sorting, which is needed
 function merge(left,right,comparison) {
     var result = new Array();

@@ -157,8 +157,6 @@ VT[NAME]: Adds a visual trigger NAME <string>. The handling is up to the
             This trigger is used when the node position is "manually" changed
             (e.g. during naviagion), to select the initial node position and
             when we "move" (navigate) to an already existing node.
-        VT[PASS:B]: B passed
-        VT[PASS:W]: W passed
         VT[RESIGN:B]: B resigned
         VT[RESIGN:W]: W resigned
         VT[ENDED]: Does nothing more than indicating the end of the game

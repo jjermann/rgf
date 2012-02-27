@@ -192,27 +192,23 @@ RGFParser.prototype._updateTimemode = function(mode,change,arg) {
                     if (mode.step==undefined) mode.step=5;
                     break;
                 case "BL":
-                    if (arg<=mode.time_limit) {
-                        var diff=mode.last_bl-arg;
-                        mode.last_bl=arg;
-                        if (diff>0) {
-                            mode.time+=diff;
-                        } else {
-                            // if time was added
-                            mode.time+=mode.step;
-                        }
+                    var diff=mode.last_bl-arg;
+                    mode.last_bl=arg;
+                    if (diff>0) {
+                        mode.time+=diff;
+                    } else {
+                        // if time was added
+                        mode.time+=mode.step;
                     }
                     break;
                 case "WL":
-                    if (arg<=mode.time_limit) {
-                        var diff=mode.last_wl-arg;
-                        mode.last_wl=arg;
-                        if (diff>0) {
-                            mode.time+=diff;
-                        } else {
-                            // if time was added
-                            mode.time+=mode.step;
-                        }
+                    var diff=mode.last_wl-arg;
+                    mode.last_wl=arg;
+                    if (diff>0) {
+                        mode.time+=diff;
+                    } else {
+                        // if time was added
+                        mode.time+=mode.step;
                     }
                     break;
             }

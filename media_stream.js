@@ -302,9 +302,17 @@ MediaStream.prototype.streamtypeupdate = function(duration) {
 };
 
 MediaStream.prototype.fallback = function() {
-    clearTimeout(this.timeoutValue);
     this.status.ready="false";
     this.status.failed="true";
+    
+    for (var i=0; i<this.interfaces.length; i++) {
+        this.interfaces[i].updatedStatus(this.status);
+    }
+    this.close();
+};
+
+MediaStream.prototype.close = function() {
+    clearTimeout(this.timeoutValue);
     this.player.unlisten("play");
     this.player.unlisten("pause");
     this.player.unlisten("ended");
@@ -313,8 +321,4 @@ MediaStream.prototype.fallback = function() {
     this.player.unlisten("timeupdate");
     this.player.unlisten("durationchange");
     this.player.unlisten("volumechange");
-    
-    for (var i=0; i<this.interfaces.length; i++) {
-        this.interfaces[i].updatedStatus(this.status);
-    }
 };

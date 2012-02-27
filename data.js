@@ -1,4 +1,40 @@
-/* Alexander Dinerchtein giving a go lecture */
+/* LOADING EXAMPLES AND STORING THEM IN A DISPLAY GUI LIST */
+
+display_gui_list=new Object();
+current_example=undefined;
+
+function loadExample(example) {
+    if (current_example) {
+        display_gui_list[current_example.id].media_stream.player.pause();
+        display_gui_list[current_example.id].hide();
+    }
+    current_example=example;
+    if (display_gui_list[current_example.id]) {
+        display_gui_list[current_example.id].show();
+    } else {
+        var parser=new RGFParser;
+        if (example.rgf) {
+            parser.loadRGF(example.rgf);
+        } else if (example.sgf) {
+            parser.importLinearSGF(example.sgf,example.mode);
+        }
+        if (example.duration==undefined) example.duration=parser.max_duration;
+
+        display_gui_list[example.id]=new DisplayGUI(
+            example.id,
+            example.ms,
+            example.duration
+        );
+        if (!display_gui_list[example.id].game_stream.applyTimedActionList(parser.action_list)) {
+            alert("invalid action list!");
+        }
+    }
+}
+
+
+/* EXAMPLES */
+
+// Alexander Dinerchtein giving a go lecture
 dinerchtein=new Object();
 dinerchtein.id="dinerchtein";
 dinerchtein.duration=200;
@@ -77,7 +113,7 @@ dinerchtein.rgf+=")" + "\n";
 
 
 
-/* youtube video */
+// youtube video
 youtube=new Object();
 youtube.id="youtube";
 youtube.duration=30;
@@ -90,7 +126,7 @@ youtube.ms=[{
 youtube.rgf=";TS[13]B[wh]TS[13:1] ;TS[16]W[cq]TS[16:1] ;TS[18]B[bi]TS[18:1] ;TS[21]W[cc]TS[21:1] ;TS[22]B[ep]TS[22:1] ;TS[24]W[bo]TS[24:1] ;TS[30]B[cr]TS[30:1]"
 
 
-/* vimeo video */
+// vimeo video
 vimeo=new Object();
 vimeo.id="vimeo";
 vimeo.duration=20;
@@ -102,7 +138,7 @@ vimeo.ms=[{
 vimeo.rgf=";TS[3]W[aa]TS[3:1] ;TS[10]B[ee]TS[10:1] ;TS[12]W[ab]TS[12:1] VT[ENDED]TS[20]";
 
 
-/* baseplayer */
+// baseplayer
 baseplayer=new Object();
 baseplayer.id="baseplayer";
 baseplayer.duration=50;
@@ -111,7 +147,7 @@ baseplayer.ms=[];
 baseplayer.rgf=";B[aa]VT[N]TS[49]VT[ENDED]TS[50](;W[bb]VT[N]TS[19];TS[20]B[dd]TS[20:1])(;W[bc]AB[ef][fg]VT[N]TS[29]AW[cd]TS[30]AB[gh]TS[40])";
 
 
-/* For recording of: Alexander Dinerchtein giving a go lecture */
+// For recording of: Alexander Dinerchtein giving a go lecture
 rec_dinerchtein=new Object();
 rec_dinerchtein.id="rec_dinerchtein";
 rec_dinerchtein.duration=Infinity;
@@ -123,7 +159,7 @@ rec_dinerchtein.ms=[{
 rec_dinerchtein.rgf="";
 
 
-/* Japanese byo-yomi sgf */
+// Japanese byo-yomi linear sgf 
 
 japanese_sgf=new Object();
 japanese_sgf.id="japanese_sgf";
@@ -508,7 +544,7 @@ japanese_sgf.sgf+=';W[ao]WL[30]OW[5]';
 japanese_sgf.sgf+=';B[do]BL[30]OB[1]';
 
 
-/* Canadian byo-yomi sgf */
+// Canadian byo-yomi linear sgf
 
 canadian_sgf=new Object();
 canadian_sgf.id="canadian_sgf";
@@ -815,3 +851,4 @@ canadian_sgf.sgf+='karaklis [4k\\]: why isnt n10 marked dead?';
 canadian_sgf.sgf+='oren [7k?\\]: oops';
 canadian_sgf.sgf+='oren [7k?\\]: rescore';
 canadian_sgf.sgf+=']';
+

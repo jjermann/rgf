@@ -34,44 +34,24 @@
     <script type="text/javascript" src="gui.js"></script>
 
     <script>
-      // ensure the web page (DOM) has loaded
-      document.addEventListener("DOMContentLoaded", function () {
+        // ensure the web page (DOM) has loaded
+        document.addEventListener("DOMContentLoaded", function () {
+            /* Available examples (see data.js):
+               ---------------------------------
+               dinerchtein:      best example, local ogg file
+               youtube:          BROKEN, youtube movie, imfortunately popcorn's
+                                 youtube module seems broken... :(
+               vimeo:            vimeo movie
+               baseplayer:       no media
 
+               japanese_sgf:     import of a linear japanese byo-yomi sgf content
+               canadian_sgf:     import of a linear canadian byo-yomi sgf content
 
-         /* Available examples:
-            -------------------
-            dinerchtein:      best example, local ogg file
-            youtube:          BROKEN, youtube movie, imfortunately popcorn's
-                              youtube module seems broken... :(
-            vimeo:            vimeo movie
-            baseplayer:       no media
+               rec_dinerchtein:  Used for recording (no rgf)
+            */
 
-            japanese_sgf:     import of a japanese byo-yomi sgf content
-
-            rec_dinerchtein:  Used for recording (no rgf)
-         */
-
-         var example=dinerchtein;
-
-         var parser=new RGFParser;
-         if (example.rgf) {
-             parser.loadRGF(example.rgf);
-         } else if (example.sgf) {
-             parser.importLinearSGF(example.sgf,example.mode);
-         }
-         if (example.duration==undefined) example.duration=parser.max_duration;
-         if (!example.duration>0) example.duration=600;
-         
-         var display_gui=new DisplayGUI(
-             example.id,
-             example.ms,
-             example.duration
-         );
-         if (!display_gui.game_stream.applyTimedActionList(parser.action_list)) {
-             alert("invalid action list!");
-         }
-
-      }, false);
+            loadExample(dinerchtein);
+        }, false);
   </script>
   </head>
   <body>

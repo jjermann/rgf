@@ -317,10 +317,10 @@ review.rgf:
             ;W[rd]VT[N]TS[7.8]C[...this situation]TS[28.9]
         )
         (
-            ;TS[9.2]B[nc]TS[9.2]C[You should play here for example.]TS[12.1]
-            ;TS[13]W[rd]TS[13]
-            ;TS[14]B[qc]TS[14]
-            ;TS[15]W[qi]TS[15]C[Joseki.]TS[22]C[ So this is better than...]TS[25.2]
+            ;TS[9.2]B[nc]TS[9.2:1]C[You should play here for example.]TS[12.1]
+            ;TS[13]W[rd]TS[13:1]
+            ;TS[14]B[qc]TS[14:1]
+            ;TS[15]W[qi]TS[15:1]C[Joseki.]TS[22]C[ So this is better than...]TS[25.2]
         )
     )
     (

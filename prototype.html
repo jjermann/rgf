@@ -5,6 +5,11 @@
 
     <link   type="text/css" href="jplayer.blue.monday.css" rel="stylesheet" />
     <link   type="text/css" href="player/css/player.css" rel="stylesheet" />
+    <style  type="text/css">
+        p.unselected {background: lightgrey;}
+        p.unselected:hover {background: white;}
+        p.selected {background: lightgreen;}
+    </style>
 <!--
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
     <script type="text/javascript" src="http://popcornjs.org/code/dist/popcorn-complete.min.js"></script>
@@ -36,21 +41,15 @@
     <script>
         // ensure the web page (DOM) has loaded
         document.addEventListener("DOMContentLoaded", function () {
-            /* Available examples (see data.js):
-               ---------------------------------
-               dinerchtein:      best example, local ogg file
-               youtube:          BROKEN, youtube movie, imfortunately popcorn's
-                                 youtube module seems broken... :(
-               vimeo:            vimeo movie
-               baseplayer:       no media
-
-               japanese_sgf:     import of a linear japanese byo-yomi sgf content
-               canadian_sgf:     import of a linear canadian byo-yomi sgf content
-
-               rec_dinerchtein:  Used for recording (no rgf)
-            */
-
-            loadExample(dinerchtein);
+            collection=new ExampleCollection();
+            collection.insertExample(dinerchtein);
+            collection.insertExample(rec_dinerchtein);
+            //collection.insertExample(youtube);
+            collection.insertExample(vimeo);
+            collection.insertExample(baseplayer);
+            collection.insertExample(japanese_sgf);
+            collection.insertExample(canadian_sgf);
+            collection.loadExample("dinerchtein");
         }, false);
   </script>
   </head>

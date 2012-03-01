@@ -1,47 +1,14 @@
-/* LOADING EXAMPLES AND STORING THEM IN A DISPLAY GUI LIST */
-
-display_gui_list=new Object();
-current_example=undefined;
-
-function loadExample(example) {
-    if (current_example) {
-        display_gui_list[current_example.id].media_stream.player.pause();
-        display_gui_list[current_example.id].hide();
-    }
-    current_example=example;
-    if (display_gui_list[current_example.id]) {
-        display_gui_list[current_example.id].show();
-    } else {
-        var parser=new RGFParser;
-        if (example.rgf) {
-            parser.loadRGF(example.rgf);
-        } else if (example.sgf) {
-            parser.importLinearSGF(example.sgf,example.mode);
-        }
-        if (example.duration==undefined) example.duration=parser.max_duration;
-
-        display_gui_list[example.id]=new DisplayGUI(
-            example.id,
-            example.ms,
-            example.duration
-        );
-        if (!display_gui_list[example.id].game_stream.applyTimedActionList(parser.action_list)) {
-            alert("invalid action list!");
-        }
-    }
-}
-
-
-/* EXAMPLES */
+// EXAMPLES
 
 // Alexander Dinerchtein giving a go lecture
 dinerchtein=new Object();
 dinerchtein.id="dinerchtein";
-dinerchtein.duration=200;
+dinerchtein.description="Dinerchtein giving a video lecture (ogg)";
 dinerchtein.ms=[{
     src:  "example/lecture.ogv",
     type: "video/ogg"
 }];
+dinerchtein.duration=200;
 
 dinerchtein.rgf ="(" + "\n";
 dinerchtein.rgf+="    ;TS[20]    B[cp]TS[20:1]" + "\n";
@@ -116,7 +83,8 @@ dinerchtein.rgf+=")" + "\n";
 // youtube video
 youtube=new Object();
 youtube.id="youtube";
-youtube.duration=30;
+youtube.description="Youtube example (unfortunately broken in popcorn)";
+youtube.duration=40;
 youtube.ms=[{
 //    src:  "http://www.youtube.com/embed/Z6zZbkDmvks",
     src:  "http://www.youtube.com/embed/Z6zZbkDmvks?HD=1;modestbranding=1;autoplay=0;rel=0;showinfo=0;controls=0;disablekb=1;modestbranding=1",
@@ -128,7 +96,8 @@ youtube.rgf=";TS[13]B[wh]TS[13:1] ;TS[16]W[cq]TS[16:1] ;TS[18]B[bi]TS[18:1] ;TS[
 
 // vimeo video
 vimeo=new Object();
-vimeo.id="vimeo";
+vimeo.id="viemo";
+vimeo.description="Vimeo example";
 vimeo.duration=20;
 vimeo.ms=[{
     src:  "http://vimeo.com/35693910",
@@ -141,6 +110,7 @@ vimeo.rgf=";TS[3]W[aa]TS[3:1] ;TS[10]B[ee]TS[10:1] ;TS[12]W[ab]TS[12:1] VT[ENDED
 // baseplayer
 baseplayer=new Object();
 baseplayer.id="baseplayer";
+baseplayer.description="No media example";
 baseplayer.duration=50;
 baseplayer.ms=[];
 
@@ -150,6 +120,7 @@ baseplayer.rgf=";B[aa]VT[N]TS[49]VT[ENDED]TS[50](;W[bb]VT[N]TS[19];TS[20]B[dd]TS
 // For recording of: Alexander Dinerchtein giving a go lecture
 rec_dinerchtein=new Object();
 rec_dinerchtein.id="rec_dinerchtein";
+rec_dinerchtein.description="Empty game stream, ready for recording...";
 rec_dinerchtein.duration=Infinity;
 rec_dinerchtein.ms=[{
     src:  "example/lecture.ogv",
@@ -163,9 +134,10 @@ rec_dinerchtein.rgf="";
 
 japanese_sgf=new Object();
 japanese_sgf.id="japanese_sgf";
+japanese_sgf.description="Japanese byo-yomi linear sgf import...";
 japanese_sgf.duration=1400;
 japanese_sgf.ms=[];
-japanese_sgf.mode={type:"absolute", time_limit:300};
+japanese_sgf.time_mode={type:"absolute", time_limit:300};
 
 //(;GM[1]FF[4]CA[UTF-8]AP[CGoban:3]ST[2]
 //RU[Japanese]SZ[19]KM[0.50]TM[300]OT[5x30 byo-yomi]
@@ -548,9 +520,10 @@ japanese_sgf.sgf+=';B[do]BL[30]OB[1]';
 
 canadian_sgf=new Object();
 canadian_sgf.id="canadian_sgf";
+canadian_sgf.description="Canadian byo-yomi linear sgf import...";
 canadian_sgf.duration=5100;
 canadian_sgf.ms=[];
-canadian_sgf.mode={type:"absolute", time_limit:2400};
+canadian_sgf.time_mode={type:"absolute", time_limit:2400};
 
 //(;GM[1]FF[4]CA[UTF-8]AP[CGoban:3]ST[2]
 //RU[Japanese]SZ[19]KM[6.50]TM[2400]OT[10/300 Canadian]
@@ -851,4 +824,3 @@ canadian_sgf.sgf+='karaklis [4k\\]: why isnt n10 marked dead?';
 canadian_sgf.sgf+='oren [7k?\\]: oops';
 canadian_sgf.sgf+='oren [7k?\\]: rescore';
 canadian_sgf.sgf+=']';
-

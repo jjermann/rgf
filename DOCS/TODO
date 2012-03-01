@@ -2,13 +2,11 @@ Big things / things I can't do alone:
 -------------------------------------
 - (MAIN) integrate it into kaya.gs
 - think about html elements and how to handle them: css/dynamic html/etc...
-- Streams, recording from microphone/webcame/webstream/etc
+- Streams, recording from microphone/webcame/webstream/etc => webRTC
 - make a nice media stream/game stream interface design
 - add all necessary interface elements to kaya.gs (menu/buttons/etc)
   at the right position (maybe with dynamic size).
-- maybe: change the spec to support game streams at non game-info nodes
-  (should be possible but do we want this?)...
- 
+
 
 Medium things:
 --------------
@@ -55,9 +53,32 @@ Medium things:
 
 Small things:
 -------------
-
 - [DONE] (BUG) bug when printing property lists
+- "round" times up to 1 ms: Where?!
+- escape character for "]", also be careful about "\\]"...
 - At the moment no property lists are allowed for timestamped nodes (but not
   they are not really needed either)...
 - Allow time delay for media stream -> adjust status.currentTime accordingly
   (as if there was no delay)!
+- implement fischer, hourglass, japanese/canadian byo-yomi linear sgf imports
+
+
+Unsure:
+-------
+- Allow game stream node to be anywhere (except inside an already existing
+  game stream subtree), this is probably a good idea and would allow
+  standalone rgf files without sgf files and (if no media is present) even
+  without a tar container... but it has some negative aspects too, for
+  instance: an sgf reader would not have access to important "header"
+  informations of the rgf game (so we would have to think about this
+  carefully)...
+- Version property for RGF?
+- additional media property for RGF? 
+
+
+Issues:
+-------
+- Make meaning of "Duration" in all possible context more clear + working
+- if game stream acts as an interface the media stream shouldn't update game
+  stream...
+- 

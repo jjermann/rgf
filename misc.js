@@ -11,6 +11,18 @@ function extend(from,to) {
     return from;
 };
 
+function deepclone(o) {
+    return (o && typeof(o) === 'object' ?
+    function(t) {
+        for (var p in o) {
+            if (o.hasOwnProperty(p)) {
+                t[p] = deepclone(o[p])
+            }
+        }
+        return t
+    }({}) : o)
+}
+
 // only for testing
 function createBox(id,title,style) {
     var el,tmp;

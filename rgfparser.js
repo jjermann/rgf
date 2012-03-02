@@ -158,6 +158,10 @@ RGFParser.prototype.applySGFTimes = function(node, mode) {
             this._updateTimemode(mode,"BL",prop.argument);
         } else if (prop.name=="WL" && prop.time==-1) {
             this._updateTimemode(mode,"WL",prop.argument);
+        } else if (prop.name=="OB" && prop.time==-1) {
+            this._updateTimemode(mode,"OB",prop.argument);
+        } else if (prop.name=="OW" && prop.time==-1) {
+            this._updateTimemode(mode,"OW",prop.argument);
         }
     }
     if (node.parent!=null && node.time==-1) {
@@ -176,8 +180,8 @@ RGFParser.prototype.applySGFTimes = function(node, mode) {
     }
 
     for (var i=0; i<node.children.length; i++) {
-        // copy mode...
-        this.applySGFTimes(node.children[i], mode);
+        var clone=deepclone(mode);
+        this.applySGFTimes(node.children[i], clone);
     }
 };
 
@@ -210,6 +214,10 @@ RGFParser.prototype._updateTimemode = function(mode,change,arg) {
                         // if time was added
                         mode.time+=mode.step;
                     }
+                    break;
+                case "OB":
+                    break;
+                case "OW":
                     break;
             }
             break;

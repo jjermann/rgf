@@ -8,7 +8,7 @@ dinerchtein.ms=[{
     src:  "example/lecture.ogv",
     type: "video/ogg"
 }];
-dinerchtein.duration=200;
+//dinerchtein.duration=200;
 
 dinerchtein.rgf ="(" + "\n";
 dinerchtein.rgf+="    ;TS[20]    B[cp]TS[20:1]" + "\n";
@@ -84,7 +84,7 @@ dinerchtein.rgf+=")" + "\n";
 youtube=new Object();
 youtube.id="youtube";
 youtube.description="Youtube example (unfortunately broken in popcorn)";
-youtube.duration=40;
+//youtube.duration=40;
 youtube.ms=[{
 //    src:  "http://www.youtube.com/embed/Z6zZbkDmvks",
     src:  "http://www.youtube.com/embed/Z6zZbkDmvks?HD=1;modestbranding=1;autoplay=0;rel=0;showinfo=0;controls=0;disablekb=1;modestbranding=1",
@@ -96,9 +96,9 @@ youtube.rgf=";TS[13]B[wh]TS[13:1] ;TS[16]W[cq]TS[16:1] ;TS[18]B[bi]TS[18:1] ;TS[
 
 // vimeo video
 vimeo=new Object();
-vimeo.id="viemo";
+vimeo.id="vimeo";
 vimeo.description="Vimeo example";
-vimeo.duration=20;
+//vimeo.duration=20;
 vimeo.ms=[{
     src:  "http://vimeo.com/35693910",
     type: "vimeo"
@@ -111,7 +111,7 @@ vimeo.rgf=";TS[3]W[aa]TS[3:1] ;TS[10]B[ee]TS[10:1] ;TS[12]W[ab]TS[12:1] VT[ENDED
 baseplayer=new Object();
 baseplayer.id="baseplayer";
 baseplayer.description="No media example";
-baseplayer.duration=50;
+//baseplayer.duration=50;
 baseplayer.ms=[];
 
 baseplayer.rgf=";B[aa]VT[N]TS[49]VT[ENDED]TS[50](;W[bb]VT[N]TS[19];TS[20]B[dd]TS[20:1])(;W[bc]AB[ef][fg]VT[N]TS[29]AW[cd]TS[30]AB[gh]TS[40])";
@@ -121,7 +121,7 @@ baseplayer.rgf=";B[aa]VT[N]TS[49]VT[ENDED]TS[50](;W[bb]VT[N]TS[19];TS[20]B[dd]TS
 rec_dinerchtein=new Object();
 rec_dinerchtein.id="rec_dinerchtein";
 rec_dinerchtein.description="Empty game stream, ready for recording...";
-rec_dinerchtein.duration=Infinity;
+//rec_dinerchtein.duration=Infinity;
 rec_dinerchtein.ms=[{
     src:  "example/lecture.ogv",
     type: "video/ogg"
@@ -135,7 +135,7 @@ rec_dinerchtein.rgf="";
 japanese_sgf=new Object();
 japanese_sgf.id="japanese_sgf";
 japanese_sgf.description="Japanese byo-yomi linear sgf import...";
-japanese_sgf.duration=1400;
+//japanese_sgf.duration=1400;
 japanese_sgf.ms=[];
 japanese_sgf.time_mode={type:"absolute", time_limit:300};
 
@@ -521,7 +521,7 @@ japanese_sgf.sgf+=';B[do]BL[30]OB[1]';
 canadian_sgf=new Object();
 canadian_sgf.id="canadian_sgf";
 canadian_sgf.description="Canadian byo-yomi linear sgf import...";
-canadian_sgf.duration=5100;
+//canadian_sgf.duration=5100;
 canadian_sgf.ms=[];
 canadian_sgf.time_mode={type:"absolute", time_limit:2400};
 

@@ -287,7 +287,7 @@ MediaStream.prototype.streamtypeupdate = function(duration) {
     if (duration==0) {
         this.status.stream_type="no_media";
         this.player.trigger("failed_loading");
-    } else if (duration!=duration) {
+    } else if (duration==undefined) {
         this.status.stream_type="unknown_duration";
     } else if (duration===Infinity) {
         this.status.stream_type="stream";

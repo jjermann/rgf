@@ -8,10 +8,15 @@ RGFParser.prototype.loadRGF = function(rgf) {
     this.max_duration=undefined;
     this._parseTree(this.rgftree);
     this.action_list=this.rgftree.getActions();
+    this.ended=true;
     if (this.action_list.length) {
+        if (this.action_list[this.action_list.length-1].counter) {
+            this.ended=false;
+        }
         this.max_duration=this.action_list[this.action_list.length-1].time;
     } else {
-        this.max_duration=0;
+        this.max_duration=undefined;
+        this.ended=false;
     }
     this.rgf=this.rgftree.writeRGF();
 };
@@ -28,10 +33,15 @@ RGFParser.prototype.importLinearSGF = function(sgf,mode) {
     this._updateTimemode(mode,"init");
     this.applySGFTimes(this.rgftree,mode);
     this.action_list=this.rgftree.getActions();
+    this.ended=true;
     if (this.action_list.length) {
+        if (this.action_list[this.action_list.length-1].counter) {
+            this.ended=false;
+        }
         this.max_duration=this.action_list[this.action_list.length-1].time;
     } else {
-        this.max_duration=0;
+        this.max_duration=undefined;
+        this.ended=false;
     }
     this.rgf=this.rgftree.writeRGF();
 };
@@ -201,7 +211,7 @@ RGFParser.prototype._updateTimemode = function(mode,change,arg) {
                     if (diff>0) {
                         mode.time+=diff;
                     } else {
-                        // if time was added
+                        // if time was added or in byoyomi
                         mode.time+=mode.step;
                     }
                     break;
@@ -211,7 +221,7 @@ RGFParser.prototype._updateTimemode = function(mode,change,arg) {
                     if (diff>0) {
                         mode.time+=diff;
                     } else {
-                        // if time was added
+                        // if time was added or in byoyomi
                         mode.time+=mode.step;
                     }
                     break;

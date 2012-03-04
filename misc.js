@@ -107,21 +107,24 @@ ExampleCollection.prototype.loadExample = function(id) {
     if (this.display_gui_list[this.current_id]) {
         this.display_gui_list[this.current_id].show();
     } else {
+        // MAIN LOADING PROCEDURE
         var parser=new RGFParser;
         if (this.example_list[id].rgf) {
             parser.loadRGF(this.example_list[id].rgf);
         } else if (this.example_list[id].sgf) {
             parser.importLinearSGF(this.example_list[id].sgf,this.example_list[id].time_mode);
         }
-        if (this.example_list[id].duration==undefined) this.example_list[id].duration=parser.max_duration;
-
+        if (this.example_list[id].duration==undefined) {
+            this.example_list[id].duration=parser.max_duration;
+            if (!parser.ended) this.example_list[id].duration=this.example_list[id].duration+10;
+        }
         this.display_gui_list[id]=new DisplayGUI(
             id,
             this.example_list[id].ms,
             this.example_list[id].duration
         );
         if (!this.display_gui_list[id].game_stream.applyTimedActionList(parser.action_list)) {
-            alert("invalid action list!");
+            alert("Invalid action list!");
         }
     }
     return true;

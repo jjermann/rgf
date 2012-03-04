@@ -91,7 +91,7 @@ function DisplayGUI(base_id,ms_sources,duration) {
 DisplayGUI.prototype.updatedStatus = function(newstatus) {
     if (newstatus.failed) {
         // TODO: should load the fallback media stream...
-        alert("failed!");
+        alert("Media stream loading failed!");
     }
 };
 

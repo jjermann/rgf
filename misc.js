@@ -116,14 +116,14 @@ ExampleCollection.prototype.loadExample = function(id) {
         }
         if (this.example_list[id].duration==undefined) {
             this.example_list[id].duration=parser.max_duration;
-            if (!parser.ended) this.example_list[id].duration=this.example_list[id].duration+10;
+            if (!parser.ended) this.example_list[id].duration=this.example_list[id].duration+1;
         }
         this.display_gui_list[id]=new DisplayGUI(
             id,
             this.example_list[id].ms,
             this.example_list[id].duration
         );
-        if (!this.display_gui_list[id].game_stream.applyTimedActionList(parser.action_list)) {
+        if (parser.action_list && !this.display_gui_list[id].game_stream.applyTimedActionList(parser.action_list)) {
             alert("Invalid action list!");
         }
     }

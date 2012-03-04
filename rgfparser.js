@@ -35,14 +35,11 @@ RGFParser.prototype.importLinearSGF = function(sgf,mode) {
     this.action_list=this.rgftree.getActions();
     this.ended=true;
     if (this.action_list.length) {
-        if (this.action_list[this.action_list.length-1].counter) {
-            this.ended=false;
-        }
-        this.max_duration=this.action_list[this.action_list.length-1].time;
+        this.action_list.push({name: "VT", arg: "ENDED", time: this.action_list[this.action_list.length-1].time+1, counter:0});
     } else {
-        this.max_duration=undefined;
-        this.ended=false;
+        this.action_list.push({name: "VT", arg: "ENDED", time: 1, counter:0});
     }
+    this.max_duration=this.action_list[this.action_list.length-1].time;
     this.rgf=this.rgftree.writeRGF();
 };
 

@@ -10,12 +10,16 @@ Big things / things I can't do alone:
 
 Medium things:
 --------------
+- Add more basic checks whether arguments make sense and act accordingly
+  (e.g. path descend)...
+- Removal of actions from the tree and the list
+- Remove all actions if there is an insertion failed during an attempt to
+  apply an action list...
 - [DONE?] finnish KeyFrame support
 - write tester for MediaStream, MediaInterface
 - (BUG) find out why the "node" comparison doesn't work...
-- When inserting an action the current status.time is used. Since the time
-  interval is usually not so small (~250ms) an insertion might fail because
-  it was attempted too quickly.
+- Since the update time interval is not so small (~250ms) we might want
+  more precision at the time of an (action) insertion.
 
   Solution 1:
   Use the current time (not status.time) for everything, resp. update the
@@ -34,6 +38,9 @@ Medium things:
 
 - [DONE] Add support for updates within the same time (updates of time_index)
 - Add "step back" and "step forward" buttons which step back/forward one action.
+- When stepping back "someone" has to call the media stream to update it
+  accordingly, who should that be? Should GameStream become an "interface"
+  as well?
 - Replay with constant time for each action instead of a time accurate replay.
 - Support loading linear SGF files as an RGF file by interpreting the "time
   left" properties accordingly... -> thus supporting time accurate replays

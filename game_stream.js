@@ -209,7 +209,7 @@ GameStream.prototype.insertAction=function(action) {
     new_action.time=this.status.time;
     new_action.counter=0;
     // set the new counter in case we insert an action at an already existing time
-    if (new_action.time>0 && this._action_list[time_index-1].time===new_action.time) {
+    if (new_action.time>=0 && this._action_list[time_index-1].time===new_action.time) {
         new_action.counter=this._action_list[time_index-1].counter+1;
     }
     if (this.queueTimedAction(new_action)) {
@@ -226,7 +226,7 @@ GameStream.prototype._getIndex = function(time,counter,lower_bound) {
     if (counter==undefined) counter=0;
 
     var i=lower_bound;
-    while (this._action_list[i].time<time) i++;
+    while (i<this._action_list.length && this._action_list[i].time<time) i++;
     while (i<this._action_list.length && this._action_list[i].time===time && this._action_list[i].counter<=counter) i++;
 
     return i;

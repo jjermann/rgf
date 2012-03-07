@@ -227,7 +227,7 @@ GameStream.prototype._getIndex = function(time,counter,lower_bound) {
 
     var i=lower_bound;
     while (this._action_list[i].time<time) i++;
-    while (this._action_list[i].time===time && this._action_list[i].counter<=counter) i++;
+    while (i<this._action_list.length && this._action_list[i].time===time && this._action_list[i].counter<=counter) i++;
 
     return i;
 };

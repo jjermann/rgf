@@ -137,28 +137,8 @@ GameStream.prototype.queueTimedAction=function(action) {
             if (next_action.name==";") next_action.position=next_action.node.parent.position;
             else next_action.position=next_action.node.position;
         }
-        // if the time already existed we have to update the counter of all later actions with the same time accordingly
-        for (var j=time_index; j<this._action_list.length; j++) {
-            var tmp_action=this._action_list[j];
-            if (tmp_action.time===new_action.time) {
-                // ALSO UPDATE THE COUNTER IN THE RGF TREE
-                if (tmp_action.name=="KeyFrame") {
-                } else if (tmp_action.name==";") {
-                    tmp_action.node.counter++;
-                } else {
-                    for (var k=0; k<tmp_action.node.properties.length; k++) {
-                        if (tmp_action.node.properties[k].time==tmp_action.time && tmp_action.node.properties[k].counter==tmp_action.counter) {
-                            tmp_action.node.properties[k].counter++;
-                            break;
-                        }
-                    }
-                    alert("should not happen...");
-                }
-                tmp_action.counter++;
-            } else {
-                break;
-            }
-        }
+        // update the counters if necessary
+        this._updateCounters(time_index,new_action.time,false);
     // and this is the case if we insert something at the end, in which case we have to update the duration status accordingly
     } else {
         this.status.duration.time=new_action.time;
@@ -185,6 +165,33 @@ GameStream.prototype.queueTimedAction=function(action) {
     $('div#'+this.id+"_rgf").text(this.writeRGF());
 
     return true;
+};
+
+// Used to either increase or decrease all counters of actions starting from the given time index, it also modifies the rgf tree nodes resp. properties
+GameStream.prototype._updateCounters=function(time_index,time,decrease) {
+    for (var j=time_index; j<this._action_list.length; j++) {
+        var tmp_action=this._action_list[j];
+        if (tmp_action.time===time) {
+            if (tmp_action.name=="KeyFrame") {
+            } else if (tmp_action.name==";") {
+                if (decrease) tmp_action.node.counter--;
+                else tmp_action.node.counter++;
+            } else {
+                for (var k=0; k<tmp_action.node.properties.length; k++) {
+                    if (tmp_action.node.properties[k].time==tmp_action.time && tmp_action.node.properties[k].counter==tmp_action.counter) {
+                        if (decrease) tmp_action.node.properties[k].counter--;
+                        else tmp_action.node.properties[k].counter++;
+                        break;
+                    }
+                }
+                alert("should not happen...");
+            }
+            if (decrease) tmp_action.counter--;
+            else tmp_action.counter++;
+        } else {
+            break;
+        }
+    }
 };
 
 GameStream.prototype.applyActionList=function(actions) {

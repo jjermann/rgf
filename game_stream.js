@@ -62,13 +62,13 @@ GameStream.prototype.applyTimedActionList=function(actions) {
     return true;
 }
 
-// Adds a timed action to the end of _action_list. This is independant of the current time/position.
+// Adds a timed action into the _action_list and _rgftree.
 GameStream.prototype.queueTimedAction=function(action) {
     // GATHER SOME DATA
     var new_action={name:action.name, arg:action.arg, position:action.position, time:action.time, counter:action.counter};
     
     var time_index, new_node, last_keyframe_index;
-    // get the time_index (where to insert in the action list)
+    // get the time_index (where to insert in the action list), if action.time<0 we simply add it to the end (TODO: fix this!)
     if (action.time<0 || action.time>this.status.duration.time || (action.time==this.status.duration.time && action.counter>this.status.duration.counter)) {
         time_index=this._action_list.length;
     } else {
@@ -133,7 +133,7 @@ GameStream.prototype.queueTimedAction=function(action) {
         // note that time_index points to the next action after our soon to be inserted one...
         var next_action=this._action_list[time_index];
         if (!next_action.position) {
-            // TODO: we should insert a VT[N] event actually but that's not so easy... :-(
+            // TODO: we should maybe insert a VT[N] event instead but that's not so easy... :-(
             if (next_action.name==";") next_action.position=next_action.node.parent.position;
             else next_action.position=next_action.node.position;
         }
@@ -184,7 +184,6 @@ GameStream.prototype._updateCounters=function(time_index,time,decrease) {
                         break;
                     }
                 }
-                alert("should not happen...");
             }
             if (decrease) tmp_action.counter--;
             else tmp_action.counter++;
@@ -192,6 +191,72 @@ GameStream.prototype._updateCounters=function(time_index,time,decrease) {
             break;
         }
     }
+};
+
+// TODO: UNTESTED, assumes that a validity check has already been done and doesn't update any status
+GameStream.prototype._removeTree=function(node,lower_bound) {
+    var node_index=this._getIndex(node.time,node.counter,lower_bound)-1;
+    
+    for (var i=0; i<node.children.length; i++) {
+        this._removeTree(node.children[i],node_index);
+    }
+    for (var i=0; i<node.properties.length; i++) {
+        var prop=node.properties[i];
+        var prop_index=this._getIndex(prop.time,prop.counter,node_index)-1;
+        this._updateCounters(prop_index+1,prop.time,true);
+        this._action_list.splice(prop_index,1);
+    }
+    
+    this._updateCounters(node_index+1,node.time,true);
+    this._action_list.splice(node_index,1);
+};
+
+// TODO: UNTESTED
+GameStream.prototype.removeAction=function(index,force) {
+    var action=this._action_list[index];
+
+    // VALIDITY CHECKS (for removing a property)
+    if (!force) {
+        if (index<=0 || index>=this._action_list.length) return false;
+        if (this._keyframe_list[this._keyframe_list.length-1]>=index) return false;
+        if (action.time<0) {
+            if (!this.status.setup) return false;
+            if (action.time!==-1 || action.counter>0) return false;
+            if (action.name=="KeyFrame") return false;
+        } else {
+            if (action.name==";") {
+                var index=pathToArray(action.node.position);
+                index=index[index.length-1];
+                if (index<action.node.parent.children.length-1) return false;
+            } else {
+                var stree_duration=action.node.getDuration();
+                if (action.time<stree_duration.time) return false;
+                if (action.time==stree_duration.time && action.counter<stree_duration.counter) return false;
+            }
+        }
+    }
+
+    if (action.name=="KeyFrame") {
+        for (var i=0; i<this._keyframe_list.length; i++) {
+            if (this._keyframe_list[i]==index) {
+                this._keyframe_list.splice(i,1);
+                break;
+            }
+        }
+        this._updateCounters(index+1,action.time,true);
+        this._action_list.splice(index,1);
+    } else if (action.name==";") {
+        this._removeTree(action.node,force,index);
+    } else {
+        this._updateCounters(index+1,action.time,true);
+        this._action_list.splice(index,1);
+    }
+    
+    // update the duration
+    this.status.duration.time=this._action_list[this._action_list.length-1].time;
+    this.status.duration.counter=this._action_list[this._action_list.length-1].counter;
+    if (this.status.duration.time<0) this.status.setup=true;
+    return true;
 };
 
 GameStream.prototype.applyActionList=function(actions) {

@@ -139,8 +139,22 @@ GameStream.prototype.queueTimedAction=function(action) {
         }
         // if the time already existed we have to update the counter of all later actions with the same time accordingly
         for (var j=time_index; j<this._action_list.length; j++) {
-            if (this._action_list[j].time===new_action.time) {
-                this._action_list[j].counter++;
+            var tmp_action=this._action_list[j];
+            if (tmp_action.time===new_action.time) {
+                // ALSO UPDATE THE COUNTER IN THE RGF TREE
+                if (tmp_action.name=="KeyFrame") {
+                } else if (tmp_action.name==";") {
+                    tmp_action.node.counter++;
+                } else {
+                    for (var k=0; k<tmp_action.node.properties.length; k++) {
+                        if (tmp_action.node.properties[k].time==tmp_action.time && tmp_action.node.properties[k].counter==tmp_action.counter) {
+                            tmp_action.node.properties[k].counter++;
+                            break;
+                        }
+                    }
+                    alert("should not happen...");
+                }
+                tmp_action.counter++;
             } else {
                 break;
             }

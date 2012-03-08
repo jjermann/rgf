@@ -1,9 +1,9 @@
 /* This should already exist! So _all_ content is for testing only... */
-function BoardPlayer(board_id) {
-    this.id=board_id;
+function BoardPlayer(boardId) {
+    this.id=boardId;
     
     // Eidogo Player (initialized later)
-    this.eidogo_player;
+    this.eidogoPlayer;
     this.eidogoConfig = {
         theme:          "standard", // "standard" or "compact"
         mode:           "play", // "play" or "view"
@@ -27,19 +27,19 @@ function BoardPlayer(board_id) {
 
 // Returns the html element for the board player
 BoardPlayer.prototype.html=function(style) {
-    var el_eidogo=document.createElement("div");
-    el_eidogo.id=this.id+"_eidogo";
-    extend(el_eidogo.style,style);
-    return el_eidogo;
+    var elEidogo=document.createElement("div");
+    elEidogo.id=this.id+"_eidogo";
+    extend(elEidogo.style,style);
+    return elEidogo;
 };
 
 BoardPlayer.prototype.init=function() {
-    this.eidogo_player = new eidogo.Player(this.eidogoConfig);
-    this.eidogo_player.loadSgf(this.eidogoConfig);
+    this.eidogoPlayer = new eidogo.Player(this.eidogoConfig);
+    this.eidogoPlayer.loadSgf(this.eidogoConfig);
 };
 
 BoardPlayer.prototype._getEidogoPath=function(position) {
-    return this.eidogo_player._getEidogoPath(pathToArray(position));
+    return this.eidogoPlayer._getEidogoPath(pathToArray(position));
 };
 
 BoardPlayer.prototype.apply=function(action) {
@@ -48,26 +48,26 @@ BoardPlayer.prototype.apply=function(action) {
         this.eidogoConfig.sgf=action.arg;
         path=this._getEidogoPath(action.position);
         if (path!=null) this.eidogoConfig.loadPath=path;
-        else this.eidogo_player.loadPath=[0,0];
-        this.eidogo_player.loadSgf(this.eidogoConfig);
+        else this.eidogoPlayer.loadPath=[0,0];
+        this.eidogoPlayer.loadSgf(this.eidogoConfig);
     } else {
         if (action.position!=undefined) {
             path=this._getEidogoPath(action.position);
-            if (path!=null) this.eidogo_player.goTo(path);
+            if (path!=null) this.eidogoPlayer.goTo(path);
             else {
                 // TODO
             }
         }
         // if a node is added
         if (action.name==";") {
-            this.eidogo_player.createNode();
+            this.eidogoPlayer.createNode();
         // if a property is added
         } else {
             if (action.name!="VT") {
-                this.eidogo_player.cursor.node.pushProperty(action.name,action.arg);
+                this.eidogoPlayer.cursor.node.pushProperty(action.name,action.arg);
             }
         }
-        this.eidogo_player.refresh();
+        this.eidogoPlayer.refresh();
     }
 
     // demo output
@@ -75,7 +75,7 @@ BoardPlayer.prototype.apply=function(action) {
         $('div#'+this.id+"_actions").text("");
     }
     
-    var new_actiontxt="board.apply({"
+    var newActiontxt="board.apply({"
          + "time: " + ((action.time!==undefined)  ? (action.time)                               : "-1")
          + ((action.name!==undefined)             ? (", name: \"" + action.name +"\"")          :   "")
          + ((action.arg!==undefined)              ? (", arg: \"" + action.arg + "\"")           :   "")
@@ -83,7 +83,7 @@ BoardPlayer.prototype.apply=function(action) {
     + "});\n";
 
     var parser=new RGFParser;
-    parser.loadRGF(this.eidogo_player.cursor.getGameRoot().toSgf());
+    parser.loadRGF(this.eidogoPlayer.cursor.getGameRoot().toSgf());
     $('div#'+this.id+"_sgf").text(parser.rgf);
-    $('div#'+this.id+"_actions").append(document.createTextNode(new_actiontxt));
+    $('div#'+this.id+"_actions").append(document.createTextNode(newActiontxt));
 };

@@ -3,8 +3,8 @@
     Responsible to keep track of applied changes, where we are in this chain and to update the
     current board drawing accordingly. It kind of "hijacks" the board...
 */
-function GameStream(game_id,board,max_duration) {
-    this.id=game_id;
+function GameStream(gameId,board,maxDuration) {
+    this.id=gameId;
     this.board=board;
     
     /* List of all KeyFrames:
@@ -13,9 +13,9 @@ function GameStream(game_id,board,max_duration) {
        to the now current position (note that the position is equal to the last position if it exists).
        The resulting SGF tree must be identical to the one we get by successively applying actions.
     */
-    this._keyframe_list=[];
+    this._keyframeList=[];
     // list of all actions
-    this._action_list=[];
+    this._actionList=[];
     // RGF tree/content
     this._rgftree=new RGFNode();
 
@@ -24,14 +24,14 @@ function GameStream(game_id,board,max_duration) {
         // current game stream time
         time:-2,
         // current counter for the current game stream time
-        time_counter:0,
+        timeCounter:0,
         // current global action index
-        time_index:0,
-        // last (global) keyframe index before this.status.time_index
-        last_keyframe_index:0,
+        timeIndex:0,
+        // last (global) keyframe index before this.status.timeIndex
+        lastKeyframeIndex:0,
         // current game stream duration (the time and counter are equal to the time and counter of the last entry in the action list)
         duration:{time:-2, counter:0},
-        max_duration:((max_duration!=null) ? max_duration : Infinity),
+        maxDuration:((maxDuration!=null) ? maxDuration : Infinity),
         // setup => no timestamped action has been added yet
         // waiting => true if the current time/counter is ahead of the game stream (and the game stream has not ended)
         // ended => true if the current time is equal to or ahead of the maximal duration of the game stream
@@ -62,33 +62,33 @@ GameStream.prototype.applyTimedActionList=function(actions) {
     return true;
 }
 
-// Adds a timed action into the _action_list and _rgftree.
+// Adds a timed action into the _actionList and _rgftree.
 GameStream.prototype.queueTimedAction=function(action) {
     // GATHER SOME DATA
-    var new_action={name:action.name, arg:action.arg, position:action.position, time:action.time, counter:action.counter};
+    var newAction={name:action.name, arg:action.arg, position:action.position, time:action.time, counter:action.counter};
     
-    var time_index, new_node, last_keyframe_index;
-    // get the time_index (where to insert in the action list), if action.time<0 we simply add it to the end (TODO: fix this!)
+    var timeIndex, newNode, lastKeyframeIndex;
+    // get the timeIndex (where to insert in the action list), if action.time<0 we simply add it to the end (TODO: fix this!)
     if (action.time<0 || action.time>this.status.duration.time || (action.time==this.status.duration.time && action.counter>this.status.duration.counter)) {
-        time_index=this._action_list.length;
+        timeIndex=this._actionList.length;
     } else {
-        time_index=this._getIndex(action.time, action.counter);
+        timeIndex=this._getIndex(action.time, action.counter);
     }
-    // get the new_node (where to insert in the rgf tree)
+    // get the newNode (where to insert in the rgf tree)
     if (action.position!=undefined) {
         // if (action.name!="VT" || action.arg!="N") console.log("Warning: The position SHOULD always be changed with a VT action (not with "+action.name+"["+action.arg+"])!!");
-        new_node=this._rgftree.descend(pathToArray(action.position));
-    } else if (time_index>0) {
-        new_node=this._action_list[time_index-1].node;
+        newNode=this._rgftree.descend(pathToArray(action.position));
+    } else if (timeIndex>0) {
+        newNode=this._actionList[timeIndex-1].node;
     } else {
-        new_node=this._rgftree;
+        newNode=this._rgftree;
     }
     // get the last keyframe index
-    last_keyframe_index=0;
-    while (last_keyframe_index<this._keyframe_list.length && this._keyframe_list[last_keyframe_index]<=time_index) {
-        last_keyframe_index++;
+    lastKeyframeIndex=0;
+    while (lastKeyframeIndex<this._keyframeList.length && this._keyframeList[lastKeyframeIndex]<=timeIndex) {
+        lastKeyframeIndex++;
     }
-    last_keyframe_index--;
+    lastKeyframeIndex--;
 
 
     // VALIDITY CHECK
@@ -102,23 +102,23 @@ GameStream.prototype.queueTimedAction=function(action) {
             if (!this.status.setup) return false;
             if (action.time!==-1 || action.counter>0) return false;
             if (action.name=="KeyFrame") return false;
-        } else if (action.time>this.status.max_duration || (action.time==this.status.max_duration && action.counter>0)) {
+        } else if (action.time>this.status.maxDuration || (action.time==this.status.maxDuration && action.counter>0)) {
             return false;
-        } else if (time_index===0) {
+        } else if (timeIndex===0) {
             return false;
-        } else if (time_index<this._action_list.length) {
-            // this is the latest durationtime/counter for the new_node subtree
-            var stree_duration=new_node.getDuration();
-            if (action.name==";" && new_node.children.length) {
-                var last_node=new_node.children[new_node.children.length-1];
-                if (new_action.time<last_node.time) return false;
-                if (new_action.time==last_node.time && new_action.counter<=last_node.counter) return false;
+        } else if (timeIndex<this._actionList.length) {
+            // this is the latest durationtime/counter for the newNode subtree
+            var streeDuration=newNode.getDuration();
+            if (action.name==";" && newNode.children.length) {
+                var lastNode=newNode.children[newNode.children.length-1];
+                if (newAction.time<lastNode.time) return false;
+                if (newAction.time==lastNode.time && newAction.counter<=lastNode.counter) return false;
             } else {
-                if (new_action.time<stree_duration.time) return false;
-                if (new_action.time==stree_duration.time && new_action.counter<=stree_duration.counter) return false;
+                if (newAction.time<streeDuration.time) return false;
+                if (newAction.time==streeDuration.time && newAction.counter<=streeDuration.counter) return false;
             }
             // we return false if there are keyframes after this action...
-            if (last_keyframe_index<this._keyframe_list.length-1 || last_keyframe_index==time_index) {
+            if (lastKeyframeIndex<this._keyframeList.length-1 || lastKeyframeIndex==timeIndex) {
                 return false;
             }
         }
@@ -128,38 +128,38 @@ GameStream.prototype.queueTimedAction=function(action) {
     // UPDATE THE KEYFRAME AND ACTION LIST
 
     // this is the case where we insert something before the end, so we need to modify the remaining part accordingly...
-    if (time_index<this._action_list.length) {
+    if (timeIndex<this._actionList.length) {
         // we make sure that we jump to the the position of the next action when its time comes
-        // note that time_index points to the next action after our soon to be inserted one...
-        var next_action=this._action_list[time_index];
-        if (!next_action.position) {
+        // note that timeIndex points to the next action after our soon to be inserted one...
+        var nextAction=this._actionList[timeIndex];
+        if (!nextAction.position) {
             // TODO: we should maybe insert a VT[N] event instead but that's not so easy... :-(
-            if (next_action.name==";") next_action.position=next_action.node.parent.position;
-            else next_action.position=next_action.node.position;
+            if (nextAction.name==";") nextAction.position=nextAction.node.parent.position;
+            else nextAction.position=nextAction.node.position;
         }
         // update the counters if necessary
-        this._updateCounters(time_index,new_action.time,false);
+        this._updateCounters(timeIndex,newAction.time,false);
     // and this is the case if we insert something at the end, in which case we have to update the duration status accordingly
     } else {
-        this.status.duration.time=new_action.time;
-        this.status.duration.counter=new_action.counter;
+        this.status.duration.time=newAction.time;
+        this.status.duration.counter=newAction.counter;
         if (this.status.duration.time>=0) this.status.setup=false;
     }
 
-    if (action.name=="KeyFrame") this._keyframe_list.splice(last_keyframe_index+1,0,time_index);
-    this._action_list.splice(time_index,0,new_action);
+    if (action.name=="KeyFrame") this._keyframeList.splice(lastKeyframeIndex+1,0,timeIndex);
+    this._actionList.splice(timeIndex,0,newAction);
 
 
     // UPDATE THE RGF TREE
 
-    if (new_action.name=="KeyFrame") {
+    if (newAction.name=="KeyFrame") {
     } else {
-        if (new_action.name==";") new_node=new_node.addNode(new RGFNode(new_action.time,new_action.counter));
-        else new_node.addProp(new RGFProperty(new_action.name,new_action.arg,new_action.time,new_action.counter));
+        if (newAction.name==";") newNode=newNode.addNode(new RGFNode(newAction.time,newAction.counter));
+        else newNode.addProp(new RGFProperty(newAction.name,newAction.arg,newAction.time,newAction.counter));
     }
 
     // set the node for the action
-    new_action.node=new_node;
+    newAction.node=newNode;
 
     // For testing:
     $('div#'+this.id+"_rgf").text(this.writeRGF());
@@ -168,25 +168,25 @@ GameStream.prototype.queueTimedAction=function(action) {
 };
 
 // Used to either increase or decrease all counters of actions starting from the given time index, it also modifies the rgf tree nodes resp. properties
-GameStream.prototype._updateCounters=function(time_index,time,decrease) {
-    for (var j=time_index; j<this._action_list.length; j++) {
-        var tmp_action=this._action_list[j];
-        if (tmp_action.time===time) {
-            if (tmp_action.name=="KeyFrame") {
-            } else if (tmp_action.name==";") {
-                if (decrease) tmp_action.node.counter--;
-                else tmp_action.node.counter++;
+GameStream.prototype._updateCounters=function(timeIndex,time,decrease) {
+    for (var j=timeIndex; j<this._actionList.length; j++) {
+        var tmpAction=this._actionList[j];
+        if (tmpAction.time===time) {
+            if (tmpAction.name=="KeyFrame") {
+            } else if (tmpAction.name==";") {
+                if (decrease) tmpAction.node.counter--;
+                else tmpAction.node.counter++;
             } else {
-                for (var k=0; k<tmp_action.node.properties.length; k++) {
-                    if (tmp_action.node.properties[k].time==tmp_action.time && tmp_action.node.properties[k].counter==tmp_action.counter) {
-                        if (decrease) tmp_action.node.properties[k].counter--;
-                        else tmp_action.node.properties[k].counter++;
+                for (var k=0; k<tmpAction.node.properties.length; k++) {
+                    if (tmpAction.node.properties[k].time==tmpAction.time && tmpAction.node.properties[k].counter==tmpAction.counter) {
+                        if (decrease) tmpAction.node.properties[k].counter--;
+                        else tmpAction.node.properties[k].counter++;
                         break;
                     }
                 }
             }
-            if (decrease) tmp_action.counter--;
-            else tmp_action.counter++;
+            if (decrease) tmpAction.counter--;
+            else tmpAction.counter++;
         } else {
             break;
         }
@@ -194,31 +194,31 @@ GameStream.prototype._updateCounters=function(time_index,time,decrease) {
 };
 
 // TODO: UNTESTED, assumes that a validity check has already been done and doesn't update any status
-GameStream.prototype._removeTree=function(node,lower_bound) {
-    var node_index=this._getIndex(node.time,node.counter,lower_bound)-1;
+GameStream.prototype._removeTree=function(node,lowerBound) {
+    var nodeIndex=this._getIndex(node.time,node.counter,lowerBound)-1;
     
     for (var i=0; i<node.children.length; i++) {
-        this._removeTree(node.children[i],node_index);
+        this._removeTree(node.children[i],nodeIndex);
     }
     for (var i=0; i<node.properties.length; i++) {
         var prop=node.properties[i];
-        var prop_index=this._getIndex(prop.time,prop.counter,node_index)-1;
-        this._updateCounters(prop_index+1,prop.time,true);
-        this._action_list.splice(prop_index,1);
+        var propIndex=this._getIndex(prop.time,prop.counter,nodeIndex)-1;
+        this._updateCounters(propIndex+1,prop.time,true);
+        this._actionList.splice(propIndex,1);
     }
     
-    this._updateCounters(node_index+1,node.time,true);
-    this._action_list.splice(node_index,1);
+    this._updateCounters(nodeIndex+1,node.time,true);
+    this._actionList.splice(nodeIndex,1);
 };
 
 // TODO: UNTESTED
 GameStream.prototype.removeAction=function(index,force) {
-    var action=this._action_list[index];
+    var action=this._actionList[index];
 
     // VALIDITY CHECKS (for removing a property)
     if (!force) {
-        if (index<=0 || index>=this._action_list.length) return false;
-        if (this._keyframe_list[this._keyframe_list.length-1]>=index) return false;
+        if (index<=0 || index>=this._actionList.length) return false;
+        if (this._keyframeList[this._keyframeList.length-1]>=index) return false;
         if (action.time<0) {
             if (!this.status.setup) return false;
             if (action.time!==-1 || action.counter>0) return false;
@@ -229,32 +229,32 @@ GameStream.prototype.removeAction=function(index,force) {
                 index=index[index.length-1];
                 if (index<action.node.parent.children.length-1) return false;
             } else {
-                var stree_duration=action.node.getDuration();
-                if (action.time<stree_duration.time) return false;
-                if (action.time==stree_duration.time && action.counter<stree_duration.counter) return false;
+                var streeDuration=action.node.getDuration();
+                if (action.time<streeDuration.time) return false;
+                if (action.time==streeDuration.time && action.counter<streeDuration.counter) return false;
             }
         }
     }
 
     if (action.name=="KeyFrame") {
-        for (var i=0; i<this._keyframe_list.length; i++) {
-            if (this._keyframe_list[i]==index) {
-                this._keyframe_list.splice(i,1);
+        for (var i=0; i<this._keyframeList.length; i++) {
+            if (this._keyframeList[i]==index) {
+                this._keyframeList.splice(i,1);
                 break;
             }
         }
         this._updateCounters(index+1,action.time,true);
-        this._action_list.splice(index,1);
+        this._actionList.splice(index,1);
     } else if (action.name==";") {
         this._removeTree(action.node,force,index);
     } else {
         this._updateCounters(index+1,action.time,true);
-        this._action_list.splice(index,1);
+        this._actionList.splice(index,1);
     }
     
     // update the duration
-    this.status.duration.time=this._action_list[this._action_list.length-1].time;
-    this.status.duration.counter=this._action_list[this._action_list.length-1].counter;
+    this.status.duration.time=this._actionList[this._actionList.length-1].time;
+    this.status.duration.counter=this._actionList[this._actionList.length-1].counter;
     if (this.status.duration.time<0) this.status.setup=true;
     return true;
 };
@@ -276,16 +276,16 @@ GameStream.prototype.applyActionList=function(actions) {
 
 // Adds an action at the current time index if possible, return false if not.
 GameStream.prototype.insertAction=function(action) {
-    var new_action={name:action.name, arg:action.arg, position:action.position};
-    var time_index=this.status.time_index;
-    new_action.time=this.status.time;
-    new_action.counter=0;
+    var newAction={name:action.name, arg:action.arg, position:action.position};
+    var timeIndex=this.status.timeIndex;
+    newAction.time=this.status.time;
+    newAction.counter=0;
     // set the new counter in case we insert an action at an already existing time
-    if (new_action.time>=0 && this._action_list[time_index-1].time===new_action.time) {
-        new_action.counter=this._action_list[time_index-1].counter+1;
+    if (newAction.time>=0 && this._actionList[timeIndex-1].time===newAction.time) {
+        newAction.counter=this._actionList[timeIndex-1].counter+1;
     }
-    if (this.queueTimedAction(new_action)) {
-        this.update(new_action.time,new_action.counter);
+    if (this.queueTimedAction(newAction)) {
+        this.update(newAction.time,newAction.counter);
         return true;
     } else {
         return false;
@@ -293,13 +293,13 @@ GameStream.prototype.insertAction=function(action) {
 };
 
 // Returns the time index right after the action corresponding to the supplied time
-GameStream.prototype._getIndex = function(time,counter,lower_bound) {
-    if (lower_bound==undefined) lower_bound=0;
+GameStream.prototype._getIndex = function(time,counter,lowerBound) {
+    if (lowerBound==undefined) lowerBound=0;
     if (counter==undefined) counter=0;
 
-    var i=lower_bound;
-    while (i<this._action_list.length && this._action_list[i].time<time) i++;
-    while (i<this._action_list.length && this._action_list[i].time===time && this._action_list[i].counter<=counter) i++;
+    var i=lowerBound;
+    while (i<this._actionList.length && this._actionList[i].time<time) i++;
+    while (i<this._actionList.length && this._actionList[i].time===time && this._actionList[i].counter<=counter) i++;
 
     return i;
 };
@@ -320,42 +320,42 @@ GameStream.prototype.updatedTime = function(newstatus) {
     this.update(newstatus.currentTime);
 };
 
-GameStream.prototype.update = function(next_time,next_counter) {
-    if (next_time==undefined) {
-        next_time=this.status.time;
-        next_counter=this.status.time_counter;
-    } else if (next_counter==undefined) {
-        next_counter=Infinity;
+GameStream.prototype.update = function(nextTime,nextCounter) {
+    if (nextTime==undefined) {
+        nextTime=this.status.time;
+        nextCounter=this.status.timeCounter;
+    } else if (nextCounter==undefined) {
+        nextCounter=Infinity;
     }
-    if (next_time>=this.status.time) {
-        this._advanceTo(next_time,next_counter);
+    if (nextTime>=this.status.time) {
+        this._advanceTo(nextTime,nextCounter);
     } else {
-        this._reverseTo(next_time,next_counter);
+        this._reverseTo(nextTime,nextCounter);
     }
 
     // maybe the GS is past (or equal to) its final time in which case it has ended.
-    if (this.status.time>=this.status.max_duration) this.status.ended=true;
+    if (this.status.time>=this.status.maxDuration) this.status.ended=true;
     else this.status.ended=false;
     // maybe the GS is behind the media stream but still has not ended
     // in which case we are "waiting" for recording commands...
-    if (this.status.time<this.status.duration.time || this.status.ended || (this.status.time==this.status.duration.time && this.status.time_counter < this.status.duration.counter) ) this.status.waiting=false;
+    if (this.status.time<this.status.duration.time || this.status.ended || (this.status.time==this.status.duration.time && this.status.timeCounter < this.status.duration.counter) ) this.status.waiting=false;
     else this.status.waiting=true;
 };
 
-/* Applies all actions from the current time_index (resp. this.status.time) up to next_time.
-   The last_keyframe_index is also updated. */
-GameStream.prototype._advanceTo = function(next_time,next_counter) {
-    if (next_counter==undefined) next_counter=Infinity;
+/* Applies all actions from the current timeIndex (resp. this.status.time) up to nextTime.
+   The lastKeyframeIndex is also updated. */
+GameStream.prototype._advanceTo = function(nextTime,nextCounter) {
+    if (nextCounter==undefined) nextCounter=Infinity;
 
-    var i=this.status.time_index;
-    while (i<this._action_list.length && this._action_list[i].time<=next_time) {
-        if (this._action_list[i].time==next_time) {
-            if (this._action_list[i].counter > next_counter) break;
-            else this.status.time_counter=this._action_list[i].counter;
+    var i=this.status.timeIndex;
+    while (i<this._actionList.length && this._actionList[i].time<=nextTime) {
+        if (this._actionList[i].time==nextTime) {
+            if (this._actionList[i].counter > nextCounter) break;
+            else this.status.timeCounter=this._actionList[i].counter;
         } else {
-            this.status.time_counter=0;
+            this.status.timeCounter=0;
         }
-        var action=this._action_list[i];
+        var action=this._actionList[i];
 
         /*  Since the SGFtree given by a KeyFrame should be _exactly_ identical to the SGFtree given by applying
             all actions up to that point, we don't need to apply the Keyframe here...
@@ -365,7 +365,7 @@ GameStream.prototype._advanceTo = function(next_time,next_counter) {
             again for new purposes (because the RGF tree behaves that way). */
         if (action.name!="KeyFrame") {
             this.board.apply(action);
-        } else if (this.status.time_index==0) {
+        } else if (this.status.timeIndex==0) {
             // ok, we apply the very first keyframe...
             this.board.apply(action);
         }
@@ -373,42 +373,42 @@ GameStream.prototype._advanceTo = function(next_time,next_counter) {
         i++;
     }
 
-    this.status.time_index=i;
-    this.status.time=next_time;
-    while (this.status.last_keyframe_index<this._keyframe_list.length && this._keyframe_list[this.status.last_keyframe_index]<=this.status.time_index) {
-        this.status.last_keyframe_index++;
+    this.status.timeIndex=i;
+    this.status.time=nextTime;
+    while (this.status.lastKeyframeIndex<this._keyframeList.length && this._keyframeList[this.status.lastKeyframeIndex]<=this.status.timeIndex) {
+        this.status.lastKeyframeIndex++;
     }
-    this.status.last_keyframe_index--;
+    this.status.lastKeyframeIndex--;
 };
 
-/* Loads the last KeyFrame before next_time (and also sets the last_keyframe_index to this KeyFrame).
-   Then it applies all actions up to next_time... */
-GameStream.prototype._reverseTo = function(next_time,next_counter) {
-    if (next_counter==undefined) next_counter=Infinity;
+/* Loads the last KeyFrame before nextTime (and also sets the lastKeyframeIndex to this KeyFrame).
+   Then it applies all actions up to nextTime... */
+GameStream.prototype._reverseTo = function(nextTime,nextCounter) {
+    if (nextCounter==undefined) nextCounter=Infinity;
        
-    // jump to the last KeyFrame before next_time
-    while (0<=this.status.last_keyframe_index && this._action_list[this._keyframe_list[this.status.last_keyframe_index]].time>=next_time) {
-        this.status.last_keyframe_index--;
+    // jump to the last KeyFrame before nextTime
+    while (0<=this.status.lastKeyframeIndex && this._actionList[this._keyframeList[this.status.lastKeyframeIndex]].time>=nextTime) {
+        this.status.lastKeyframeIndex--;
     }
     // we assume that keyframes have no counters (resp. ignore the rest)
 
-    var i=this._keyframe_list[this.status.last_keyframe_index];
+    var i=this._keyframeList[this.status.lastKeyframeIndex];
 
-    // apply all actions up to next_time (a reduced version of advanceTo)
+    // apply all actions up to nextTime (a reduced version of advanceTo)
     // note that the first action is applying the KeyFrame...
-    while (i<this._action_list.length && this._action_list[i].time<=next_time) {
-        if (this._action_list[i].time==next_time) {
-            if (this._action_list[i].counter > next_counter) break;
-            else this.status.time_counter=this._action_list[i].counter;
+    while (i<this._actionList.length && this._actionList[i].time<=nextTime) {
+        if (this._actionList[i].time==nextTime) {
+            if (this._actionList[i].counter > nextCounter) break;
+            else this.status.timeCounter=this._actionList[i].counter;
         } else {
-            this.status.time_counter=0;
+            this.status.timeCounter=0;
         }
         
-        var action=this._action_list[i];
+        var action=this._actionList[i];
         this.board.apply(action);
 
         i++;
     }
-    this.status.time_index=i;
-    this.status.time=next_time;
+    this.status.timeIndex=i;
+    this.status.time=nextTime;
 };

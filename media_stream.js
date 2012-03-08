@@ -3,27 +3,27 @@
     Responsible for initializing Popcorn and getting the html body for the corresponding
     audio/video/control gui
 */
-function MediaStream(media_id,ms_sources,duration) {
-    this.id=media_id;
+function MediaStream(mediaId,msSources,duration) {
+    this.id=mediaId;
     
     /* fixed header informations */
     // none (no media), audio/video (audio video file/address), youtube, vimeo
-    if (ms_sources.length) {
-        this.media_type=ms_sources[0].type.split("/")[0];
+    if (msSources.length) {
+        this.mediaType=msSources[0].type.split("/")[0];
     } else {
-        this.media_type="none";
+        this.mediaType="none";
     }
     // Array of media stream source objects, only 1 entry for "youtube", "vimeo", irrelevant for "none"
     // src:  the web/file/etc url for the source
     // type: the html5 media type
-    this.sources=ms_sources;
+    this.sources=msSources;
 
     this.status={
-        // If this is set all durationchanges are ignored and max_duration is used instead.
-        // Also this means that the stream_type will be set to "known_duration".
-        set_duration: (this.media_type=="none"),
+        // If this is set all durationchanges are ignored and maxDuration is used instead.
+        // Also this means that the streamType will be set to "knownDuration".
+        setDuration: (this.mediaType=="none"),
         // we store the rgf duration in case we need to fallback to the baseplayer
-        rgf_duration: duration,
+        rgfDuration: duration,
         
         // options for updatedTime()
         currentTime: 0,
@@ -34,17 +34,17 @@ function MediaStream(media_id,ms_sources,duration) {
         // For the interface: where we currently are in relative/absolute percentages
         currentPercentRelative: 0,
         currentPercentAbsolute: 0,
-        // If set_suration is not set, duration will be set initially in "canplay",
+        // If setSuration is not set, duration will be set initially in "canplay",
         // until then it is set to 0 (which produces an error later if it is not changed)
-        duration: (this.media_type=="none") ? duration : 0,
+        duration: (this.mediaType=="none") ? duration : 0,
         /* 
             This will be set later depending on the duration:
-            no_media         : The media was not found.
+            noMedia         : The media was not found.
             stream           : The media is a stream with "infinite duration"
-            unknown_duration : The media is not a stream but we do not know the duration.
-            known_duration   : (standard) The media has a known duration (might change later though)
+            unknownDuration : The media is not a stream but we do not know the duration.
+            knownDuration   : (standard) The media has a known duration (might change later though)
         */
-        stream_type: "",
+        streamType: "",
 
         // options for updatedStatus()
         paused: true,
@@ -63,7 +63,7 @@ function MediaStream(media_id,ms_sources,duration) {
 
     // Popcorn instance
     this.player;
-    // used for fallback trigger "failed_loading"
+    // used for fallback trigger "failedLoading"
     this.timeoutTime=5;
     this.timeoutValue;
     // associated interfaces that need to be updated
@@ -94,28 +94,28 @@ MediaStream.prototype.html=function(style) {
     var el, container;
     //el=document.createElement("div");
     //el.id=this.id;
-      if (this.media_type=="none") {
+      if (this.mediaType=="none") {
           container=document.createElement("div");
-      } else if (this.media_type=="audio") {
+      } else if (this.mediaType=="audio") {
           container=document.createElement("audio");
           for (var i=0; i<this.sources.length; i++) {
               var src=document.createElement("source");
               src.src=this.sources[i].src;
               container.appendChild(src);
           }
-      } else if (this.media_type=="video") {
+      } else if (this.mediaType=="video") {
           container=document.createElement("video");
           for (var i=0; i<this.sources.length; i++) {
               var src=document.createElement("source");
               src.src=this.sources[i].src;
               container.appendChild(src);
           }
-      } else if (this.media_type=="youtube") {
+      } else if (this.mediaType=="youtube") {
           container=document.createElement("div");
-      } else if (this.media_type=="vimeo") {
+      } else if (this.mediaType=="vimeo") {
           container=document.createElement("div");
       } else {
-          alert("illegal type: "+this.media_type);
+          alert("illegal type: "+this.mediaType);
       }
       container.id=this.id;
       extend(container.style,style);
@@ -130,26 +130,26 @@ MediaStream.prototype.init=function() {
     var pl;
     var self=this;
     
-    if (this.media_type=="none") {
+    if (this.mediaType=="none") {
         Popcorn.player("baseplayer");
         pl=Popcorn.baseplayer("#"+this.id);
-    } else if (this.media_type=="audio") {
+    } else if (this.mediaType=="audio") {
         pl=Popcorn("#"+this.id);
-    } else if (this.media_type=="video") {
+    } else if (this.mediaType=="video") {
         pl=Popcorn("#"+this.id);
-    } else if (this.media_type=="youtube") {
+    } else if (this.mediaType=="youtube") {
         pl=Popcorn.youtube("#"+this.id,this.sources[0].src);
-    } else if (this.media_type=="vimeo") {
+    } else if (this.mediaType=="vimeo") {
         pl=Popcorn.vimeo("#"+this.id,this.sources[0].src);
-    } else { alert("illegal type: "+this.media_type); }
+    } else { alert("illegal type: "+this.mediaType); }
 
     this.timeoutValue=setTimeout(function() {
-        if (!self.status.ready) self.player.trigger("failed_loading");
+        if (!self.status.ready) self.player.trigger("failedLoading");
     },this.timeoutTime*1000);
 
 //this.date=new Date();
-//this.date_zero=this.date.getTime();
-//console.log(self.media_id+": instanced, t="+(self.date.getTime()-self.date_zero));
+//this.dateZero=this.date.getTime();
+//console.log(self.mediaId+": instanced, t="+(self.date.getTime()-self.dateZero));
     this.player=pl;
     this.player.controls(false);
 
@@ -186,7 +186,7 @@ MediaStream.prototype.init=function() {
     this.player.listen("canplay", function() {
         if (!self.status.ready) {
             self.status.ready=true;
-            if (!self.status.set_duration) self.status.duration=this.duration();
+            if (!self.status.setDuration) self.status.duration=this.duration();
             self.streamtypeupdate(self.status.duration);
                 
             for (var i=0; i<self.interfaces.length; i++) {
@@ -195,19 +195,19 @@ MediaStream.prototype.init=function() {
             this.trigger("timeupdate");
         }
     });
-    this.player.listen("failed_loading", function() { self.fallback(); });
+    this.player.listen("failedLoading", function() { self.fallback(); });
 
     this.player.listen("timeupdate", function() {
         if (self.status.ready) {
             self.status.currentTime=this.currentTime();
             // TODO: seeking in stream?
-            if (self.status.stream_type!= "stream" && this.seekable() && this.seekable().length>0) {
+            if (self.status.streamType!= "stream" && this.seekable() && this.seekable().length>0) {
                 self.status.seekable=true;
             } else {
                 self.status.seekable=false;
             }
 
-            if (self.status.stream_type=="known_duration") {
+            if (self.status.streamType=="knownDuration") {
                 if (self.status.currentTime>=self.status.duration) {
                     self.status.currentTime=self.status.duration;
                     if (!self.status.ended) this.trigger("ended");
@@ -218,7 +218,7 @@ MediaStream.prototype.init=function() {
                 self.status.seekPercent=self.status.seekEnd/self.status.duration;
                 self.status.currentPercentRelative=self.status.currentTime/self.status.seekEnd;
                 self.status.currentPercentAbsolute=self.status.currentTime/self.status.duration;        
-            } else if (self.status.stream_type=="unknown_duration") {
+            } else if (self.status.streamType=="unknownDuration") {
                 if (self.status.seekable) {
                     self.status.seekEnd=this.seekable().end(0);
                     self.status.seekPercent=1;
@@ -230,7 +230,7 @@ MediaStream.prototype.init=function() {
                 }
                 self.status.currentPercentAbsolute=0;
                 if (self.status.currentTime<self.status.seekEnd) { self.status.ended=false; }
-            } else if (self.status.stream_type=="stream") {
+            } else if (self.status.streamType=="stream") {
                 // TODO: for now no seeking at all in stream...
                 self.status.seekEnd=0;
                 self.status.seekPercent=1;
@@ -246,7 +246,7 @@ MediaStream.prototype.init=function() {
 
     this.player.listen("durationchange", function() {
         if (self.status.ready) {
-            if (!self.status.set_duration) self.status.duration=this.duration();
+            if (!self.status.setDuration) self.status.duration=this.duration();
             self.streamtypeupdate(self.status.duration);
             if (self.status.currentTime<self.status.duration) { self.status.ended=false; }
         }
@@ -258,14 +258,14 @@ MediaStream.prototype.init=function() {
         self.interfaces.forEach(function(inter) { inter.updatedStatus(self.status); });
     });
 
-    if (this.media_type=="none") {
+    if (this.mediaType=="none") {
         setTimeout(function() {
             self.player.trigger("canplay");
         },10);
     }
     
     // youtube is horribly broken
-    if (this.media_type=="youtube" || this.media_type=="vimeo") {
+    if (this.mediaType=="youtube" || this.mediaType=="vimeo") {
         this.player.listen("canplaythrough", function() {
             setTimeout(function() {
                 self.player.pause();
@@ -277,7 +277,7 @@ MediaStream.prototype.init=function() {
     
 //var events=["abort","canplay","canplaythrough","durationchange","canshowcurrentframe","dataunavailable","emptied","empty","ended","error","loadeddata","loadedmetadata","loadstart","mozaudioavailable","pause","play","playing","progress","ratechange","seeked","seeking","suspend","volumechange","waiting"];
 //events.forEach(function(e) {
-//    self.player.listen(e, function() { self.date=new Date(); console.log(self.media_id+": "+e+" , t="+(self.date.getTime()-self.date_zero)+", ready="+self.status.ready+", paused="+self.status.paused+", currentTime="+self.status.currentTime+", duration="+self.status.duration+", ended="+self.status.ended); });
+//    self.player.listen(e, function() { self.date=new Date(); console.log(self.mediaId+": "+e+" , t="+(self.date.getTime()-self.dateZero)+", ready="+self.status.ready+", paused="+self.status.paused+", currentTime="+self.status.currentTime+", duration="+self.status.duration+", ended="+self.status.ended); });
 //});
     
     return this.player;
@@ -285,20 +285,20 @@ MediaStream.prototype.init=function() {
 
 MediaStream.prototype.streamtypeupdate = function(duration) {
     if (duration==0) {
-        this.status.stream_type="no_media";
-        this.player.trigger("failed_loading");
+        this.status.streamType="noMedia";
+        this.player.trigger("failedLoading");
     } else if (duration==undefined) {
-        this.status.stream_type="unknown_duration";
+        this.status.streamType="unknownDuration";
     } else if (duration===Infinity) {
-        this.status.stream_type="stream";
+        this.status.streamType="stream";
     } else if (duration>0) {
-        this.status.stream_type="known_duration";
+        this.status.streamType="knownDuration";
     } else {
         // unknown stream type (?)
-        this.player.trigger("failed_loading");
+        this.player.trigger("failedLoading");
     }
 
-    return this.status.stream_type;
+    return this.status.streamType;
 };
 
 MediaStream.prototype.fallback = function() {
@@ -317,7 +317,7 @@ MediaStream.prototype.close = function() {
     this.player.unlisten("pause");
     this.player.unlisten("ended");
     this.player.unlisten("canplay");
-    this.player.unlisten("failed_loading");
+    this.player.unlisten("failedLoading");
     this.player.unlisten("timeupdate");
     this.player.unlisten("durationchange");
     this.player.unlisten("volumechange");

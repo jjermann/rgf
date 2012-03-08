@@ -1,27 +1,27 @@
-function DisplayGUI(base_id,ms_sources,duration) {
+function DisplayGUI(baseId,msSources,duration) {
     /*
        DisplayGUI:      ID
        MediaStream:     ID_media
        MediaInterface:  ID_interface
        BoardPlayer:     ID_board
-                        ID_board_sgf
-                        ID_board_actions
-                        ID_board_eidogo
+                        ID_boardSgf
+                        ID_boardActions
+                        ID_boardEidogo
        GameStream:      ID_game
-                        ID_game_rgf
+                        ID_gameRgf
     */
-    this.id=base_id;
+    this.id=baseId;
     
     // create components
     this.board=new BoardPlayer(this.id+"_board");
-    this.game_stream=new GameStream(this.id+"_game",this.board,duration);
-    this.media_stream=new MediaStream(this.id+"_media_stream",ms_sources,duration);
-    this.media_interface=new MediaInterface(this.id+"_media_interface");
+    this.gameStream=new GameStream(this.id+"_game",this.board,duration);
+    this.mediaStream=new MediaStream(this.id+"_mediaStream",msSources,duration);
+    this.mediaInterface=new MediaInterface(this.id+"_mediaInterface");
 
     // initialize the main HTML element(s)
     this.html=document.createElement("div");
     this.html.id=this.id;    
-    this.html.appendChild(this.media_stream.html({
+    this.html.appendChild(this.mediaStream.html({
         position: "absolute",
         top:      "4px",
         left:     "4px",
@@ -39,7 +39,7 @@ function DisplayGUI(base_id,ms_sources,duration) {
         left:     "650px",
         top:      "4px"
     }));
-    this.html.appendChild(this.media_interface.html({
+    this.html.appendChild(this.mediaInterface.html({
         position: "absolute",
         left:     "654px",
 //        top:      "434px"
@@ -49,7 +49,7 @@ function DisplayGUI(base_id,ms_sources,duration) {
     }));
 
     // Textbox to output the current RGF tree
-    this.html.appendChild(createBox(this.id+"_game_rgf","Current RGF Tree",{
+    this.html.appendChild(createBox(this.id+"_gameRgf","Current RGF Tree",{
         position: "absolute",
         width:    "640px",
         height:   "500px",
@@ -57,7 +57,7 @@ function DisplayGUI(base_id,ms_sources,duration) {
         left:     "4px"
     }));
     // Textbox to output the current pseudo SGF file
-    this.html.appendChild(createBox(this.id+"_board_sgf","Current SGF tree", {
+    this.html.appendChild(createBox(this.id+"_boardSgf","Current SGF tree", {
         position: "absolute",
         width:    "422px",
         height:   "500px",
@@ -65,7 +65,7 @@ function DisplayGUI(base_id,ms_sources,duration) {
         left:     "650px"
     }));
     // Textbox to output the currently applied action list
-    this.html.appendChild(createBox(this.id+"_board_actions","Currently applied actions", {
+    this.html.appendChild(createBox(this.id+"_boardActions","Currently applied actions", {
         position: "absolute",
         width:    "382px",
         height:   "500px",
@@ -77,15 +77,15 @@ function DisplayGUI(base_id,ms_sources,duration) {
     document.body.appendChild(this.html);
 
     // initialize all components
-    this.board.eidogoConfig.GS_insertAction=this.game_stream.applyActionList.bind(this.game_stream);
+    this.board.eidogoConfig.GS_insertAction=this.gameStream.applyActionList.bind(this.gameStream);
     this.board.init();
-    this.media_stream.init();
-    this.media_interface.init(this.media_stream);
-    this.media_stream.addInterface(this.game_stream.updatedStatus.bind(this.game_stream),this.game_stream.updatedTime.bind(this.game_stream));
-    this.media_stream.addInterface(this.updatedStatus.bind(this));
+    this.mediaStream.init();
+    this.mediaInterface.init(this.mediaStream);
+    this.mediaStream.addInterface(this.gameStream.updatedStatus.bind(this.gameStream),this.gameStream.updatedTime.bind(this.gameStream));
+    this.mediaStream.addInterface(this.updatedStatus.bind(this));
     
     // The game stream is set to the initial (starting) position
-    this.game_stream.update(0);
+    this.gameStream.update(0);
 };
 
 DisplayGUI.prototype.updatedStatus = function(newstatus) {

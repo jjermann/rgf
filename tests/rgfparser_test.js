@@ -1,5 +1,5 @@
 // variables
-var rgf, rgfparser, max_duration;
+var rgf, rgfparser, maxDuration;
 
 
 // Empty rgf parsing
@@ -12,7 +12,7 @@ module("Empty rgf parsing", {
     teardown: function() {
         rgf=undefined;
         rgfparser=undefined;
-        max_duration=undefined;
+        maxDuration=undefined;
     }
 });
 test("Basic RGFParser properties", function(){
@@ -25,11 +25,11 @@ test("RGF Tree", function(){
     deepEqual(rgfparser.rgftree, root, "RGF Tree created by rgfparser._parseTree(new RGFNode()) based on rgfparser.rgf => (rgfparser.rgftree)");
 });
 test("Action List", function(){
-    var unsorted_actions=[];
-    var sorted_actions=[];
-    deepEqual(rgfparser.rgftree._getUnsortedActions(),unsorted_actions, "Step 1: Unsorted Action List created by rgfparser._getUnsortedActions(rgfparser.rgftree), it contains temporary node position information");
-    deepEqual(RGFNode._sortActions(rgfparser.rgftree._getUnsortedActions()),sorted_actions, "Step 2: Sorted Action List created by rgfparser._sortActions(<result from above>), it uses the temporary information and removes it");
-    deepEqual(rgfparser.action_list,sorted_actions, "Step 3: The Action List created by rgfparser.rgftree.getActions(), it should be the same as <result from above> => (rgfparser.action_list): "+rgfparser.action_list);
+    var unsortedActions=[];
+    var sortedActions=[];
+    deepEqual(rgfparser.rgftree._getUnsortedActions(),unsortedActions, "Step 1: Unsorted Action List created by rgfparser._getUnsortedActions(rgfparser.rgftree), it contains temporary node position information");
+    deepEqual(RGFNode._sortActions(rgfparser.rgftree._getUnsortedActions()),sortedActions, "Step 2: Sorted Action List created by rgfparser._sortActions(<result from above>), it uses the temporary information and removes it");
+    deepEqual(rgfparser.actionList,sortedActions, "Step 3: The Action List created by rgfparser.rgftree.getActions(), it should be the same as <result from above> => (rgfparser.actionList): "+rgfparser.actionList);
 });
 test("Writing RGF", function(){
     equal(rgfparser.rgftree.writeRGF(),"", "Generated RGF file, with standard indentations, created by rgfparser.rgftree.writeRGF(): "+rgfparser.rgftree.writeRGF());
@@ -37,9 +37,9 @@ test("Writing RGF", function(){
     equal(rgfparser.rgftree.writeRGF(""),"", "Generated RGF file, without indentations, created by rgfparser.rgftree.writeRGF(\"\"): "+rgfparser.rgftree.writeRGF(""));
 });
 test("Consistency", function(){
-    var new_rgfparser=new RGFParser;
-    new_rgfparser.loadRGF(rgfparser.rgftree.writeRGF());
-    deepEqual(rgfparser.rgftree,new_rgfparser.rgftree,"The generated RGF should give the same tree as the original one...");
+    var newRgfparser=new RGFParser;
+    newRgfparser.loadRGF(rgfparser.rgftree.writeRGF());
+    deepEqual(rgfparser.rgftree,newRgfparser.rgftree,"The generated RGF should give the same tree as the original one...");
 });
 
 
@@ -49,18 +49,18 @@ module("Simple RGF tree parsing", {
         rgf=";B[aa]VT[N]TS[49]VT[ENDED]TS[50](;W[bb]VT[N]TS[19];TS[20]B[dd]TS[20])(;W[bc]AB[ef][fg]VT[N]TS[29]AW[cd]TS[30]AB[gh]TS[40])";
         rgfparser=new RGFParser;
         rgfparser.loadRGF(rgf);
-        max_duration=50;
+        maxDuration=50;
     },
     teardown: function() {
         rgf=undefined;
         rgfparser=undefined;
-        max_duration=undefined;
+        maxDuration=undefined;
     }
 });
 test("Basic RGFParser properties", function(){
     //equal(rgfparser.rgf, rgfparser.rgftree.writeRGF()), "RGF Content (rgfparser.rgf): "+rgfparser.rgf);
     equal(rgfparser.index, rgf.length, "Character index after parsing (rgfparser.index): "+rgfparser.index);
-    equal(rgfparser.max_duration, max_duration, "Maximal time of all actions (rgfparser.max_duration): "+ ((rgfparser.max_duration==undefined) ? "undefined" : rgfparser.max_duration));
+    equal(rgfparser.maxDuration, maxDuration, "Maximal time of all actions (rgfparser.maxDuration): "+ ((rgfparser.maxDuration==undefined) ? "undefined" : rgfparser.maxDuration));
 });
 test("RGF Tree", function(){
     // here we construct the tree manually
@@ -85,63 +85,63 @@ test("RGF Tree", function(){
 });
 test("Action List", function(){
     // here we construct the (un)sorted action lists manually
-    var unsorted_actions=[];
-    unsorted_actions.push( {time:  -1, counter: 0, name:  ";", arg:      "", position: "",     _node_pos: "0"     } );
-    unsorted_actions.push( {time:  -1, counter: 0, name:  "B", arg:    "aa", position: "0"                        } );
-    unsorted_actions.push( {time:  49, counter: 0, name: "VT", arg:     "N", position: "0"                        } );
-    unsorted_actions.push( {time:  50, counter: 0, name: "VT", arg: "ENDED", position: "0"                        } );
-    unsorted_actions.push( {time:  -1, counter: 0, name:  ";", arg:      "", position: "0",    _node_pos: "0.0"   } );
-    unsorted_actions.push( {time:  -1, counter: 0, name:  "W", arg:    "bb", position: "0.0"                      } );
-    unsorted_actions.push( {time:  19, counter: 0, name: "VT", arg:     "N", position: "0.0"                      } );
-    unsorted_actions.push( {time:  20, counter: 0, name:  ";", arg:      "", position: "0.0",  _node_pos: "0.0.0" } );
-    unsorted_actions.push( {time:  20, counter: 0, name:  "B", arg:    "dd", position: "0.0.0"                    } );
-    unsorted_actions.push( {time:  -1, counter: 0, name:  ";", arg:      "", position: "0",    _node_pos: "0.1"   } );
-    unsorted_actions.push( {time:  -1, counter: 0, name:  "W", arg:    "bc", position: "0.1"                      } );
-    unsorted_actions.push( {time:  -1, counter: 0, name: "AB", arg:    "ef", position: "0.1"                      } );
-    unsorted_actions.push( {time:  -1, counter: 0, name: "AB", arg:    "fg", position: "0.1"                      } );
-    unsorted_actions.push( {time:  29, counter: 0, name: "VT", arg:     "N", position: "0.1"                      } );
-    unsorted_actions.push( {time:  30, counter: 0, name: "AW", arg:    "cd", position: "0.1"                      } );
-    unsorted_actions.push( {time:  40, counter: 0, name: "AB", arg:    "gh", position: "0.1"                      } );
+    var unsortedActions=[];
+    unsortedActions.push( {time:  -1, counter: 0, name:  ";", arg:      "", position: "",     _nodePos: "0"     } );
+    unsortedActions.push( {time:  -1, counter: 0, name:  "B", arg:    "aa", position: "0"                        } );
+    unsortedActions.push( {time:  49, counter: 0, name: "VT", arg:     "N", position: "0"                        } );
+    unsortedActions.push( {time:  50, counter: 0, name: "VT", arg: "ENDED", position: "0"                        } );
+    unsortedActions.push( {time:  -1, counter: 0, name:  ";", arg:      "", position: "0",    _nodePos: "0.0"   } );
+    unsortedActions.push( {time:  -1, counter: 0, name:  "W", arg:    "bb", position: "0.0"                      } );
+    unsortedActions.push( {time:  19, counter: 0, name: "VT", arg:     "N", position: "0.0"                      } );
+    unsortedActions.push( {time:  20, counter: 0, name:  ";", arg:      "", position: "0.0",  _nodePos: "0.0.0" } );
+    unsortedActions.push( {time:  20, counter: 0, name:  "B", arg:    "dd", position: "0.0.0"                    } );
+    unsortedActions.push( {time:  -1, counter: 0, name:  ";", arg:      "", position: "0",    _nodePos: "0.1"   } );
+    unsortedActions.push( {time:  -1, counter: 0, name:  "W", arg:    "bc", position: "0.1"                      } );
+    unsortedActions.push( {time:  -1, counter: 0, name: "AB", arg:    "ef", position: "0.1"                      } );
+    unsortedActions.push( {time:  -1, counter: 0, name: "AB", arg:    "fg", position: "0.1"                      } );
+    unsortedActions.push( {time:  29, counter: 0, name: "VT", arg:     "N", position: "0.1"                      } );
+    unsortedActions.push( {time:  30, counter: 0, name: "AW", arg:    "cd", position: "0.1"                      } );
+    unsortedActions.push( {time:  40, counter: 0, name: "AB", arg:    "gh", position: "0.1"                      } );
 
-    var sorted_actions=[];
-    sorted_actions.push(   {time:  -1, counter: 0, name:  ";", arg:      ""                    } );
-    sorted_actions.push(   {time:  -1, counter: 0, name:  "B", arg:    "aa"                    } );
-    sorted_actions.push(   {time:  -1, counter: 0, name:  ";", arg:      ""                    } );
-    sorted_actions.push(   {time:  -1, counter: 0, name:  "W", arg:    "bb"                    } );
-    sorted_actions.push(   {time:  -1, counter: 0, name:  ";", arg:      "", position: "0"     } );
-    sorted_actions.push(   {time:  -1, counter: 0, name:  "W", arg:    "bc"                    } );
-    sorted_actions.push(   {time:  -1, counter: 0, name: "AB", arg:    "ef"                    } );
-    sorted_actions.push(   {time:  -1, counter: 0, name: "AB", arg:    "fg"                    } );
-    sorted_actions.push(   {time:  19, counter: 0, name: "VT", arg:     "N", position: "0.0"   } );
-    sorted_actions.push(   {time:  20, counter: 0, name:  ";", arg:      ""                    } );
-    sorted_actions.push(   {time:  20, counter: 0, name:  "B", arg:    "dd"                    } );
-    sorted_actions.push(   {time:  29, counter: 0, name: "VT", arg:     "N", position: "0.1"   } );
-    sorted_actions.push(   {time:  30, counter: 0, name: "AW", arg:    "cd"                    } );
-    sorted_actions.push(   {time:  40, counter: 0, name: "AB", arg:    "gh"                    } );
-    sorted_actions.push(   {time:  49, counter: 0, name: "VT", arg:     "N", position: "0"     } );
-    sorted_actions.push(   {time:  50, counter: 0, name: "VT", arg: "ENDED"                    } );
+    var sortedActions=[];
+    sortedActions.push(   {time:  -1, counter: 0, name:  ";", arg:      ""                    } );
+    sortedActions.push(   {time:  -1, counter: 0, name:  "B", arg:    "aa"                    } );
+    sortedActions.push(   {time:  -1, counter: 0, name:  ";", arg:      ""                    } );
+    sortedActions.push(   {time:  -1, counter: 0, name:  "W", arg:    "bb"                    } );
+    sortedActions.push(   {time:  -1, counter: 0, name:  ";", arg:      "", position: "0"     } );
+    sortedActions.push(   {time:  -1, counter: 0, name:  "W", arg:    "bc"                    } );
+    sortedActions.push(   {time:  -1, counter: 0, name: "AB", arg:    "ef"                    } );
+    sortedActions.push(   {time:  -1, counter: 0, name: "AB", arg:    "fg"                    } );
+    sortedActions.push(   {time:  19, counter: 0, name: "VT", arg:     "N", position: "0.0"   } );
+    sortedActions.push(   {time:  20, counter: 0, name:  ";", arg:      ""                    } );
+    sortedActions.push(   {time:  20, counter: 0, name:  "B", arg:    "dd"                    } );
+    sortedActions.push(   {time:  29, counter: 0, name: "VT", arg:     "N", position: "0.1"   } );
+    sortedActions.push(   {time:  30, counter: 0, name: "AW", arg:    "cd"                    } );
+    sortedActions.push(   {time:  40, counter: 0, name: "AB", arg:    "gh"                    } );
+    sortedActions.push(   {time:  49, counter: 0, name: "VT", arg:     "N", position: "0"     } );
+    sortedActions.push(   {time:  50, counter: 0, name: "VT", arg: "ENDED"                    } );
 
-    deepEqual(rgfparser.rgftree._getUnsortedActions(),unsorted_actions, "Step 1: Unsorted Action List created by rgfparser.rgftree._getUnsortedActions(), it contains temporary node position information");
-    deepEqual(RGFNode._sortActions(rgfparser.rgftree._getUnsortedActions()),sorted_actions, "Step 2: Sorted Action List created by rgfparser._sortActions(<result from above>), it uses the temporary information and removes it");
-    deepEqual(rgfparser.action_list,sorted_actions, "Step 3: The Action List created by rgfparser.rgftree.getActions(), it should be the same as <result from above> => (rgfparser.action_list)");
+    deepEqual(rgfparser.rgftree._getUnsortedActions(),unsortedActions, "Step 1: Unsorted Action List created by rgfparser.rgftree._getUnsortedActions(), it contains temporary node position information");
+    deepEqual(RGFNode._sortActions(rgfparser.rgftree._getUnsortedActions()),sortedActions, "Step 2: Sorted Action List created by rgfparser._sortActions(<result from above>), it uses the temporary information and removes it");
+    deepEqual(rgfparser.actionList,sortedActions, "Step 3: The Action List created by rgfparser.rgftree.getActions(), it should be the same as <result from above> => (rgfparser.actionList)");
 });
 test("Writing RGF", function(){
-    final_rgf="";
-    final_rgf+="("+"\n";
-    final_rgf+="    ;B[aa] VT[N]TS[49] VT[ENDED]TS[50]" + " \n";
-    final_rgf+="    (" + "\n";
-    final_rgf+="        ;W[bb] VT[N]TS[19]" + " \n";
-    final_rgf+="        ;TS[20] B[dd]TS[20]" + " \n";
-    final_rgf+="    )" + "\n";
-    final_rgf+="    (" + "\n";
-    final_rgf+="        ;W[bc] AB[ef][fg] VT[N]TS[29] AW[cd]TS[30] AB[gh]TS[40]" + " \n";
-    final_rgf+="    )" + "\n";
-    final_rgf+=")"+"\n";
+    finalRgf="";
+    finalRgf+="("+"\n";
+    finalRgf+="    ;B[aa] VT[N]TS[49] VT[ENDED]TS[50]" + " \n";
+    finalRgf+="    (" + "\n";
+    finalRgf+="        ;W[bb] VT[N]TS[19]" + " \n";
+    finalRgf+="        ;TS[20] B[dd]TS[20]" + " \n";
+    finalRgf+="    )" + "\n";
+    finalRgf+="    (" + "\n";
+    finalRgf+="        ;W[bc] AB[ef][fg] VT[N]TS[29] AW[cd]TS[30] AB[gh]TS[40]" + " \n";
+    finalRgf+="    )" + "\n";
+    finalRgf+=")"+"\n";
 
-    equal(rgfparser.rgf,final_rgf, "Generated RGF file, with standard indentations, created by rgfparser.rgftree.writeRGF()");
+    equal(rgfparser.rgf,finalRgf, "Generated RGF file, with standard indentations, created by rgfparser.rgftree.writeRGF()");
 });
 test("Consistency", function(){
-    var new_rgfparser=new RGFParser;
-    new_rgfparser.loadRGF(rgfparser.rgftree.writeRGF());
-    ok(_.isEqual(rgfparser.rgftree,new_rgfparser.rgftree),"The generated RGF should give the same tree as the original one...");
+    var newRgfparser=new RGFParser;
+    newRgfparser.loadRGF(rgfparser.rgftree.writeRGF());
+    ok(_.isEqual(rgfparser.rgftree,newRgfparser.rgftree),"The generated RGF should give the same tree as the original one...");
 });

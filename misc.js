@@ -26,11 +26,11 @@ function deepclone(o) {
 // only for testing
 function createBox(id,title,style) {
     var el,tmp;
-    var title_height=20;
-    var title_margin=0;
-    var title_padding=4;
-    var main_margin=0;
-    var main_padding=4;
+    var titleHeight=20;
+    var titleMargin=0;
+    var titlePadding=4;
+    var mainMargin=0;
+    var mainPadding=4;
     el=document.createElement("div");
         el.id=id+"_all";
         el.style.overflow="hidden";
@@ -39,28 +39,28 @@ function createBox(id,title,style) {
         tmp=document.createElement("div");
         tmp.style.position="absolute";
         tmp.style.top=0+"px";
-        tmp.style.height=title_height+"px";
+        tmp.style.height=titleHeight+"px";
         tmp.style.left=0+"px";
         tmp.style.right=0+"px";
         tmp.style.border="solid grey 1px";
         tmp.style.overflow="hidden";
         tmp.style.fontWeight="bold";
         tmp.style.fontSize="100%";
-        tmp.style.margin=title_margin+"px";
-        tmp.style.padding=title_padding+"px";
+        tmp.style.margin=titleMargin+"px";
+        tmp.style.padding=titlePadding+"px";
         tmp.innerHTML=title;
         tmp.id=id+"_title";
         el.appendChild(tmp);
 
         tmp=document.createElement("div");
         tmp.style.position="absolute";
-        tmp.style.top=(title_height+15)+"px";
+        tmp.style.top=(titleHeight+15)+"px";
         tmp.style.bottom=0+"px";
         tmp.style.left=0+"px";
         tmp.style.right=0+"px";
         tmp.style.border="solid black 1px";
-        tmp.style.margin=main_margin+"px";
-        tmp.style.padding=main_padding+"px";
+        tmp.style.margin=mainMargin+"px";
+        tmp.style.padding=mainPadding+"px";
         tmp.style.whiteSpace="pre";
         tmp.style.overflow="auto";
         tmp.id=id;
@@ -71,23 +71,23 @@ function createBox(id,title,style) {
 
 // Container for examples and display gui...
 function ExampleCollection() {
-    this.example_list=new Object();
-    this.display_gui_list=new Object();
-    this.current_id;
+    this.exampleList=new Object();
+    this.displayGuiList=new Object();
+    this.currentId;
     this.menu=this.html();
     document.body.appendChild(this.menu);
 };
 
 ExampleCollection.prototype.insertExample = function(example) {
     var self=this;
-    this.example_list[example.id]=example;
+    this.exampleList[example.id]=example;
     var el=document.createElement("p");
     el.id=this.menu.id+"_"+example.id;
     el.className="unselected";
     el.style.cursor="pointer";
     el.style.border="1px solid grey";
     el.style.padding="2px";
-    el.innerHTML=this.example_list[example.id].description;
+    el.innerHTML=this.exampleList[example.id].description;
     this.menu.appendChild(el);
     $("p#"+this.menu.id+"_"+example.id).click(function() {
         self.loadExample(example.id);
@@ -95,35 +95,35 @@ ExampleCollection.prototype.insertExample = function(example) {
 };
 
 ExampleCollection.prototype.loadExample = function(id) {
-    if (!this.example_list[id]) return false;
-    if (this.current_id) {
-        this.display_gui_list[this.current_id].media_stream.player.pause();
-        this.display_gui_list[this.current_id].hide();
-        $("p#"+this.menu.id+"_"+this.current_id).attr("class","unselected");
+    if (!this.exampleList[id]) return false;
+    if (this.currentId) {
+        this.displayGuiList[this.currentId].mediaStream.player.pause();
+        this.displayGuiList[this.currentId].hide();
+        $("p#"+this.menu.id+"_"+this.currentId).attr("class","unselected");
     }
-    this.current_id=id;
-    $("p#"+this.menu.id+"_"+this.current_id).attr("class","selected");
+    this.currentId=id;
+    $("p#"+this.menu.id+"_"+this.currentId).attr("class","selected");
 
-    if (this.display_gui_list[this.current_id]) {
-        this.display_gui_list[this.current_id].show();
+    if (this.displayGuiList[this.currentId]) {
+        this.displayGuiList[this.currentId].show();
     } else {
         // MAIN LOADING PROCEDURE
         var parser=new RGFParser;
-        if (this.example_list[id].rgf) {
-            parser.loadRGF(this.example_list[id].rgf);
-        } else if (this.example_list[id].sgf) {
-            parser.importLinearSGF(this.example_list[id].sgf,this.example_list[id].time_mode);
+        if (this.exampleList[id].rgf) {
+            parser.loadRGF(this.exampleList[id].rgf);
+        } else if (this.exampleList[id].sgf) {
+            parser.importLinearSGF(this.exampleList[id].sgf,this.exampleList[id].timeMode);
         }
-        if (this.example_list[id].duration==undefined) {
-            this.example_list[id].duration=parser.max_duration;
-            if (!parser.ended) this.example_list[id].duration=this.example_list[id].duration+1;
+        if (this.exampleList[id].duration==undefined) {
+            this.exampleList[id].duration=parser.maxDuration;
+            if (!parser.ended) this.exampleList[id].duration=this.exampleList[id].duration+1;
         }
-        this.display_gui_list[id]=new DisplayGUI(
+        this.displayGuiList[id]=new DisplayGUI(
             id,
-            this.example_list[id].ms,
-            this.example_list[id].duration
+            this.exampleList[id].ms,
+            this.exampleList[id].duration
         );
-        if (parser.action_list && !this.display_gui_list[id].game_stream.applyTimedActionList(parser.action_list)) {
+        if (parser.actionList && !this.displayGuiList[id].gameStream.applyTimedActionList(parser.actionList)) {
             alert("Invalid action list!");
         }
     }

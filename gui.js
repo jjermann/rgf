@@ -4,19 +4,19 @@ function DisplayGUI(baseId,msSources,duration) {
        MediaStream:     ID_media
        MediaInterface:  ID_interface
        BoardPlayer:     ID_board
-                        ID_boardSgf
-                        ID_boardActions
-                        ID_boardEidogo
+                        ID_board_sgf
+                        ID_board_actions
+                        ID_board_eidogo
        GameStream:      ID_game
-                        ID_gameRgf
+                        ID_game_rgf
     */
     this.id=baseId;
     
     // create components
     this.board=new BoardPlayer(this.id+"_board");
     this.gameStream=new GameStream(this.id+"_game",this.board,duration);
-    this.mediaStream=new MediaStream(this.id+"_mediaStream",msSources,duration);
-    this.mediaInterface=new MediaInterface(this.id+"_mediaInterface");
+    this.mediaStream=new MediaStream(this.id+"_media",msSources,duration);
+    this.mediaInterface=new MediaInterface(this.id+"_interface");
 
     // initialize the main HTML element(s)
     this.html=document.createElement("div");
@@ -49,7 +49,7 @@ function DisplayGUI(baseId,msSources,duration) {
     }));
 
     // Textbox to output the current RGF tree
-    this.html.appendChild(createBox(this.id+"_gameRgf","Current RGF Tree",{
+    this.html.appendChild(createBox(this.id+"_game_rgf","Current RGF Tree",{
         position: "absolute",
         width:    "640px",
         height:   "500px",
@@ -57,7 +57,7 @@ function DisplayGUI(baseId,msSources,duration) {
         left:     "4px"
     }));
     // Textbox to output the current pseudo SGF file
-    this.html.appendChild(createBox(this.id+"_boardSgf","Current SGF tree", {
+    this.html.appendChild(createBox(this.id+"_board_sgf","Current SGF tree", {
         position: "absolute",
         width:    "422px",
         height:   "500px",
@@ -65,7 +65,7 @@ function DisplayGUI(baseId,msSources,duration) {
         left:     "650px"
     }));
     // Textbox to output the currently applied action list
-    this.html.appendChild(createBox(this.id+"_boardActions","Currently applied actions", {
+    this.html.appendChild(createBox(this.id+"_board_actions","Currently applied actions", {
         position: "absolute",
         width:    "382px",
         height:   "500px",

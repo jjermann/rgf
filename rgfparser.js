@@ -5,41 +5,41 @@ RGFParser.prototype.loadRGF = function(rgf) {
     this.index=0;
     this.rgftree=new RGFNode();
     this.times=undefined;
-    this.max_duration=undefined;
+    this.maxDuration=undefined;
     this._parseTree(this.rgftree);
-    this.action_list=this.rgftree.getActions();
+    this.actionList=this.rgftree.getActions();
     this.ended=true;
-    if (this.action_list.length) {
-        if (this.action_list[this.action_list.length-1].counter) {
+    if (this.actionList.length) {
+        if (this.actionList[this.actionList.length-1].counter) {
             this.ended=false;
         }
-        this.max_duration=this.action_list[this.action_list.length-1].time;
+        this.maxDuration=this.actionList[this.actionList.length-1].time;
     } else {
-        this.max_duration=undefined;
+        this.maxDuration=undefined;
         this.ended=false;
     }
     this.rgf=this.rgftree.writeRGF();
 };
 
 // expects an SGF _content_, e.g. no root or game-info properties...
-// not that the rgftree is _not_ valid at the end, just the action_list!
+// not that the rgftree is _not_ valid at the end, just the actionList!
 RGFParser.prototype.importLinearSGF = function(sgf,mode) {
     this.rgf=sgf;
     this.index=0;
     this.rgftree=new RGFNode();
     this.times=new Object();
-    this.max_duration=undefined;
+    this.maxDuration=undefined;
     this._parseTree(this.rgftree);
     this._updateTimemode(mode,"init");
     this.applySGFTimes(this.rgftree,mode);
-    this.action_list=this.rgftree.getActions();
+    this.actionList=this.rgftree.getActions();
     this.ended=true;
-    if (this.action_list.length) {
-        this.action_list.push({name: "VT", arg: "ENDED", time: this.action_list[this.action_list.length-1].time+1, counter:0});
+    if (this.actionList.length) {
+        this.actionList.push({name: "VT", arg: "ENDED", time: this.actionList[this.actionList.length-1].time+1, counter:0});
     } else {
-        this.action_list.push({name: "VT", arg: "ENDED", time: 1, counter:0});
+        this.actionList.push({name: "VT", arg: "ENDED", time: 1, counter:0});
     }
-    this.max_duration=this.action_list[this.action_list.length-1].time;
+    this.maxDuration=this.actionList[this.actionList.length-1].time;
     this.rgf=this.rgftree.writeRGF();
 };
 
@@ -78,9 +78,9 @@ RGFParser.prototype._parseNode = function(parent) {
 
 RGFParser.prototype._parseProperties = function(node) {
     var prop = "";
-    var last_property=null;
+    var lastProperty=null;
     var arg = [];
-    var ts_arg,time,counter;
+    var tsArg,time,counter;
     var i = 0;
     while (this.index < this.rgf.length) {
         var c = this._curChar();
@@ -114,32 +114,32 @@ RGFParser.prototype._parseProperties = function(node) {
                 }
             }
             if (prop=="TS"){
-                ts_arg=(arg[i-1]).split(":");
+                tsArg=(arg[i-1]).split(":");
                 counter=0;
-                if (!ts_arg.length || ts_arg.length>2) {
+                if (!tsArg.length || tsArg.length>2) {
                     // invalid TS property
-                } else if (ts_arg.length==1) {
-                    time=+ts_arg[0];
-                } else if (ts_arg.length==2) {
-                    time=+ts_arg[0];
-                    counter=+ts_arg[1];
+                } else if (tsArg.length==1) {
+                    time=+tsArg[0];
+                } else if (tsArg.length==2) {
+                    time=+tsArg[0];
+                    counter=+tsArg[1];
                     if (counter <= 0) {
                         // invalid TS property
                     }
                 }
-                if (last_property==null) {
+                if (lastProperty==null) {
                     // set the time for this node
                     node.time=time;
                     node.counter=counter;
                 } else {
                     // set the time for the last property
-                    last_property.time=time;
-                    last_property.counter=counter;
+                    lastProperty.time=time;
+                    lastProperty.counter=counter;
                 }
             } else {
                 // we add each list entry as a property to the node
                 for (var j=0; j<i; j++) {
-                    last_property=node.addProp(new RGFProperty(prop,arg[j]));
+                    lastProperty=node.addProp(new RGFProperty(prop,arg[j]));
                 }
             }
             // finnished parsing this property list for this node, so we reset
@@ -198,13 +198,13 @@ RGFParser.prototype._updateTimemode = function(mode,change,arg) {
             switch(change) {
                 case "init":
                     mode.time=0;
-                    mode.last_bl=mode.time_limit;
-                    mode.last_wl=mode.time_limit;
+                    mode.lastBl=mode.timeLimit;
+                    mode.lastWl=mode.timeLimit;
                     if (mode.step==undefined) mode.step=5;
                     break;
                 case "BL":
-                    var diff=mode.last_bl-arg;
-                    mode.last_bl=arg;
+                    var diff=mode.lastBl-arg;
+                    mode.lastBl=arg;
                     if (diff>0) {
                         mode.time+=diff;
                     } else {
@@ -213,8 +213,8 @@ RGFParser.prototype._updateTimemode = function(mode,change,arg) {
                     }
                     break;
                 case "WL":
-                    var diff=mode.last_wl-arg;
-                    mode.last_wl=arg;
+                    var diff=mode.lastWl-arg;
+                    mode.lastWl=arg;
                     if (diff>0) {
                         mode.time+=diff;
                     } else {

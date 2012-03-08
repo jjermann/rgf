@@ -38,32 +38,32 @@ RGFNode.prototype.descend = function(path) {
 RGFNode.prototype.getDuration=function() {
     var duration={time: this.time, counter: this.counter};
     if (this.properties.length) {
-        var last_prop=this.properties[this.properties.length-1];
-        if (last_prop.time>=duration.time) {
-            duration.time=last_prop.time;
-            if (last_prop.counter>duration.counter) duration.counter=last_prop.counter;
+        var lastProp=this.properties[this.properties.length-1];
+        if (lastProp.time>=duration.time) {
+            duration.time=lastProp.time;
+            if (lastProp.counter>duration.counter) duration.counter=lastProp.counter;
         }
     }
     
     for (var i=0; i<this.children.length; i++) {
-        var child_duration=this.children[i].getDuration();
-        if (child_duration.time>=duration.time) {
-            duration.time=child_duration.time;
-            if (child_duration.counter>duration.counter) duration.counter=child_duration.counter;
+        var childDuration=this.children[i].getDuration();
+        if (childDuration.time>=duration.time) {
+            duration.time=childDuration.time;
+            if (childDuration.counter>duration.counter) duration.counter=childDuration.counter;
         }
     }
     
     return duration;
 }
 
-// We store the node position temporarly in _node_pos (used later, see below)
+// We store the node position temporarly in _nodePos (used later, see below)
 // We also always store a counter to be able to make an easier comparison later...
 RGFNode.prototype._getUnsortedActions = function() {
     var actions=[];
     if (this.parent==null && !this.children.length) {
         return actions;
     } else if (this.parent!=null) {
-        actions.push({time:this.time, counter:this.counter, name:";", arg:"", position:this.parent.position, _node_pos:this.position});
+        actions.push({time:this.time, counter:this.counter, name:";", arg:"", position:this.parent.position, _nodePos:this.position});
     }
 
     for (var i=0; i<this.properties.length; i++) {
@@ -75,19 +75,19 @@ RGFNode.prototype._getUnsortedActions = function() {
     return actions;
 };
 
-RGFNode._sortActions = function(action_list) {
-    var actions=merge_sort(action_list,function(a, b) {if (a.time!=b.time) return (a.time - b.time); else return (a.counter-b.counter);});
-    var last_position="";
+RGFNode._sortActions = function(actionList) {
+    var actions=mergeSort(actionList,function(a, b) {if (a.time!=b.time) return (a.time - b.time); else return (a.counter-b.counter);});
+    var lastPosition="";
 
     for (var i=0; i<actions.length; i++) {
         //if (!actions[i].counter) delete actions[i].counter;
         if (actions[i].name==";") {
-            if (actions[i].position==last_position) delete actions[i].position;
-            last_position=actions[i]._node_pos;
-            delete actions[i]._node_pos;
+            if (actions[i].position==lastPosition) delete actions[i].position;
+            lastPosition=actions[i]._nodePos;
+            delete actions[i]._nodePos;
         } else {
-            if (actions[i].position==last_position) delete actions[i].position;
-            else last_position=actions[i].position;
+            if (actions[i].position==lastPosition) delete actions[i].position;
+            else lastPosition=actions[i].position;
         }
     }
     return actions;
@@ -98,10 +98,10 @@ RGFNode.prototype.getActions = function() {
 };
 
 // TODO: Fix property lists!!!
-RGFNode.prototype.writeRGF = function(indent,base_indent) {
+RGFNode.prototype.writeRGF = function(indent,baseIndent) {
     var output;
     if (indent==null) indent="    ";
-    if (base_indent==null) base_indent=indent;
+    if (baseIndent==null) baseIndent=indent;
 
     if (this.parent==null) {
         output="";
@@ -111,20 +111,20 @@ RGFNode.prototype.writeRGF = function(indent,base_indent) {
         } else {
             for (var i=0; i<this.children.length; i++) {
                 output += "(\n"; 
-                output += this.children[i].writeRGF(indent,base_indent);
+                output += this.children[i].writeRGF(indent,baseIndent);
                 output += ")\n";
             }
         }
     } else {
-        var last_propname=undefined;
+        var lastPropname=undefined;
         output=indent;
         output += ";" + ((this.time==-1) ? "" : ("TS["+this.time+((this.counter)? ":"+this.counter:"")+"] "));
         for (var i=0; i<this.properties.length; i++) {
-            if (this.properties[i].time==-1 && this.properties[i].name===last_propname) {
+            if (this.properties[i].time==-1 && this.properties[i].name===lastPropname) {
                 output=output.slice(0, -1);
                 output += "[" + this.properties[i].argument + "] ";
             } else {
-                last_propname=this.properties[i].name;
+                lastPropname=this.properties[i].name;
                 output +=  this.properties[i].name + "[" + this.properties[i].argument + "]";
                 output += (this.properties[i].time==-1) ? " " : ("TS[" + this.properties[i].time + ((this.properties[i].counter) ? ":"+this.properties[i].counter : "")+"] ");
             }
@@ -133,11 +133,11 @@ RGFNode.prototype.writeRGF = function(indent,base_indent) {
 
         if (!this.children.length) {
         } else if (this.children.length==1) {
-            output += this.children[0].writeRGF(indent,base_indent);
+            output += this.children[0].writeRGF(indent,baseIndent);
         } else {
             for (var i=0; i<this.children.length; i++) {
                 output += indent + "(\n";
-                output += this.children[i].writeRGF(indent+base_indent,base_indent);
+                output += this.children[i].writeRGF(indent+baseIndent,baseIndent);
                 output += indent + ")\n";
             }
         }
@@ -161,12 +161,12 @@ function merge(left,right,comparison) {
     return result;
 };
 
-function merge_sort(array,comparison) {
+function mergeSort(array,comparison) {
     if(array.length < 2)
         return array;
     var middle = Math.ceil(array.length/2);
     return merge(
-        merge_sort(array.slice(0,middle),comparison),
-        merge_sort(array.slice(middle),comparison),
+        mergeSort(array.slice(0,middle),comparison),
+        mergeSort(array.slice(middle),comparison),
         comparison);
 };

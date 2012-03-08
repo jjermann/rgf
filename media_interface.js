@@ -2,9 +2,9 @@
     --------------
     Defines the standard audio/video/control gui
 */
-function MediaInterface(interface_id) {
-    this.id=interface_id;
-    this.media_stream;
+function MediaInterface(interfaceId) {
+    this.id=interfaceId;
+    this.mediaStream;
 }
 
 // to simplify selecting interface elements...
@@ -83,13 +83,13 @@ MediaInterface.prototype.html=function(style) {
     return el;
 };
 
-MediaInterface.prototype.init=function(media_stream) {
-    this.media_stream=media_stream;
+MediaInterface.prototype.init=function(mediaStream) {
+    this.mediaStream=mediaStream;
     // TODO, BUG: this has to be called before "canplay" triggers! So better take it outside...?
-    this.media_stream.addInterface(this.updatedStatus.bind(this),this.updatedTime.bind(this));
+    this.mediaStream.addInterface(this.updatedStatus.bind(this),this.updatedTime.bind(this));
     var self=this;
     // initial setup, most of this is not really needed
-    var initial_status={
+    var initialStatus={
         currentTime: 0,
         seekable: false,
         seekEnd: 0,
@@ -104,28 +104,28 @@ MediaInterface.prototype.init=function(media_stream) {
         ended: false,
         ready: false
     };
-    this.updatedStatus(initial_status);
-    this.updatedTime(initial_status);
+    this.updatedStatus(initialStatus);
+    this.updatedTime(initialStatus);
 
     /* set eventHandlers */
     this.sel('jp-play').click(function() {
-        self.media_stream.player.play();
+        self.mediaStream.player.play();
     });
     this.sel('jp-pause').click(function() {
-        self.media_stream.player.pause();
+        self.mediaStream.player.pause();
     });
     this.sel('jp-stop').click(function() {
-        self.media_stream.player.pause();
-        if (self.media_stream.status.ready) {
-            self.media_stream.player.currentTime(0);
+        self.mediaStream.player.pause();
+        if (self.mediaStream.status.ready) {
+            self.mediaStream.player.currentTime(0);
         }
-        self.media_stream.player.trigger("stop");
+        self.mediaStream.player.trigger("stop");
     });
     this.sel('jp-mute').click(function() {
-        self.media_stream.player.mute();
+        self.mediaStream.player.mute();
     });
     this.sel('jp-unmute').click(function() {
-        self.media_stream.player.unmute();
+        self.mediaStream.player.unmute();
     });
 
     this.sel('jp-seek-bar').click(function(e) {
@@ -133,8 +133,8 @@ MediaInterface.prototype.init=function(media_stream) {
         var x = e.pageX - offset.left;
         var w = self.sel('jp-seek-bar').width();
         var p = x/w;
-        if (self.media_stream.status.seekable || self.media_stream.status.stream_type=="known_duration") {
-            self.media_stream.player.currentTime(p*self.media_stream.status.seekEnd);
+        if (self.mediaStream.status.seekable || self.mediaStream.status.streamType=="knownDuration") {
+            self.mediaStream.player.currentTime(p*self.mediaStream.status.seekEnd);
         }
     });
     this.sel('jp-volume-bar').click(function(e) {
@@ -144,24 +144,24 @@ MediaInterface.prototype.init=function(media_stream) {
         var y = self.sel('jp-volume-bar').height() - e.pageY + offset.top;
         var h = self.sel('jp-volume-bar').height();
 
-        if (self.media_stream.status.verticalVolume) {
-            self.media_stream.player.volume(y/h);
+        if (self.mediaStream.status.verticalVolume) {
+            self.mediaStream.player.volume(y/h);
         } else {
-            self.media_stream.player.volume(x/w);
+            self.mediaStream.player.volume(x/w);
         }
     });
 };
 
 // Called whenever the time or duration changes
 MediaInterface.prototype.updatedTime = function(status) {
-    this.sel('jp-current-time').text(this.media_stream.convertTime(status.currentTime));
+    this.sel('jp-current-time').text(this.mediaStream.convertTime(status.currentTime));
     var text;
     if (status.ready) {
-        var s=status.stream_type;
-        if (s=="known_duration") {
-            text=this.media_stream.convertTime(status.duration);
-        } else if (s=="unknown_duration" && status.seekable) {
-            text="(seek) "+this.media_stream.convertTime(status.seekEnd);
+        var s=status.streamType;
+        if (s=="knownDuration") {
+            text=this.mediaStream.convertTime(status.duration);
+        } else if (s=="unknownDuration" && status.seekable) {
+            text="(seek) "+this.mediaStream.convertTime(status.seekEnd);
         // TODO: seeking in stream?
         } else if (s=="stream") {
             text="Streaming...";

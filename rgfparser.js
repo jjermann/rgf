@@ -3,11 +3,11 @@ function RGFParser() { };
 RGFParser.prototype.loadRGF = function(rgf) {
     this.rgf=rgf;
     this.index=0;
-    this.rgftree=new RGFNode();
+    this.rgfTree=new RGFNode();
     this.times=undefined;
     this.maxDuration=undefined;
-    this._parseTree(this.rgftree);
-    this.actionList=this.rgftree.getActions();
+    this._parseTree(this.rgfTree);
+    this.actionList=this.rgfTree.getActions();
     this.ended=true;
     if (this.actionList.length) {
         if (this.actionList[this.actionList.length-1].counter) {
@@ -18,21 +18,21 @@ RGFParser.prototype.loadRGF = function(rgf) {
         this.maxDuration=undefined;
         this.ended=false;
     }
-    this.rgf=this.rgftree.writeRGF();
+    this.rgf=this.rgfTree.writeRGF();
 };
 
 // expects an SGF _content_, e.g. no root or game-info properties...
-// not that the rgftree is _not_ valid at the end, just the actionList!
+// not that the rgfTree is _not_ valid at the end, just the actionList!
 RGFParser.prototype.importLinearSGF = function(sgf,mode) {
     this.rgf=sgf;
     this.index=0;
-    this.rgftree=new RGFNode();
+    this.rgfTree=new RGFNode();
     this.times=new Object();
     this.maxDuration=undefined;
-    this._parseTree(this.rgftree);
+    this._parseTree(this.rgfTree);
     this._updateTimemode(mode,"init");
-    this.applySGFTimes(this.rgftree,mode);
-    this.actionList=this.rgftree.getActions();
+    this.applySGFTimes(this.rgfTree,mode);
+    this.actionList=this.rgfTree.getActions();
     this.ended=true;
     if (this.actionList.length) {
         this.actionList.push({name: "VT", arg: "ENDED", time: this.actionList[this.actionList.length-1].time+1, counter:0});
@@ -40,7 +40,7 @@ RGFParser.prototype.importLinearSGF = function(sgf,mode) {
         this.actionList.push({name: "VT", arg: "ENDED", time: 1, counter:0});
     }
     this.maxDuration=this.actionList[this.actionList.length-1].time;
-    this.rgf=this.rgftree.writeRGF();
+    this.rgf=this.rgfTree.writeRGF();
 };
 
 RGFParser.prototype._parseTree = function(curnode) {
@@ -67,7 +67,7 @@ RGFParser.prototype._parseNode = function(parent) {
         parent.addNode(node);
     else  
         // this should not happen unless called from the outside
-        this.rgftree = node;
+        this.rgfTree = node;
     node = this._parseProperties(node);
     if (parent && parent.children.length>1 && node.time < parent.children[parent.children.length-2].time) {
         alert("Invalid RGF file!");

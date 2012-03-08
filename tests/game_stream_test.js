@@ -91,7 +91,7 @@ MockMediaStream.prototype.updateGS=function() {};
 
 /* variables */
 var board,player,gameStream,mediaStream,gsStatus,initialKeyframe,parser,rgfTree,actionList;
-var initialSgf=";B[aa](;W[bb])(;W[bc]AB[ef][fg])";
+var initialSGF=";B[aa](;W[bb])(;W[bc]AB[ef][fg])";
 var rgf=";B[aa]VT[N]TS[49]VT[ENDED]TS[50](;W[bb]VT[N]TS[19];TS[20]B[dd]TS[20:1])(;W[bc]AB[ef][fg]VT[N]TS[29]AW[cd]TS[30]AB[gh]TS[40])";
 var duration=50;
 var msDuration=55;
@@ -153,7 +153,7 @@ function init(newDuration,msDuration) {
     };
     
     // how the initial keyframe should be
-    initialKeyframe={time: -2, counter: 0, name: "KeyFrame", arg:"",position:[],node:gameStream._rgftree};
+    initialKeyframe={time: -2, counter: 0, name: "KeyFrame", arg:"",position:[],node:gameStream._rgfTree};
 
     // only needed for recording
     board.insertActionIntoGS=gameStream.applyActionList.bind(gameStream);
@@ -164,10 +164,10 @@ function setupGS() {
     gameStream.update(0);
     board.appliedActions=[];
 }
-function loadRGF(newRgf) {
+function loadRGF(newRGF) {
     parser=new RGFParser;
-    parser.loadRGF(newRgf);
-    rgfTree=parser.rgftree;
+    parser.loadRGF(newRGF);
+    rgfTree=parser.rgfTree;
     actionList=parser.actionList;
     gameStream.applyTimedActionList(actionList);
     gameStream.update(0);
@@ -207,7 +207,7 @@ module("GameStream (after creation)", {
 test("Internal GameStream properties", function(){
     deepEqual(gameStream._actionList,[initialKeyframe],"The Action List consists of one KeyFrame.");
     deepEqual(gameStream._keyframeList,[0],"The KeyFrame List has one entry pointing to the first KeyFrame in the ActionList.");
-    deepEqual(gameStream._rgftree,new RGFNode(),"The rgf tree is an empty root node (without parent).");
+    deepEqual(gameStream._rgfTree,new RGFNode(),"The rgf tree is an empty root node (without parent).");
 });
 test("GameStream status", function(){
     equal(gameStream.status.time,gsStatus.time,"The time is set to 0 (not updated yet!).");
@@ -241,7 +241,7 @@ test("Internal GameStream properties", function(){
     // all properties remain the same
     deepEqual(gameStream._actionList,[initialKeyframe],"The Action List consists of one KeyFrame.");
     deepEqual(gameStream._keyframeList,[0],"The KeyFrame List has one entry pointing to the first KeyFrame in the ActionList.");
-    deepEqual(gameStream._rgftree,new RGFNode(),"The rgf tree is an empty root node (without parent).");
+    deepEqual(gameStream._rgfTree,new RGFNode(),"The rgf tree is an empty root node (without parent).");
 });
 test("GameStream status", function(){
     gsStatus.time=0;
@@ -258,7 +258,7 @@ test("GameStream status", function(){
 test("Loading a sorted timestamped action list, resp. loading from an RGF content/file", function(){
     parser=new RGFParser;
     parser.loadRGF(rgf);
-    rgfTree=parser.rgftree;
+    rgfTree=parser.rgfTree;
     actionList=parser.actionList;
     // TODO: check the node parameter too
     var gameActionList=[initialKeyframe];
@@ -277,7 +277,7 @@ test("Loading a sorted timestamped action list, resp. loading from an RGF conten
     ok(true,"[NEXT] We check the internal GameStream properties...");
     ok(compareActionLists(gameStream._actionList,gameActionList),"The Action List is equal to the supplied action list except for: one additional KeyFrame at the beginning and one further node parameter for each action (NOT checked atm!!).");
     deepEqual(gameStream._keyframeList,[0],"Since no new KeyFrame was added, the list still has only one entry pointing to the first KeyFrame in the Action List.");
-    ok(_.isEqual(gameStream._rgftree,parser.rgftree),"The rgf tree coincides with the rgf tree from RGFParser!");
+    ok(_.isEqual(gameStream._rgfTree,parser.rgfTree),"The rgf tree coincides with the rgf tree from RGFParser!");
 
     ok(true,"[NEXT] We check the GameStream status.");
     equal(gameStream.status.time,gsStatus.time,"The time is 0.");
@@ -386,7 +386,7 @@ test("Jump back to time 24.", function(){
 module("GameStream (with initial SGF)", {
     setup: function() {
         init(null,msDuration/10);
-        loadRGF(initialSgf);
+        loadRGF(initialSGF);
     },
     teardown: reset
 });

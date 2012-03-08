@@ -1,45 +1,45 @@
 // variables
-var rgf, rgfparser, maxDuration;
+var rgf, rgfParser, maxDuration;
 
 
 // Empty rgf parsing
 module("Empty rgf parsing", {
     setup: function() {
         rgf="";
-        rgfparser=new RGFParser;
-        rgfparser.loadRGF("");
+        rgfParser=new RGFParser;
+        rgfParser.loadRGF("");
     },
     teardown: function() {
         rgf=undefined;
-        rgfparser=undefined;
+        rgfParser=undefined;
         maxDuration=undefined;
     }
 });
 test("Basic RGFParser properties", function(){
-    equal(rgfparser.rgf, rgf, "RGF Content (rgfparser.rgf): "+rgfparser.rgf);
-    equal(rgfparser.index, 0, "Character index after parsing (rgfparser.index): "+rgfparser.index);
-    equal(rgfparser.duration, undefined, "Maximal time of all actions (rgfparser.duration): "+ ((rgfparser.duration==undefined) ? "undefined" : rgfparser.duration));
+    equal(rgfParser.rgf, rgf, "RGF Content (rgfParser.rgf): "+rgfParser.rgf);
+    equal(rgfParser.index, 0, "Character index after parsing (rgfParser.index): "+rgfParser.index);
+    equal(rgfParser.duration, undefined, "Maximal time of all actions (rgfParser.duration): "+ ((rgfParser.duration==undefined) ? "undefined" : rgfParser.duration));
 });
 test("RGF Tree", function(){
     var root=new RGFNode();
-    deepEqual(rgfparser.rgftree, root, "RGF Tree created by rgfparser._parseTree(new RGFNode()) based on rgfparser.rgf => (rgfparser.rgftree)");
+    deepEqual(rgfParser.rgfTree, root, "RGF Tree created by rgfParser._parseTree(new RGFNode()) based on rgfParser.rgf => (rgfParser.rgfTree)");
 });
 test("Action List", function(){
     var unsortedActions=[];
     var sortedActions=[];
-    deepEqual(rgfparser.rgftree._getUnsortedActions(),unsortedActions, "Step 1: Unsorted Action List created by rgfparser._getUnsortedActions(rgfparser.rgftree), it contains temporary node position information");
-    deepEqual(RGFNode._sortActions(rgfparser.rgftree._getUnsortedActions()),sortedActions, "Step 2: Sorted Action List created by rgfparser._sortActions(<result from above>), it uses the temporary information and removes it");
-    deepEqual(rgfparser.actionList,sortedActions, "Step 3: The Action List created by rgfparser.rgftree.getActions(), it should be the same as <result from above> => (rgfparser.actionList): "+rgfparser.actionList);
+    deepEqual(rgfParser.rgfTree._getUnsortedActions(),unsortedActions, "Step 1: Unsorted Action List created by rgfParser._getUnsortedActions(rgfParser.rgfTree), it contains temporary node position information");
+    deepEqual(RGFNode._sortActions(rgfParser.rgfTree._getUnsortedActions()),sortedActions, "Step 2: Sorted Action List created by rgfParser._sortActions(<result from above>), it uses the temporary information and removes it");
+    deepEqual(rgfParser.actionList,sortedActions, "Step 3: The Action List created by rgfParser.rgfTree.getActions(), it should be the same as <result from above> => (rgfParser.actionList): "+rgfParser.actionList);
 });
 test("Writing RGF", function(){
-    equal(rgfparser.rgftree.writeRGF(),"", "Generated RGF file, with standard indentations, created by rgfparser.rgftree.writeRGF(): "+rgfparser.rgftree.writeRGF());
-    equal(rgfparser.rgftree.writeRGF("  "),"", "Generated RGF file, with 2 indentations, created by rgfparser.rgftree.writeRGF(\"<2 spaces>\"): "+rgfparser.rgftree.writeRGF("  "));
-    equal(rgfparser.rgftree.writeRGF(""),"", "Generated RGF file, without indentations, created by rgfparser.rgftree.writeRGF(\"\"): "+rgfparser.rgftree.writeRGF(""));
+    equal(rgfParser.rgfTree.writeRGF(),"", "Generated RGF file, with standard indentations, created by rgfParser.rgfTree.writeRGF(): "+rgfParser.rgfTree.writeRGF());
+    equal(rgfParser.rgfTree.writeRGF("  "),"", "Generated RGF file, with 2 indentations, created by rgfParser.rgfTree.writeRGF(\"<2 spaces>\"): "+rgfParser.rgfTree.writeRGF("  "));
+    equal(rgfParser.rgfTree.writeRGF(""),"", "Generated RGF file, without indentations, created by rgfParser.rgfTree.writeRGF(\"\"): "+rgfParser.rgfTree.writeRGF(""));
 });
 test("Consistency", function(){
-    var newRgfparser=new RGFParser;
-    newRgfparser.loadRGF(rgfparser.rgftree.writeRGF());
-    deepEqual(rgfparser.rgftree,newRgfparser.rgftree,"The generated RGF should give the same tree as the original one...");
+    var newRGFparser=new RGFParser;
+    newRGFparser.loadRGF(rgfParser.rgfTree.writeRGF());
+    deepEqual(rgfParser.rgfTree,newRGFparser.rgfTree,"The generated RGF should give the same tree as the original one...");
 });
 
 
@@ -47,20 +47,20 @@ test("Consistency", function(){
 module("Simple RGF tree parsing", {
     setup: function() {
         rgf=";B[aa]VT[N]TS[49]VT[ENDED]TS[50](;W[bb]VT[N]TS[19];TS[20]B[dd]TS[20])(;W[bc]AB[ef][fg]VT[N]TS[29]AW[cd]TS[30]AB[gh]TS[40])";
-        rgfparser=new RGFParser;
-        rgfparser.loadRGF(rgf);
+        rgfParser=new RGFParser;
+        rgfParser.loadRGF(rgf);
         maxDuration=50;
     },
     teardown: function() {
         rgf=undefined;
-        rgfparser=undefined;
+        rgfParser=undefined;
         maxDuration=undefined;
     }
 });
 test("Basic RGFParser properties", function(){
-    //equal(rgfparser.rgf, rgfparser.rgftree.writeRGF()), "RGF Content (rgfparser.rgf): "+rgfparser.rgf);
-    equal(rgfparser.index, rgf.length, "Character index after parsing (rgfparser.index): "+rgfparser.index);
-    equal(rgfparser.maxDuration, maxDuration, "Maximal time of all actions (rgfparser.maxDuration): "+ ((rgfparser.maxDuration==undefined) ? "undefined" : rgfparser.maxDuration));
+    //equal(rgfParser.rgf, rgfParser.rgfTree.writeRGF()), "RGF Content (rgfParser.rgf): "+rgfParser.rgf);
+    equal(rgfParser.index, rgf.length, "Character index after parsing (rgfParser.index): "+rgfParser.index);
+    equal(rgfParser.maxDuration, maxDuration, "Maximal time of all actions (rgfParser.maxDuration): "+ ((rgfParser.maxDuration==undefined) ? "undefined" : rgfParser.maxDuration));
 });
 test("RGF Tree", function(){
     // here we construct the tree manually
@@ -81,7 +81,7 @@ test("RGF Tree", function(){
             root.children[0].children[1].addProp(new RGFProperty("AB","gh",40))
         root.children[0].addProp(new RGFProperty("VT","N",49));
         root.children[0].addProp(new RGFProperty("VT","ENDED",50));
-    ok(_.isEqual(rgfparser.rgftree,root), "RGF Tree created by rgfparser._parseTree(new RGFNode()) based on rgfparser.rgf => (rgfparser.rgftree)");
+    ok(_.isEqual(rgfParser.rgfTree,root), "RGF Tree created by rgfParser._parseTree(new RGFNode()) based on rgfParser.rgf => (rgfParser.rgfTree)");
 });
 test("Action List", function(){
     // here we construct the (un)sorted action lists manually
@@ -121,27 +121,27 @@ test("Action List", function(){
     sortedActions.push(   {time:  49, counter: 0, name: "VT", arg:     "N", position: "0"     } );
     sortedActions.push(   {time:  50, counter: 0, name: "VT", arg: "ENDED"                    } );
 
-    deepEqual(rgfparser.rgftree._getUnsortedActions(),unsortedActions, "Step 1: Unsorted Action List created by rgfparser.rgftree._getUnsortedActions(), it contains temporary node position information");
-    deepEqual(RGFNode._sortActions(rgfparser.rgftree._getUnsortedActions()),sortedActions, "Step 2: Sorted Action List created by rgfparser._sortActions(<result from above>), it uses the temporary information and removes it");
-    deepEqual(rgfparser.actionList,sortedActions, "Step 3: The Action List created by rgfparser.rgftree.getActions(), it should be the same as <result from above> => (rgfparser.actionList)");
+    deepEqual(rgfParser.rgfTree._getUnsortedActions(),unsortedActions, "Step 1: Unsorted Action List created by rgfParser.rgfTree._getUnsortedActions(), it contains temporary node position information");
+    deepEqual(RGFNode._sortActions(rgfParser.rgfTree._getUnsortedActions()),sortedActions, "Step 2: Sorted Action List created by rgfParser._sortActions(<result from above>), it uses the temporary information and removes it");
+    deepEqual(rgfParser.actionList,sortedActions, "Step 3: The Action List created by rgfParser.rgfTree.getActions(), it should be the same as <result from above> => (rgfParser.actionList)");
 });
 test("Writing RGF", function(){
-    finalRgf="";
-    finalRgf+="("+"\n";
-    finalRgf+="    ;B[aa] VT[N]TS[49] VT[ENDED]TS[50]" + " \n";
-    finalRgf+="    (" + "\n";
-    finalRgf+="        ;W[bb] VT[N]TS[19]" + " \n";
-    finalRgf+="        ;TS[20] B[dd]TS[20]" + " \n";
-    finalRgf+="    )" + "\n";
-    finalRgf+="    (" + "\n";
-    finalRgf+="        ;W[bc] AB[ef][fg] VT[N]TS[29] AW[cd]TS[30] AB[gh]TS[40]" + " \n";
-    finalRgf+="    )" + "\n";
-    finalRgf+=")"+"\n";
+    finalRGF="";
+    finalRGF+="("+"\n";
+    finalRGF+="    ;B[aa] VT[N]TS[49] VT[ENDED]TS[50]" + " \n";
+    finalRGF+="    (" + "\n";
+    finalRGF+="        ;W[bb] VT[N]TS[19]" + " \n";
+    finalRGF+="        ;TS[20] B[dd]TS[20]" + " \n";
+    finalRGF+="    )" + "\n";
+    finalRGF+="    (" + "\n";
+    finalRGF+="        ;W[bc] AB[ef][fg] VT[N]TS[29] AW[cd]TS[30] AB[gh]TS[40]" + " \n";
+    finalRGF+="    )" + "\n";
+    finalRGF+=")"+"\n";
 
-    equal(rgfparser.rgf,finalRgf, "Generated RGF file, with standard indentations, created by rgfparser.rgftree.writeRGF()");
+    equal(rgfParser.rgf,finalRGF, "Generated RGF file, with standard indentations, created by rgfParser.rgfTree.writeRGF()");
 });
 test("Consistency", function(){
-    var newRgfparser=new RGFParser;
-    newRgfparser.loadRGF(rgfparser.rgftree.writeRGF());
-    ok(_.isEqual(rgfparser.rgftree,newRgfparser.rgftree),"The generated RGF should give the same tree as the original one...");
+    var newRGFparser=new RGFParser;
+    newRGFparser.loadRGF(rgfParser.rgfTree.writeRGF());
+    ok(_.isEqual(rgfParser.rgfTree,newRGFparser.rgfTree),"The generated RGF should give the same tree as the original one...");
 });

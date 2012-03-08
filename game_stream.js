@@ -17,7 +17,7 @@ function GameStream(gameId,board,maxDuration) {
     // list of all actions
     this._actionList=[];
     // RGF tree/content
-    this._rgftree=new RGFNode();
+    this._rgfTree=new RGFNode();
 
     /* status information */
     this.status = {
@@ -62,7 +62,7 @@ GameStream.prototype.applyTimedActionList=function(actions) {
     return true;
 }
 
-// Adds a timed action into the _actionList and _rgftree.
+// Adds a timed action into the _actionList and _rgfTree.
 GameStream.prototype.queueTimedAction=function(action) {
     // GATHER SOME DATA
     var newAction={name:action.name, arg:action.arg, position:action.position, time:action.time, counter:action.counter};
@@ -77,11 +77,11 @@ GameStream.prototype.queueTimedAction=function(action) {
     // get the newNode (where to insert in the rgf tree)
     if (action.position!=undefined) {
         // if (action.name!="VT" || action.arg!="N") console.log("Warning: The position SHOULD always be changed with a VT action (not with "+action.name+"["+action.arg+"])!!");
-        newNode=this._rgftree.descend(pathToArray(action.position));
+        newNode=this._rgfTree.descend(pathToArray(action.position));
     } else if (timeIndex>0) {
         newNode=this._actionList[timeIndex-1].node;
     } else {
-        newNode=this._rgftree;
+        newNode=this._rgfTree;
     }
     // get the last keyframe index
     lastKeyframeIndex=0;
@@ -305,7 +305,7 @@ GameStream.prototype._getIndex = function(time,counter,lowerBound) {
 };
                         
 GameStream.prototype.writeRGF = function(node,base) {
-    var output=this._rgftree.writeRGF(node,base);
+    var output=this._rgfTree.writeRGF(node,base);
     // TODO: maybe make this check somewhere else
     if (output=="") output=";TS[0]";
     return output;

@@ -53,7 +53,7 @@ eidogo.Player.prototype = {
         cfg = cfg || {};
         
         // add gamestream hooks to eidogo
-        this.GS_insertAction = cfg.GS_insertAction ? cfg.GS_insertAction : function(action) { }
+        this.gsInsertAction = cfg.gsInsertAction ? cfg.gsInsertAction : function(action) { }
 
         // play, add_b, add_w, region, tr, sq, cr, label, number, score(?)
         this.mode = cfg.mode ? cfg.mode : "play";
@@ -723,71 +723,71 @@ eidogo.Player.prototype = {
     // returns null for broken paths
     _getEidogoPath: function(path) {
         var node=this.cursor.getGameRoot()._parent;
-        var tmppath=path.slice(0);
-        var eidogo_path=[];
+        var tmpPath=path.slice(0);
+        var eidogoPath=[];
         
         if (!node || !node._children || node._children.length<=path[0]) return null;
         else {
-            eidogo_path.push(tmppath[0]);
+            eidogoPath.push(tmpPath[0]);
             position=0;
         }
-        node=node._children[tmppath[0]];
-        tmppath=tmppath.slice(1);
+        node=node._children[tmpPath[0]];
+        tmpPath=tmpPath.slice(1);
 
-        while (tmppath.length) {
-            if (!node || !node._children || node._children.length<=tmppath[0]) {
+        while (tmpPath.length) {
+            if (!node || !node._children || node._children.length<=tmpPath[0]) {
                 return null;
             } else if (node._children.length==1) {
                 position++;
             } else {
-                eidogo_path.push(tmppath[0]);
+                eidogoPath.push(tmpPath[0]);
                 position=0;
             }
-            node=node._children[tmppath[0]];
-            tmppath=tmppath.slice(1);
+            node=node._children[tmpPath[0]];
+            tmpPath=tmpPath.slice(1);
         }
-        eidogo_path.push(position);
-        return eidogo_path;
+        eidogoPath.push(position);
+        return eidogoPath;
     },
 
     // returns null for broken paths
     _getAbsolutePath: function(path) {
         var node=this.cursor.getGameRoot()._parent;
-        var tmppath=path.slice(0);
-        var absolute_path=[];
+        var tmpPath=path.slice(0);
+        var absolutePath=[];
         
         if (!node || !node._children || !node._children.length) return null;
         else {
-            absolute_path.push(tmppath[0]);
-            node=node._children[tmppath[0]];
-            tmppath=tmppath.slice(1);
+            absolutePath.push(tmpPath[0]);
+            node=node._children[tmpPath[0]];
+            tmpPath=tmpPath.slice(1);
         }
                 
-        while (tmppath.length>1) {
+        while (tmpPath.length>1) {
             if (!node || !node._children || !node._children.length) {
                 return null;
             } else if (node._children.length==1) {
-                absolute_path.push(0);
+                absolutePath.push(0);
                 node=node._children[0];
-            } else if (node._children.length>tmppath[0]) {
-                absolute_path.push(tmppath[0]);
-                node=node._children[tmppath[0]];
-                tmppath=tmppath.slice(1);
+            } else if (node._children.length>tmpPath[0]) {
+                absolutePath.push(tmpPath[0]);
+                node=node._children[tmpPath[0]];
+                tmpPath=tmpPath.slice(1);
             } else {
                 return null;
             }
         }
-        var position=tmppath[0];
+        var position=tmpPath[0];
         while (position>0) {
             if (!node || !node._children || node._children.length!=1) {
                 return null;
             } else {
                 position-=1;
-                absolute_path.push(0);
+                absolutePath.push(0);
                 node=node._children[0];
             }
         }
-        return absolute_path;
+        return absolutePath;
     },
     
     /**
@@ -1217,7 +1217,7 @@ eidogo.Player.prototype = {
                     path.push(mn);
                     // GAMESTREAM (removed for now)
                     // this.goTo(path);
-                    this.GS_insertAction({name: "VT", arg: "N", position: this._getAbsolutePath(path)});
+                    this.gsInsertAction({name: "VT", arg: "N", position: this._getAbsolutePath(path)});
                     break;
                 }
                 mn++;
@@ -1243,7 +1243,7 @@ eidogo.Player.prototype = {
                     // GAMESTREAM
                     // this.createMove(coord);
                     // GS
-                    this.GS_insertAction([{name: ";"},{name: this.currentColor, arg: coord}]);
+                    this.gsInsertAction([{name: ";"},{name: this.currentColor, arg: coord}]);
                 }
             }
         } else if (this.mode == "region" && x >= -1 && y >= -1 && this.regionBegun) {
@@ -1314,7 +1314,7 @@ eidogo.Player.prototype = {
                 }
             }
             // GAMESTREAM
-            if (prop && this.GS_insertAction({name: prop, arg: coord})) {
+            if (prop && this.gsInsertAction({name: prop, arg: coord})) {
                 switch (this.mode) {
                     case "number":
                         this.labelLastNumber++;
@@ -2640,7 +2640,7 @@ eidogo.Player.prototype = {
         var path = target.id.replace(/^navtree-node-/, "").split("-");
         // GAMESTREAM: (NAV 3) this is finally the right spot!
         // this.goTo(path, true);
-        this.GS_insertAction({name: "VT", arg: "N", position: this._getAbsolutePath(path)});
+        this.gsInsertAction({name: "VT", arg: "N", position: this._getAbsolutePath(path)});
         stopEvent(e);
     },
 

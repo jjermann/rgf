@@ -5,7 +5,7 @@ dinerchtein=new Object();
 dinerchtein.id="dinerchtein";
 dinerchtein.description="Dinerchtein giving a video lecture (ogg)";
 dinerchtein.ms=[{
-    src:  "example/lecture.ogv",
+    src:  "dinerchtein/lecture.ogv",
     type: "video/ogg"
 }];
 //dinerchtein.duration=200;
@@ -123,7 +123,7 @@ recDinerchtein.id="recDinerchtein";
 recDinerchtein.description="Empty game stream, ready for recording...";
 //recDinerchtein.duration=Infinity;
 recDinerchtein.ms=[{
-    src:  "example/lecture.ogv",
+    src:  "dinerchtein/lecture.ogv",
     type: "video/ogg"
 }];
 

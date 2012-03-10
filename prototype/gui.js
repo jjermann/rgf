@@ -86,8 +86,8 @@ function DisplayGUI(baseId,msSources,duration) {
     // initialize the media stream
     this.mediaStream.addInterface(this.gameStream.updatedStatus.bind(this.gameStream),this.gameStream.updatedTime.bind(this.gameStream));
     this.mediaStream.addInterface(this.updatedStatus.bind(this));
-    this.mediaStream.init();
     this.mediaInterface.init(this.mediaStream);
+    this.mediaStream.init();
 };
 
 DisplayGUI.prototype.updatedStatus = function(newstatus) {

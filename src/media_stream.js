@@ -259,9 +259,9 @@ MediaStream.prototype.init=function() {
     });
 
     if (this.mediaType=="none") {
-        setTimeout(function() {
-            self.player.trigger("canplay");
-        },10);
+//        setTimeout(function() {
+        self.player.trigger("canplay");
+//        },10);
     }
     
     // youtube is horribly broken

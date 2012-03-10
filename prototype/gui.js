@@ -76,16 +76,18 @@ function DisplayGUI(baseId,msSources,duration) {
     // insert the gui into the html body
     document.body.appendChild(this.html);
 
-    // initialize all components
+    // initialize the board
     this.board.eidogoConfig.gsInsertAction=this.gameStream.applyActionList.bind(this.gameStream);
     this.board.init();
-    this.mediaStream.init();
-    this.mediaInterface.init(this.mediaStream);
-    this.mediaStream.addInterface(this.gameStream.updatedStatus.bind(this.gameStream),this.gameStream.updatedTime.bind(this.gameStream));
-    this.mediaStream.addInterface(this.updatedStatus.bind(this));
     
     // The game stream is set to the initial (starting) position
     this.gameStream.update(0);
+
+    // initialize the media stream
+    this.mediaStream.addInterface(this.gameStream.updatedStatus.bind(this.gameStream),this.gameStream.updatedTime.bind(this.gameStream));
+    this.mediaStream.addInterface(this.updatedStatus.bind(this));
+    this.mediaStream.init();
+    this.mediaInterface.init(this.mediaStream);
 };
 
 DisplayGUI.prototype.updatedStatus = function(newstatus) {

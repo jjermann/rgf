@@ -40,7 +40,7 @@ function MediaStream(mediaId,msSources,duration) {
         /* 
             This will be set later depending on the duration:
             noMedia         : The media was not found.
-            stream           : The media is a stream with "infinite duration"
+            stream          : The media is a stream with "infinite duration"
             unknownDuration : The media is not a stream but we do not know the duration.
             knownDuration   : (standard) The media has a known duration (might change later though)
         */

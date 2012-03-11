@@ -153,8 +153,8 @@ MediaStream.prototype.init=function() {
     this.player=pl;
     this.player.controls(false);
 
-    // initial setup
-    this.interfaces.forEach(function(inter) { inter.updatedStatus(this.status); inter.updatedTime(this.status); });
+    // initial setup (this is done in the interface)
+    // this.interfaces.forEach(function(inter) { inter.updatedStatus(this.status); inter.updatedTime(this.status); });
 
 //    this.player.listen("loadedmetadata", function() {
 //        self.status.ready=true;
@@ -325,4 +325,16 @@ MediaStream.prototype.close = function() {
 
 MediaStream.prototype.updateTime = function() {
     this.player.trigger("timeupdate");
+};
+
+MediaStream.prototype.seekTime = function(time) {
+    if (this.status.ready && (this.status.seekable || this.status.streamType=="knownDuration")) {
+        this.player.currentTime(time);
+    }
+};
+
+MediaStream.prototype.seekPer = function(p) {
+    if (this.status.ready && (this.status.seekable || this.status.streamType=="knownDuration")) {
+        this.player.currentTime(p*this.status.seekEnd);
+    }
 };

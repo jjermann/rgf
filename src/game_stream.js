@@ -276,7 +276,6 @@ GameStream.prototype.applyActionList=function(actions) {
     if (this.status.storedTime==undefined) {
         console.log("Warning: The time should have been updated but it was not (maybe the media stream is not ready)!");
     } else if (this.status.storedTime!=this.status.time) {
-console.log("old: "+this.status.time+", new: "+this.status.storedTime);
         var lowerBound=0;
         var upperBound=Infinity;
         if (this.status.timeIndex>1 && this._actionList[this.status.timeIndex-2].time>=0) {

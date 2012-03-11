@@ -11,6 +11,7 @@ Big things / things I can't do alone:
 
 Medium things:
 --------------
+- Implement a proper fallback mechanism for the MediaStream
 - Add counters to the initial SGF actions and treat them the same (allow
   edits and seeking to them)
 - Maybe the GameStream should itself implement KeyFrames if a certain
@@ -59,6 +60,7 @@ Unsure:
   instance: an sgf reader would not have access to important "header"
   informations of the rgf game (so we would have to think about this
   carefully)...
+- How is the header (and what part of it?) passed on to the MediaStream and GameStream?
 - Make meaning of "Duration" in all possible context more clear + working
 - Undo/Redo?
 - At the moment no property lists are allowed for timestamped nodes (but not

@@ -116,9 +116,7 @@ MediaInterface.prototype.init=function(mediaStream) {
     });
     this.sel('jp-stop').click(function() {
         self.mediaStream.player.pause();
-        if (self.mediaStream.status.ready) {
-            self.mediaStream.player.currentTime(0);
-        }
+        self.mediaStream.seekTime(0);
         self.mediaStream.player.trigger("stop");
     });
     this.sel('jp-mute').click(function() {
@@ -133,9 +131,7 @@ MediaInterface.prototype.init=function(mediaStream) {
         var x = e.pageX - offset.left;
         var w = self.sel('jp-seek-bar').width();
         var p = x/w;
-        if (self.mediaStream.status.seekable || self.mediaStream.status.streamType=="knownDuration") {
-            self.mediaStream.player.currentTime(p*self.mediaStream.status.seekEnd);
-        }
+        self.mediaStream.seekPer(p);
     });
     this.sel('jp-volume-bar').click(function(e) {
         var offset = self.sel('jp-volume-bar').offset();

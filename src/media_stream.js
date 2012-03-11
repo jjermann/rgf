@@ -40,7 +40,7 @@ function MediaStream(mediaId,msSources,duration) {
         /* 
             This will be set later depending on the duration:
             noMedia         : The media was not found.
-            stream           : The media is a stream with "infinite duration"
+            stream          : The media is a stream with "infinite duration"
             unknownDuration : The media is not a stream but we do not know the duration.
             knownDuration   : (standard) The media has a known duration (might change later though)
         */
@@ -153,8 +153,8 @@ MediaStream.prototype.init=function() {
     this.player=pl;
     this.player.controls(false);
 
-    // initial setup
-    this.interfaces.forEach(function(inter) { inter.updatedStatus(this.status); inter.updatedTime(this.status); });
+    // initial setup (this is done in the interface)
+    // this.interfaces.forEach(function(inter) { inter.updatedStatus(this.status); inter.updatedTime(this.status); });
 
 //    this.player.listen("loadedmetadata", function() {
 //        self.status.ready=true;
@@ -187,7 +187,7 @@ MediaStream.prototype.init=function() {
         if (!self.status.ready) {
             self.status.ready=true;
             if (!self.status.setDuration) self.status.duration=this.duration();
-            self.streamtypeupdate(self.status.duration);
+            self.streamTypeUpdate(self.status.duration);
                 
             for (var i=0; i<self.interfaces.length; i++) {
                 self.interfaces[i].updatedStatus(self.status);
@@ -247,7 +247,7 @@ MediaStream.prototype.init=function() {
     this.player.listen("durationchange", function() {
         if (self.status.ready) {
             if (!self.status.setDuration) self.status.duration=this.duration();
-            self.streamtypeupdate(self.status.duration);
+            self.streamTypeUpdate(self.status.duration);
             if (self.status.currentTime<self.status.duration) { self.status.ended=false; }
         }
         self.interfaces.forEach(function(inter) { inter.updatedTime(self.status); });
@@ -259,9 +259,9 @@ MediaStream.prototype.init=function() {
     });
 
     if (this.mediaType=="none") {
-        setTimeout(function() {
-            self.player.trigger("canplay");
-        },10);
+//        setTimeout(function() {
+        self.player.trigger("canplay");
+//        },10);
     }
     
     // youtube is horribly broken
@@ -283,7 +283,7 @@ MediaStream.prototype.init=function() {
     return this.player;
 };
 
-MediaStream.prototype.streamtypeupdate = function(duration) {
+MediaStream.prototype.streamTypeUpdate = function(duration) {
     if (duration==0) {
         this.status.streamType="noMedia";
         this.player.trigger("failedLoading");
@@ -321,4 +321,20 @@ MediaStream.prototype.close = function() {
     this.player.unlisten("timeupdate");
     this.player.unlisten("durationchange");
     this.player.unlisten("volumechange");
+};
+
+MediaStream.prototype.updateTime = function() {
+    this.player.trigger("timeupdate");
+};
+
+MediaStream.prototype.seekTime = function(time) {
+    if (this.status.ready && (this.status.seekable || this.status.streamType=="knownDuration")) {
+        this.player.currentTime(time);
+    }
+};
+
+MediaStream.prototype.seekPer = function(p) {
+    if (this.status.ready && (this.status.seekable || this.status.streamType=="knownDuration")) {
+        this.player.currentTime(p*this.status.seekEnd);
+    }
 };

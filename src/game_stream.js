@@ -37,7 +37,10 @@ function GameStream(gameId,board,maxDuration) {
         // ended => true if the current time is equal to or ahead of the maximal duration of the game stream
         setup:true,
         waiting:false,
-        ended:false
+        ended:false,
+        // inControl => if the timeupdates of MediaStream should not be applied but instead be stored in "timeStored"
+        inControl:false,
+        timeStored:undefined
     }
     
     /* The first action is set here to be an "empty" KeyFrame. Because it's the first action we have to set force=1... */
@@ -62,7 +65,7 @@ GameStream.prototype.applyTimedActionList=function(actions) {
     return true;
 }
 
-// Adds a timed action into the _actionList and _rgfTree.
+// Adds a timed action into the _actionList and _rgfTree. This _doesn't_ update the game stream!
 GameStream.prototype.queueTimedAction=function(action) {
     // GATHER SOME DATA
     var newAction={name:action.name, arg:action.arg, position:action.position, time:action.time, counter:action.counter};
@@ -259,23 +262,52 @@ GameStream.prototype.removeAction=function(index,force) {
     return true;
 };
 
+// Adds one or more actions at the current time (a timeupdate is performed) if that time still corresponds
+// to the time of the board, otherwise return false. It also returns false if the insertion of an action failed.
 GameStream.prototype.applyActionList=function(actions) {
-    // TODO (maybe): update to the new time from media stream (as long as it doesn't change the action index)?
+    // update the current time without applying it yet
+    var oldControl=this.status.inControl;
+    this.status.inControl=true;
+    this.status.storedTime=undefined;
+    this.updateCurrentTime();
+    this.status.inControl=oldControl;
+
+    // VALIDITY CHECK: If the new time doesn't effect the board we update it, otherwise we return false
+    // We do nothing if the times agree (so we can still keep track of the counters)
+    if (this.status.storedTime==undefined) {
+        console.log("Warning: The time should have been updated but it was not (maybe the media stream is not ready)!");
+    } else if (this.status.storedTime!=this.status.time) {
+        var lowerBound=0;
+        var upperBound=Infinity;
+        if (this.status.timeIndex>1 && this._actionList[this.status.timeIndex-2].time>=0) {
+            lowerBound=this._actionList[this.status.timeIndex-2].time;
+        }
+        if (this.status.timeIndex<this._actionList.length-1 && this._actionList[this.status.timeIndex].time>=0) {
+            upperBound=this._actionList[this.status.timeIndex].time;
+        }
+        if (this.status.storedTime <= lowerBound || this.status.storedTime >= upperBound) {
+            return false;
+        } else {
+            this.update(this.status.storedTime);
+        }
+    }
+
     if (Array.isArray(actions)) {
         for(var i=0;i<actions.length;i++) {
-            if (!this.insertAction(actions[i])) {
+            if (!this._insertAction(actions[i])) {
                 // TODO: revert all previous changes...
                 return false;
             }
         }
     } else {
-        if (!this.insertAction(actions)) return false;
+        if (!this._insertAction(actions)) return false;
     }
     return true;
 }
 
 // Adds an action at the current time index if possible, return false if not.
-GameStream.prototype.insertAction=function(action) {
+// Not timeupdate is performed!
+GameStream.prototype._insertAction=function(action) {
     var newAction={name:action.name, arg:action.arg, position:action.position};
     var timeIndex=this.status.timeIndex;
     newAction.time=this.status.time;
@@ -311,13 +343,23 @@ GameStream.prototype.writeRGF = function(node,base) {
     return output;
 };
 
-GameStream.prototype.updatedStatus = function(newstatus) {
+GameStream.prototype.updatedStatus = function(newStatus) {
     // TODO...
 };
 
-GameStream.prototype.updatedTime = function(newstatus) {
+GameStream.prototype.updatedTime = function(newStatus) {
     // TODO: maybe more happens depending on the new status...
-    this.update(newstatus.currentTime);
+    if (this.status.inControl) {
+        // TODO: maybe we need to store the whole newStatus using e.g. deepClone?
+        // But since performance is an issue here it just stores currentTime for now...
+        this.status.storedTime=newStatus.currentTime;
+    } else if ((newStatus.currentTime==0 && this.status.time>0) || (newStatus.currentTime >0 && newStatus.currentTime!=this.status.time)) {
+        this.update(newStatus.currentTime);
+    }
+};
+
+GameStream.prototype.updateCurrentTime = function() {
+    this.status.storedTime=this.status.time;
 };
 
 GameStream.prototype.update = function(nextTime,nextCounter) {
@@ -327,7 +369,7 @@ GameStream.prototype.update = function(nextTime,nextCounter) {
     } else if (nextCounter==undefined) {
         nextCounter=Infinity;
     }
-    if (nextTime>=this.status.time) {
+    if (nextTime>this.status.time || (nextTime==this.status.time && nextCounter>=this.status.timeCounter)) {
         this._advanceTo(nextTime,nextCounter);
     } else {
         this._reverseTo(nextTime,nextCounter);
@@ -387,10 +429,14 @@ GameStream.prototype._reverseTo = function(nextTime,nextCounter) {
     if (nextCounter==undefined) nextCounter=Infinity;
        
     // jump to the last KeyFrame before nextTime
-    while (0<=this.status.lastKeyframeIndex && this._actionList[this._keyframeList[this.status.lastKeyframeIndex]].time>=nextTime) {
-        this.status.lastKeyframeIndex--;
+    if (nextTime<-1) {
+        this.status.lastKeyframeIndex=0;
+    } else {
+        // we assume that keyframes have no counters (resp. ignore the rest)
+        while (0<=this.status.lastKeyframeIndex && this._actionList[this._keyframeList[this.status.lastKeyframeIndex]].time>=nextTime) {
+            this.status.lastKeyframeIndex--;
+        }
     }
-    // we assume that keyframes have no counters (resp. ignore the rest)
 
     var i=this._keyframeList[this.status.lastKeyframeIndex];
 
@@ -411,4 +457,24 @@ GameStream.prototype._reverseTo = function(nextTime,nextCounter) {
     }
     this.status.timeIndex=i;
     this.status.time=nextTime;
+};
+
+// Step one action forward unless we are in the initial sgf tree, then we step forward to time 0
+GameStream.prototype.stepForward = function() {
+    var i=this.status.timeIndex;
+    while (i<this._actionList.length-1 && this._actionList[i].time<0) {
+        i++;
+    }
+    if (i==this._actionList.length) i--;
+
+    var nextAction=this._actionList[i];
+    this.update(nextAction.time,nextAction.counter);
+};
+
+// Step one action backward (unless we are in the initial sgf tree)
+GameStream.prototype.stepBackward = function() {
+    if (this.status.timeIndex>1 && this._actionList[this.status.timeIndex-1].time>=0) {
+        var nextAction=this._actionList[this.status.timeIndex-2];
+        this.update(nextAction.time,nextAction.counter);
+    }
 };

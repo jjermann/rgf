@@ -2,13 +2,14 @@ function DisplayGUI(baseId,msSources,duration) {
     /*
        DisplayGUI:      ID
        MediaStream:     ID_media
-       MediaInterface:  ID_interface
+       MediaInterface:  ID_media_interface
        BoardPlayer:     ID_board
                         ID_board_sgf
                         ID_board_actions
                         ID_board_eidogo
        GameStream:      ID_game
                         ID_game_rgf
+       GameInterface:   ID_game_interface
     */
     this.id=baseId;
     
@@ -16,7 +17,8 @@ function DisplayGUI(baseId,msSources,duration) {
     this.board=new BoardPlayer(this.id+"_board");
     this.gameStream=new GameStream(this.id+"_game",this.board,duration);
     this.mediaStream=new MediaStream(this.id+"_media",msSources,duration);
-    this.mediaInterface=new MediaInterface(this.id+"_interface");
+    this.mediaInterface=new MediaInterface(this.id+"_media_interface");
+    this.gameInterface=new GameInterface(this.id+"_game_interface");
 
     // initialize the main HTML element(s)
     this.html=document.createElement("div");
@@ -44,6 +46,14 @@ function DisplayGUI(baseId,msSources,duration) {
         left:     "654px",
 //        top:      "434px"
         top:      "471px"
+//          left:     "1080px",
+//          top:      "8px"
+    }));
+    this.html.appendChild(this.gameInterface.html({
+        position: "absolute",
+        left:     "654px",
+//        top:      "434px"
+        top:      "451px"
 //          left:     "1080px",
 //          top:      "8px"
     }));
@@ -76,16 +86,23 @@ function DisplayGUI(baseId,msSources,duration) {
     // insert the gui into the html body
     document.body.appendChild(this.html);
 
-    // initialize all components
+    // initialize the board
     this.board.eidogoConfig.gsInsertAction=this.gameStream.applyActionList.bind(this.gameStream);
     this.board.init();
-    this.mediaStream.init();
-    this.mediaInterface.init(this.mediaStream);
-    this.mediaStream.addInterface(this.gameStream.updatedStatus.bind(this.gameStream),this.gameStream.updatedTime.bind(this.gameStream));
-    this.mediaStream.addInterface(this.updatedStatus.bind(this));
     
+    // Allow the game stream to force an update of the time of the media stream manually
+    this.gameStream.updateCurrentTime=this.mediaStream.updateTime.bind(this.mediaStream);
     // The game stream is set to the initial (starting) position
     this.gameStream.update(0);
+
+    // initialize the media stream
+    this.mediaStream.addInterface(this.gameStream.updatedStatus.bind(this.gameStream),this.gameStream.updatedTime.bind(this.gameStream));
+    this.mediaStream.addInterface(this.updatedStatus.bind(this));
+    this.mediaInterface.init(this.mediaStream);
+    this.mediaStream.init();
+
+    // Initialize the game interface
+    this.gameInterface.init(this.gameStream, this.mediaStream);
 };
 
 DisplayGUI.prototype.updatedStatus = function(newstatus) {

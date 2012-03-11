@@ -459,35 +459,41 @@ GameStream.prototype._reverseTo = function(nextTime,nextCounter) {
     this.status.time=nextTime;
 };
 
-// Step one action forward unless we are in the initial sgf tree, then we step forward to time 0
-GameStream.prototype.stepForward = function(ignore_nodes) {
-    var i=this.status.timeIndex;
-    while (i<this._actionList.length-1 && this._actionList[i].time<0) {
-        i++;
-    }
-    if (i==this._actionList.length) i--;
+// Step <steps> number of actions forward resp. backward (if steps < 0).
+// Don't step backward inside the initial sgf resp. step forward to time zero
+GameStream.prototype.step = function(steps,ignore_nodes) {
+    var i=this.status.timeIndex-1;
+    var nextAction;
 
-    var nextAction=this._actionList[i];
-    if (ignore_nodes) {
-        while (i<this._actionList.length-1 && nextAction.name==";") {
-            i++;
+    if (steps>0) {
+        for (var step=0; step<steps; step++) {
+            if (i<this._actionList.length) i++;
+            while (i<this._actionList.length-1 && this._actionList[i].time<0) {
+                i++;
+            }
+        
             nextAction=this._actionList[i];
-        }
-    }
-    this.update(nextAction.time,nextAction.counter);
-};
-
-// Step one action backward (unless we are in the initial sgf tree)
-GameStream.prototype.stepBackward = function(ignore_nodes) {
-    var i=this.status.timeIndex-2;
-    if (i>=0 && this._actionList[i+1].time>=0) {
-        var nextAction=this._actionList[i];
-        if (ignore_nodes) {
-            while (i>0 && nextAction.name==";") {
-                i--;
-                nextAction=this._actionList[i];
+            if (ignore_nodes) {
+                while (i<this._actionList.length-1 && nextAction.name==";") {
+                    i++;
+                    nextAction=this._actionList[i];
+                }
             }
         }
-        this.update(nextAction.time,nextAction.counter);
+    } else if (steps<0) {
+        for (var step=0; step<(-steps); step++) {
+            if (i>0 && this._actionList[i].time>=0) i--;
+    
+            nextAction=this._actionList[i];
+            if (ignore_nodes) {
+                while (i>0 && nextAction.name==";") {
+                    i--;
+                    nextAction=this._actionList[i];
+                }
+            }
+        }
+    } else {
+        nextAction=this._actionList[i];
     }
+    this.update(nextAction.time,nextAction.counter);
 };

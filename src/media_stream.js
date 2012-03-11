@@ -187,7 +187,7 @@ MediaStream.prototype.init=function() {
         if (!self.status.ready) {
             self.status.ready=true;
             if (!self.status.setDuration) self.status.duration=this.duration();
-            self.streamtypeupdate(self.status.duration);
+            self.streamTypeUpdate(self.status.duration);
                 
             for (var i=0; i<self.interfaces.length; i++) {
                 self.interfaces[i].updatedStatus(self.status);
@@ -247,7 +247,7 @@ MediaStream.prototype.init=function() {
     this.player.listen("durationchange", function() {
         if (self.status.ready) {
             if (!self.status.setDuration) self.status.duration=this.duration();
-            self.streamtypeupdate(self.status.duration);
+            self.streamTypeUpdate(self.status.duration);
             if (self.status.currentTime<self.status.duration) { self.status.ended=false; }
         }
         self.interfaces.forEach(function(inter) { inter.updatedTime(self.status); });
@@ -283,7 +283,7 @@ MediaStream.prototype.init=function() {
     return this.player;
 };
 
-MediaStream.prototype.streamtypeupdate = function(duration) {
+MediaStream.prototype.streamTypeUpdate = function(duration) {
     if (duration==0) {
         this.status.streamType="noMedia";
         this.player.trigger("failedLoading");
@@ -321,4 +321,8 @@ MediaStream.prototype.close = function() {
     this.player.unlisten("timeupdate");
     this.player.unlisten("durationchange");
     this.player.unlisten("volumechange");
+};
+
+MediaStream.prototype.updateTime = function() {
+    this.player.trigger("timeupdate");
 };

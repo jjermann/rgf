@@ -80,6 +80,8 @@ function DisplayGUI(baseId,msSources,duration) {
     this.board.eidogoConfig.gsInsertAction=this.gameStream.applyActionList.bind(this.gameStream);
     this.board.init();
     
+    // Allow the game stream to force an update of the time of the media stream manually
+    this.gameStream.updateCurrentTime=this.mediaStream.updateTime.bind(this.mediaStream);
     // The game stream is set to the initial (starting) position
     this.gameStream.update(0);
 

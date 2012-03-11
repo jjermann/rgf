@@ -12,13 +12,14 @@ Medium things:
 --------------
 - Add more basic checks whether arguments make sense and act accordingly
   (e.g. path descend)...
-- Removal of actions from the tree and the list
+- [DONE, UNTESTED] Removal of actions from the tree and the list
 - Remove all actions if there is an insertion failed during an attempt to
   apply an action list...
 - [DONE?] finnish KeyFrame support
-- write tester for MediaStream, MediaInterface
+- write tester for MediaStream, MediaInterface, maybe also for RGFNode
+- complete the tester for GameStream
 - (BUG) find out why the "node" comparison doesn't work...
-- Since the update time interval is not so small (~250ms) we might want
+- [DONE] Since the update time interval is not so small (~250ms) we might want
   more precision at the time of an (action) insertion.
 
   Solution 1:

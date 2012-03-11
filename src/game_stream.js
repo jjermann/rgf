@@ -37,7 +37,10 @@ function GameStream(gameId,board,maxDuration) {
         // ended => true if the current time is equal to or ahead of the maximal duration of the game stream
         setup:true,
         waiting:false,
-        ended:false
+        ended:false,
+        // inControl => if the timeupdates of MediaStream should not be applied but instead be stored in "timeStored"
+        inControl:false,
+        timeStored:undefined
     }
     
     /* The first action is set here to be an "empty" KeyFrame. Because it's the first action we have to set force=1... */
@@ -62,7 +65,7 @@ GameStream.prototype.applyTimedActionList=function(actions) {
     return true;
 }
 
-// Adds a timed action into the _actionList and _rgfTree.
+// Adds a timed action into the _actionList and _rgfTree. This _doesn't_ update the game stream!
 GameStream.prototype.queueTimedAction=function(action) {
     // GATHER SOME DATA
     var newAction={name:action.name, arg:action.arg, position:action.position, time:action.time, counter:action.counter};
@@ -259,23 +262,52 @@ GameStream.prototype.removeAction=function(index,force) {
     return true;
 };
 
+// Adds one or more actions at the current time (a timeupdate is performed) if that time still corresponds
+// to the time of the board, otherwise return false. It also returns false if the insertion of an action failed.
 GameStream.prototype.applyActionList=function(actions) {
-    // TODO (maybe): update to the new time from media stream (as long as it doesn't change the action index)?
+    // update the current time without applying it yet
+    this.status.inControl=true;
+    this.status.storedTime=undefined;
+    this.updateCurrentTime();
+    this.status.inControl=false;
+
+    // VALIDITY CHECK: If the new time doesn't effect the board we update it, otherwise we return false
+    // We do nothing if the times agree (so we can still keep track of the counters)
+    if (this.status.storedTime==undefined) {
+        console.log("Warning: The time should have been updated but it was not (maybe the media stream is not ready)!");
+    } else if (this.status.storedTime!=this.status.time) {
+console.log("old: "+this.status.time+", new: "+this.status.storedTime);
+        var lowerBound=0;
+        var upperBound=Infinity;
+        if (this.status.timeIndex>1 && this._actionList[this.status.timeIndex-2].time>=0) {
+            lowerBound=this._actionList[this.status.timeIndex-2].time;
+        }
+        if (this.status.timeIndex<this._actionList.length-1 && this._actionList[this.status.timeIndex].time>=0) {
+            upperBound=this._actionList[this.status.timeIndex].time;
+        }
+        if (this.status.storedTime <= lowerBound || this.status.storedTime >= upperBound) {
+            return false;
+        } else {
+            this.update(this.status.storedTime);
+        }
+    }
+
     if (Array.isArray(actions)) {
         for(var i=0;i<actions.length;i++) {
-            if (!this.insertAction(actions[i])) {
+            if (!this._insertAction(actions[i])) {
                 // TODO: revert all previous changes...
                 return false;
             }
         }
     } else {
-        if (!this.insertAction(actions)) return false;
+        if (!this._insertAction(actions)) return false;
     }
     return true;
 }
 
 // Adds an action at the current time index if possible, return false if not.
-GameStream.prototype.insertAction=function(action) {
+// Not timeupdate is performed!
+GameStream.prototype._insertAction=function(action) {
     var newAction={name:action.name, arg:action.arg, position:action.position};
     var timeIndex=this.status.timeIndex;
     newAction.time=this.status.time;
@@ -317,7 +349,17 @@ GameStream.prototype.updatedStatus = function(newstatus) {
 
 GameStream.prototype.updatedTime = function(newstatus) {
     // TODO: maybe more happens depending on the new status...
-    this.update(newstatus.currentTime);
+    if (!this.status.inControl) {
+        this.update(newstatus.currentTime);
+    } else {
+        // TODO: maybe we need to store the whole newstatus using e.g. deepclone?
+        // But since performance is an issue here it just stores currentTime for now...
+        this.status.storedTime=newstatus.currentTime;
+    }
+};
+
+GameStream.prototype.updateCurrentTime = function() {
+    this.status.storedTime=this.status.time;
 };
 
 GameStream.prototype.update = function(nextTime,nextCounter) {

@@ -38,12 +38,11 @@ Medium things:
   Reduce the update interval to something much smaller than 250ms...
 
 - [DONE] Add support for updates within the same time (updates of time_index)
-- Add "step back" and "step forward" buttons which step back/forward one action.
-- When stepping back "someone" has to call the media stream to update it
+- [DONE] Add "step back" and "step forward" buttons which step back/forward one action.
+- [DONE] When stepping back "someone" has to call the media stream to update it
   accordingly, who should that be? Should GameStream become an "interface"
   as well?
-- Replay with constant time for each action instead of a time accurate replay.
-- Support loading linear SGF files as an RGF file by interpreting the "time
+- [PARTIALLY DONE] Support loading linear SGF files as an RGF file by interpreting the "time
   left" properties accordingly... -> thus supporting time accurate replays
   of linear games even if it was not recorded with timestamps...
 - Undo/Redo?
@@ -61,6 +60,7 @@ Medium things:
 
 Small things:
 -------------
+- Replay with constant time for each action instead of a time accurate replay.
 - [DONE] (BUG) bug when printing property lists
 - "round" times up to 1 ms: Where?!
 - escape character for "]", also be careful about "\\]"...

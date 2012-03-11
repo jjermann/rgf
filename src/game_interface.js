@@ -21,13 +21,13 @@ GameInterface.prototype.html=function(style) {
         lvl1=document.createElement("ul");
         lvl1.className="gs-controls";
           lvl2=document.createElement("li");
-          lvl2.innerHTML='<a href="javascript:;" class="gs-step-forward">forward';
-          lvl1.appendChild(lvl2);
-
-          lvl2=document.createElement("li");
           lvl2.innerHTML='<a href="javascript:;" class="gs-step-backward">backward</a>';
           lvl1.appendChild(lvl2);
           
+          lvl2=document.createElement("li");
+          lvl2.innerHTML='<a href="javascript:;" class="gs-step-forward">forward';
+          lvl1.appendChild(lvl2);
+
           // TODO: several steps forward/backward
         container.appendChild(lvl1);
       el.appendChild(container);

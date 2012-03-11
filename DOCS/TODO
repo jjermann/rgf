@@ -11,6 +11,8 @@ Big things / things I can't do alone:
 
 Medium things:
 --------------
+- Add counters to the initial SGF actions and treat them the same (allow
+  edits and seeking to them)
 - Maybe the GameStream should itself implement KeyFrames if a certain
   "KeyFrame" distance is reached, it would have to call the board for
   this...

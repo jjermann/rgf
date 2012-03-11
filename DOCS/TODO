@@ -1,6 +1,7 @@
 Big things / things I can't do alone:
 -------------------------------------
 - (MAIN) integrate it into kaya.gs
+- how is the interaction with viewers in a lecture?
 - think about html elements and how to handle them: css/dynamic html/etc...
 - Streams, recording from microphone/webcame/webstream/etc => webRTC
 - make a nice media stream/game stream interface design
@@ -10,42 +11,20 @@ Big things / things I can't do alone:
 
 Medium things:
 --------------
+- Maybe the GameStream should itself implement KeyFrames if a certain
+  "KeyFrame" distance is reached, it would have to call the board for
+  this...
+- Increase the performance of seeking
+  1. Rremove debug output
+  2. Don't draw the board for each update, only at the end
+  3. Implement KeyFrames
 - Add more basic checks whether arguments make sense and act accordingly
   (e.g. path descend)...
-- [DONE, UNTESTED] Removal of actions from the tree and the list
+- Implement and test KeyFrames
 - Remove all actions if there is an insertion failed during an attempt to
   apply an action list...
-- [DONE?] finnish KeyFrame support
 - write tester for MediaStream, MediaInterface, maybe also for RGFNode
 - complete the tester for GameStream
-- (BUG) find out why the "node" comparison doesn't work...
-- [DONE] Since the update time interval is not so small (~250ms) we might want
-  more precision at the time of an (action) insertion.
-
-  Solution 1:
-  Use the current time (not status.time) for everything, resp. update the
-  time to the current time for each insertion (makes more sense).
-  This has the disadvantage, that with this update the whole board might
-  change (it was based on status.time) so the move might no longer make any
-  sense from that new situation.
-
-  Solution 2:
-  As above we update the time but only if the new time does not cause any
-  changes (e.g. its time is still lower then the next action time),
-  otherwise we (update the time and?) return false.
-
-  Solution 3:
-  Reduce the update interval to something much smaller than 250ms...
-
-- [DONE] Add support for updates within the same time (updates of time_index)
-- [DONE] Add "step back" and "step forward" buttons which step back/forward one action.
-- [DONE] When stepping back "someone" has to call the media stream to update it
-  accordingly, who should that be? Should GameStream become an "interface"
-  as well?
-- [PARTIALLY DONE] Support loading linear SGF files as an RGF file by interpreting the "time
-  left" properties accordingly... -> thus supporting time accurate replays
-  of linear games even if it was not recorded with timestamps...
-- Undo/Redo?
 - Write a GSEditInterface?:
   It consists of a bar of a certain length, where length might be a time
   duration or something bounded by a certain maximal amount of actions...
@@ -60,15 +39,13 @@ Medium things:
 
 Small things:
 -------------
+- Test the removal of actions from the tree and the list
+- (BUG) find out why the "node" comparison doesn't work...
+- Finnish and polish the linear SGF import tool, i.e. implement other time modes
+  like fischer, hourglass, japanese/canadian byo-yomi
 - Replay with constant time for each action instead of a time accurate replay.
-- [DONE] (BUG) bug when printing property lists
 - "round" times up to 1 ms: Where?!
-- escape character for "]", also be careful about "\\]"...
-- At the moment no property lists are allowed for timestamped nodes (but not
-  they are not really needed either)...
-- Allow time delay for media stream -> adjust status.currentTime accordingly
-  (as if there was no delay)!
-- implement fischer, hourglass, japanese/canadian byo-yomi linear sgf imports
+- (BUG) escape character for "]", also be careful about "\\]"...
 
 
 Unsure:
@@ -80,13 +57,11 @@ Unsure:
   instance: an sgf reader would not have access to important "header"
   informations of the rgf game (so we would have to think about this
   carefully)...
+- Make meaning of "Duration" in all possible context more clear + working
+- Undo/Redo?
+- At the moment no property lists are allowed for timestamped nodes (but not
+  they are not really needed either)...
+- Allow time delay for media stream -> adjust status.currentTime accordingly
+  (as if there was no delay)!
 - Version property for RGF?
 - additional media property for RGF? 
-
-
-Issues:
--------
-- Make meaning of "Duration" in all possible context more clear + working
-- if game stream acts as an interface the media stream shouldn't update game
-  stream...
-- 

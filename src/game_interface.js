@@ -44,7 +44,7 @@ GameInterface.prototype.init=function(gameStream,mediaStream) {
     /* set eventHandlers */
     this.sel('gs-step-forward').click(function() {
         var oldTime=self.gameStream.status.time;
-        self.gameStream.stepForward();
+        self.gameStream.stepForward(true);
         var newTime=self.gameStream.status.time;
         
         if (oldTime!=newTime) {
@@ -57,7 +57,7 @@ GameInterface.prototype.init=function(gameStream,mediaStream) {
     });
     this.sel('gs-step-backward').click(function() {
         var oldTime=self.gameStream.status.time;
-        self.gameStream.stepBackward();
+        self.gameStream.stepBackward(true);
         var newTime=self.gameStream.status.time;
 
         if (oldTime!=newTime) {

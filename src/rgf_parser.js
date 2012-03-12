@@ -6,6 +6,7 @@ RGFParser.prototype.loadRGF = function(rgf) {
     this.rgfTree=new RGFNode();
     this.times=undefined;
     this.maxDuration=undefined;
+    this._initialCounter=0;
     this._parseTree(this.rgfTree);
     this.actionList=this.rgfTree.getActions();
     this.ended=true;
@@ -62,12 +63,14 @@ RGFParser.prototype._parseTree = function(curnode) {
 };
 
 RGFParser.prototype._parseNode = function(parent) {
-    var node=new RGFNode();
-    if (parent)
+    var node=new RGFNode(-1,this._initialCounter);
+    this._initialCounter++;
+    if (parent) {
         parent.addNode(node);
-    else  
+    } else {
         // this should not happen unless called from the outside
         this.rgfTree = node;
+    }
     node = this._parseProperties(node);
     if (parent && parent.children.length>1 && node.time < parent.children[parent.children.length-2].time) {
         alert("Invalid RGF file!");
@@ -113,18 +116,18 @@ RGFParser.prototype._parseProperties = function(node) {
                     this.index++;
                 }
             }
-            if (prop=="TS"){
+            if (prop=="TS") {
                 tsArg=(arg[i-1]).split(":");
                 counter=0;
                 if (!tsArg.length || tsArg.length>2) {
-                    // invalid TS property
+                    // TODO: invalid TS property
                 } else if (tsArg.length==1) {
                     time=+tsArg[0];
                 } else if (tsArg.length==2) {
                     time=+tsArg[0];
                     counter=+tsArg[1];
                     if (counter <= 0) {
-                        // invalid TS property
+                        // TODO: invalid TS property
                     }
                 }
                 if (lastProperty==null) {
@@ -136,10 +139,12 @@ RGFParser.prototype._parseProperties = function(node) {
                     lastProperty.time=time;
                     lastProperty.counter=counter;
                 }
+                this._initialCounter--;
             } else {
                 // we add each list entry as a property to the node
                 for (var j=0; j<i; j++) {
-                    lastProperty=node.addProp(new RGFProperty(prop,arg[j]));
+                    lastProperty=node.addProp(new RGFProperty(prop,arg[j],-1,this._initialCounter));
+                    this._initialCounter++;
                 }
             }
             // finnished parsing this property list for this node, so we reset
@@ -187,7 +192,7 @@ RGFParser.prototype.applySGFTimes = function(node, mode) {
     }
 
     for (var i=0; i<node.children.length; i++) {
-        var clone=deepclone(mode);
+        var clone=deepClone(mode);
         this.applySGFTimes(node.children[i], clone);
     }
 };

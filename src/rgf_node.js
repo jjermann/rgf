@@ -75,7 +75,7 @@ RGFNode.prototype._getUnsortedActions = function() {
     return actions;
 };
 
-RGFNode._sortActions = function(actionList) {
+RGFNode.prototype._sortActions = function(actionList) {
     var actions=mergeSort(actionList,function(a, b) {if (a.time!=b.time) return (a.time - b.time); else return (a.counter-b.counter);});
     var lastPosition="";
 
@@ -94,7 +94,7 @@ RGFNode._sortActions = function(actionList) {
 };
 
 RGFNode.prototype.getActions = function() {
-    return RGFNode._sortActions(this._getUnsortedActions());
+    return this._sortActions(this._getUnsortedActions());
 };
 
 // TODO: Fix property lists!!!

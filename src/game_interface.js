@@ -40,12 +40,15 @@ GameInterface.prototype.init=function(gameStream,mediaStream) {
     this.gameStream=gameStream;
     this.mediaStream=mediaStream;
     var self=this;
+    var ignore_list=[";","BL","WL","OB","OW"];
 
     /* set eventHandlers */
     this.sel('gs-step-forward').click(function() {
         var oldTime=self.gameStream.status.time;
-        self.gameStream.step(1,true);
+        if (oldTime<0) oldTime=0;
+        self.gameStream.step(1,false,ignore_list,false);
         var newTime=self.gameStream.status.time;
+        if (newTime<0) newTime=0;
         
         if (oldTime!=newTime) {
             var oldControl=self.gameStream.status.inControl;
@@ -57,8 +60,10 @@ GameInterface.prototype.init=function(gameStream,mediaStream) {
     });
     this.sel('gs-step-backward').click(function() {
         var oldTime=self.gameStream.status.time;
-        self.gameStream.step(-1,true);
+        if (oldTime<0) oldTime=0;
+        self.gameStream.step(-1,false,ignore_list,false);
         var newTime=self.gameStream.status.time;
+        if (newTime<0) newTime=0;
 
         if (oldTime!=newTime) {
             var oldControl=self.gameStream.status.inControl;

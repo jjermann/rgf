@@ -328,12 +328,15 @@ MediaStream.prototype.updateTime = function() {
 };
 
 MediaStream.prototype.seekTime = function(time) {
+    if (time<0) time=0;
     if (this.status.ready && (this.status.seekable || this.status.streamType=="knownDuration")) {
         this.player.currentTime(time);
     }
 };
 
 MediaStream.prototype.seekPer = function(p) {
+    if (p<0) p=0;
+    if (p>1) p=1;
     if (this.status.ready && (this.status.seekable || this.status.streamType=="knownDuration")) {
         this.player.currentTime(p*this.status.seekEnd);
     }

@@ -11,12 +11,12 @@ function extend(from,to) {
     return from;
 };
 
-function deepclone(o) {
+function deepClone(o) {
     return (o && typeof(o) === 'object' ?
     function(t) {
         for (var p in o) {
             if (o.hasOwnProperty(p)) {
-                t[p] = deepclone(o[p])
+                t[p] = deepClone(o[p])
             }
         }
         return t

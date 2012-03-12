@@ -451,9 +451,9 @@ GameStream.prototype._reverseTo = function(nextTime,nextCounter) {
 };
 
 // Step <steps> number of actions forward resp. backward (if steps < 0).
-// If skip_initial is true the initial part (time==-1) is skipped over
+// If noInitial is true the initial part (time==-1) is skipped over
 // If an ignore list is given all actions with a name from that list are skipped
-GameStream.prototype.step = function(steps,skipInitial,ignoreList,isWhiteList) {
+GameStream.prototype.step = function(steps,noInitial,ignoreList,isWhiteList) {
     var i=this.status.timeIndex-1;
     var nextAction=this._actionList[i];
 
@@ -461,7 +461,7 @@ GameStream.prototype.step = function(steps,skipInitial,ignoreList,isWhiteList) {
         for (var step=0; step<steps; step++) {
             if (i<this._actionList.length-1) i++;
 
-            if (skipInitial) {
+            if (noInitial) {
                 while (i<this._actionList.length-1 && this._actionList[i].time<0) {
                     i++;
                 }
@@ -481,10 +481,9 @@ GameStream.prototype.step = function(steps,skipInitial,ignoreList,isWhiteList) {
         }
     } else if (steps<0) {
         for (var step=0; step<(-steps); step++) {
-            if (skipInitial) {
+            if (noInitial) {
                 if (this._actionList[i].time<0) {
-                    // TODO: maybe remain on the border here instead of jumping to 0...
-                    i=0;
+                    break;
                 }
             }
             if (i>0) i--;
@@ -492,13 +491,12 @@ GameStream.prototype.step = function(steps,skipInitial,ignoreList,isWhiteList) {
             nextAction=this._actionList[i];
             while (i>0) {
                 var found=(ignoreList.indexOf(nextAction.name)!=-1);
-                if (found && !(isWhiteList) || !found && (isWhiteList)) {
+                if (found && (isWhiteList) || (!found) && (!isWhiteList)) {
                     break;
                 }
-                if (skipInitial) {
+                if (noInitial) {
                     if (this._actionList[i].time<0) {
-                        // TODO: maybe remain on the border here instead of jumping to 0...
-                        i=0;
+                        break;
                     }
                 }
                 if (i>0) i--;

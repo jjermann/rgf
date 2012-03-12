@@ -71,8 +71,8 @@ GameStream.prototype.queueTimedAction=function(action) {
     var newAction={name:action.name, arg:action.arg, position:action.position, time:action.time, counter:action.counter};
     
     var timeIndex, newNode, lastKeyframeIndex;
-    // get the timeIndex (where to insert in the action list), if action.time<0 we simply add it to the end (TODO: fix this!)
-    if (action.time<0 || action.time>this.status.duration.time || (action.time==this.status.duration.time && action.counter>this.status.duration.counter)) {
+    // get the timeIndex (where to insert in the action list)
+    if (action.time>this.status.duration.time || (action.time==this.status.duration.time && action.counter>this.status.duration.counter)) {
         timeIndex=this._actionList.length;
     } else {
         timeIndex=this._getIndex(action.time, action.counter);
@@ -101,11 +101,7 @@ GameStream.prototype.queueTimedAction=function(action) {
     // and return false if that might be the case.
 
     if (!action.force) {
-        if (action.time<0) {
-            if (!this.status.setup) return false;
-            if (action.time!==-1 || action.counter>0) return false;
-            if (action.name=="KeyFrame") return false;
-        } else if (action.time>this.status.maxDuration || (action.time==this.status.maxDuration && action.counter>0)) {
+        if (action.time>this.status.maxDuration || (action.time==this.status.maxDuration && action.counter>0)) {
             return false;
         } else if (timeIndex===0) {
             return false;
@@ -222,20 +218,15 @@ GameStream.prototype.removeAction=function(index,force) {
     if (!force) {
         if (index<=0 || index>=this._actionList.length) return false;
         if (this._keyframeList[this._keyframeList.length-1]>=index) return false;
-        if (action.time<0) {
-            if (!this.status.setup) return false;
-            if (action.time!==-1 || action.counter>0) return false;
-            if (action.name=="KeyFrame") return false;
+
+        if (action.name==";") {
+            var index=pathToArray(action.node.position);
+            index=index[index.length-1];
+            if (index<action.node.parent.children.length-1) return false;
         } else {
-            if (action.name==";") {
-                var index=pathToArray(action.node.position);
-                index=index[index.length-1];
-                if (index<action.node.parent.children.length-1) return false;
-            } else {
-                var streeDuration=action.node.getDuration();
-                if (action.time<streeDuration.time) return false;
-                if (action.time==streeDuration.time && action.counter<streeDuration.counter) return false;
-            }
+            var streeDuration=action.node.getDuration();
+            if (action.time<streeDuration.time) return false;
+            if (action.time==streeDuration.time && action.counter<streeDuration.counter) return false;
         }
     }
 
@@ -513,22 +504,67 @@ GameStream.prototype._reverseTo = function(nextTime,nextCounter) {
     this.status.time=nextTime;
 };
 
-// Step one action forward unless we are in the initial sgf tree, then we step forward to time 0
-GameStream.prototype.stepForward = function() {
-    var i=this.status.timeIndex;
-    while (i<this._actionList.length-1 && this._actionList[i].time<0) {
-        i++;
-    }
-    if (i==this._actionList.length) i--;
-
+// Step <steps> number of actions forward resp. backward (if steps < 0).
+// If skip_initial is true the initial part (time==-1) is skipped over
+// If an ignore list is given all actions with a name from that list are skipped
+GameStream.prototype.step = function(steps,skipInitial,ignoreList,isWhiteList) {
+    var i=this.status.timeIndex-1;
     var nextAction=this._actionList[i];
-    this.update(nextAction.time,nextAction.counter);
-};
 
-// Step one action backward (unless we are in the initial sgf tree)
-GameStream.prototype.stepBackward = function() {
-    if (this.status.timeIndex>1 && this._actionList[this.status.timeIndex-1].time>=0) {
-        var nextAction=this._actionList[this.status.timeIndex-2];
+    if (steps>0) {
+        for (var step=0; step<steps; step++) {
+            if (i<this._actionList.length-1) i++;
+
+            if (skipInitial) {
+                while (i<this._actionList.length-1 && this._actionList[i].time<0) {
+                    i++;
+                }
+            }
+        
+            nextAction=this._actionList[i];
+            while (i<this._actionList.length-1) {
+                var found=(ignoreList.indexOf(nextAction.name)!=-1);
+                if (found && (isWhiteList) || (!found) && (!isWhiteList)) {
+                    break;
+                }
+                i++;
+                nextAction=this._actionList[i];
+            }
+            
+            if (i==this._actionList.length-1) break;
+        }
+    } else if (steps<0) {
+        for (var step=0; step<(-steps); step++) {
+            if (skipInitial) {
+                if (this._actionList[i].time<0) {
+                    // TODO: maybe remain on the border here instead of jumping to 0...
+                    i=0;
+                }
+            }
+            if (i>0) i--;
+
+            nextAction=this._actionList[i];
+            while (i>0) {
+                var found=(ignoreList.indexOf(nextAction.name)!=-1);
+                if (found && !(isWhiteList) || !found && (isWhiteList)) {
+                    break;
+                }
+                if (skipInitial) {
+                    if (this._actionList[i].time<0) {
+                        // TODO: maybe remain on the border here instead of jumping to 0...
+                        i=0;
+                    }
+                }
+                if (i>0) i--;
+                nextAction=this._actionList[i];
+            }
+
+            if (i==0) break;
+        }
+    }
+    if (i==this._actionList.length-1 && nextAction.time<0) {
+        this.update(0);
+    } else {
         this.update(nextAction.time,nextAction.counter);
     }
 };

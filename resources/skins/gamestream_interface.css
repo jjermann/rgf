@@ -1,0 +1,28 @@
+div.gs-interface ul.gs-controls li {
+        display:inline;
+        float: left;
+}
+div.gs-interface ul.gs-controls a {
+	display:block;
+	overflow:hidden;
+        text-indent:-9999px;
+}
+a.gs-step-backward, a.gs-step-forward {
+        width:28px;
+        height:28px;
+        margin-left:10px;
+        margin-right:10px;
+}
+a.gs-step-backward {
+        background: url("jplayer.blue.monday.jpg") 0 -112px no-repeat;
+}
+a.gs-step-backward:hover {
+        background: url("jplayer.blue.monday.jpg") -29px -112px no-repeat;
+}
+a.gs-step-forward {
+        background: url("jplayer.blue.monday.jpg") 0 -141px no-repeat;
+}
+a.gs-step-forward:hover {
+        background: url("jplayer.blue.monday.jpg") -29px -141px no-repeat;
+}
+

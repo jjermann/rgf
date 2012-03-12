@@ -51,9 +51,9 @@ function DisplayGUI(baseId,msSources,duration) {
     }));
     this.html.appendChild(this.gameInterface.html({
         position: "absolute",
-        left:     "654px",
+        left:     "770px",
 //        top:      "434px"
-        top:      "451px"
+        top:      "461px"
 //          left:     "1080px",
 //          top:      "8px"
     }));

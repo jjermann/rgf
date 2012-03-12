@@ -21,13 +21,13 @@ GameInterface.prototype.html=function(style) {
         lvl1=document.createElement("ul");
         lvl1.className="gs-controls";
           lvl2=document.createElement("li");
-          lvl2.innerHTML='<a href="javascript:;" class="gs-step-forward">forward';
-          lvl1.appendChild(lvl2);
-
-          lvl2=document.createElement("li");
           lvl2.innerHTML='<a href="javascript:;" class="gs-step-backward">backward</a>';
           lvl1.appendChild(lvl2);
           
+          lvl2=document.createElement("li");
+          lvl2.innerHTML='<a href="javascript:;" class="gs-step-forward">forward';
+          lvl1.appendChild(lvl2);
+
           // TODO: several steps forward/backward
         container.appendChild(lvl1);
       el.appendChild(container);
@@ -40,12 +40,15 @@ GameInterface.prototype.init=function(gameStream,mediaStream) {
     this.gameStream=gameStream;
     this.mediaStream=mediaStream;
     var self=this;
+    var ignore_list=[";","BL","WL","OB","OW"];
 
     /* set eventHandlers */
     this.sel('gs-step-forward').click(function() {
         var oldTime=self.gameStream.status.time;
-        self.gameStream.stepForward();
+        if (oldTime<0) oldTime=0;
+        self.gameStream.step(1,false,ignore_list,false);
         var newTime=self.gameStream.status.time;
+        if (newTime<0) newTime=0;
         
         if (oldTime!=newTime) {
             var oldControl=self.gameStream.status.inControl;
@@ -57,8 +60,10 @@ GameInterface.prototype.init=function(gameStream,mediaStream) {
     });
     this.sel('gs-step-backward').click(function() {
         var oldTime=self.gameStream.status.time;
-        self.gameStream.stepBackward();
+        if (oldTime<0) oldTime=0;
+        self.gameStream.step(-1,false,ignore_list,false);
         var newTime=self.gameStream.status.time;
+        if (newTime<0) newTime=0;
 
         if (oldTime!=newTime) {
             var oldControl=self.gameStream.status.inControl;

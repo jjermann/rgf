@@ -343,6 +343,60 @@ GameStream.prototype.writeRGF = function(node,base) {
     return output;
 };
 
+
+/*
+TODO: jj What do you think? This is just an idea and I might miss something.
+
+    The updatedStatus and updatedTime handler functions makes no sense if there's no media stream attached
+    and to me shows there's seem to be something wrong with the design. Having the handler functions being
+    part of the class implies taking in account that the GameStream knows it will handle external events.
+    If it is the case, why not allowing the GameStream to setup it's own handlers?
+
+    E.g.
+    
+    function GameStream() {
+        var me = this;
+        
+        me.onStatusChange = function (status) {
+            //handle status change
+        };
+        
+        me.onTimeChange = function (status) {
+            //handle time change
+        };
+    }
+    
+    GameStream.prototype.attachStream = function (stream) {
+        //listen to events
+        var me = this;
+        
+        me.attachedStream = stream;
+        
+        stream.bind('statusChange', me.onStatusChange);
+        stream.bind('timeChange', me.onTimeChange);
+    }
+    
+    GameStream.prototype.detachStream = function () {
+        //detach events
+        var me = this,
+            stream = me.attachedStream;
+        
+        stream.unbind('statusChange', me.onStatusChange);
+        stream.unbind('timeChange', me.onTimeChange);
+    }
+    
+    
+    Then, when we create an instance of GameStream and we want to sync (attach it) it with an external stream source
+    we could do this:
+    
+    gs.attachStream(mediaStream);
+    
+    We could also detach it:
+    
+    gs.detachStream();
+    
+*/
+
 GameStream.prototype.updatedStatus = function(newStatus) {
     // TODO...
 };

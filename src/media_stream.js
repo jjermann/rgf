@@ -66,16 +66,7 @@ function MediaStream(mediaId,msSources,duration) {
     // used for fallback trigger "failedLoading"
     this.timeoutTime=5;
     this.timeoutValue;
-    // associated interfaces that need to be updated
-    this.interfaces=[];
 }
-
-MediaStream.prototype.addInterface=function(updatedStatusFun,updatedTimeFun) {
-    this.interfaces.push({
-        updatedStatus: (updatedStatusFun!=undefined) ? updatedStatusFun : function() {},
-        updatedTime: (updatedTimeFun!=undefined) ? updatedTimeFun : function() {}
-    });
-};
 
 // a useful function to have in any case (so it is left in MediaStream class)
 MediaStream.prototype.convertTime = function(s) {
@@ -166,12 +157,14 @@ MediaStream.prototype.init=function() {
             self.player.currentTime(0);
             // self.interfaces.forEach(function(inter) { inter.updatedTime(); });
         }
+        
         self.status.paused=false;
-        self.interfaces.forEach(function(inter) { inter.updatedStatus(self.status); });
+        
+        self.trigger('statusChange', self.status);
     });
     this.player.listen("pause", function() {
         self.status.paused=true;
-        self.interfaces.forEach(function(inter) { inter.updatedStatus(self.status); });
+        self.trigger('statusChange', self.status);
     });
 // All of this is already done in "pause"...
 //    this.player.listen("stop", function() {
@@ -188,10 +181,8 @@ MediaStream.prototype.init=function() {
             self.status.ready=true;
             if (!self.status.setDuration) self.status.duration=this.duration();
             self.streamTypeUpdate(self.status.duration);
-                
-            for (var i=0; i<self.interfaces.length; i++) {
-                self.interfaces[i].updatedStatus(self.status);
-            }
+            
+            self.trigger('statusChange', self.status);
             this.trigger("timeupdate");
         }
     });
@@ -238,9 +229,7 @@ MediaStream.prototype.init=function() {
                 self.status.currentPercentAbsolute=0;
             }
 
-            for (var i=0; i<self.interfaces.length; i++) {
-                self.interfaces[i].updatedTime(self.status);
-            }
+            self.trigger('timeChange', self.status);
         }
     });
 
@@ -250,12 +239,13 @@ MediaStream.prototype.init=function() {
             self.streamTypeUpdate(self.status.duration);
             if (self.status.currentTime<self.status.duration) { self.status.ended=false; }
         }
-        self.interfaces.forEach(function(inter) { inter.updatedTime(self.status); });
+        
+        self.trigger('timeChange', self.status);
     });
     this.player.listen("volumechange", function() {
         self.status.muted=this.muted();
         self.status.volume=this.volume();
-        self.interfaces.forEach(function(inter) { inter.updatedStatus(self.status); });
+        self.trigger('statusChange', self.status);
     });
 
     if (this.mediaType=="none") {
@@ -302,13 +292,14 @@ MediaStream.prototype.streamTypeUpdate = function(duration) {
 };
 
 MediaStream.prototype.fallback = function() {
-    this.status.ready="false";
-    this.status.failed="true";
+    var me = this,
+        status = me.status;
     
-    for (var i=0; i<this.interfaces.length; i++) {
-        this.interfaces[i].updatedStatus(this.status);
-    }
-    this.close();
+    status.ready = false;
+    status.failed = true;
+    
+    me.trigger('statusChange', status);
+    me.close();
 };
 
 MediaStream.prototype.close = function() {
@@ -338,3 +329,5 @@ MediaStream.prototype.seekPer = function(p) {
         this.player.currentTime(p*this.status.seekEnd);
     }
 };
+
+asEvented.call(MediaStream.prototype);

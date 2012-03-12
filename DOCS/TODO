@@ -1,12 +1,28 @@
-Big things / things I can't do alone:
--------------------------------------
+Big things:
+-----------
 - (MAIN) integrate it into kaya.gs
 - how is the interaction with viewers in a lecture?
 - think about html elements and how to handle them: css/dynamic html/etc...
 - Streams, recording from microphone/webcame/webstream/etc => webRTC
-- make a nice media stream/game stream interface design
-- add all necessary interface elements to kaya.gs (menu/buttons/etc)
-  at the right position (maybe with dynamic size).
+- make a nice media/game interface design
+- Add a recorder interface (game interface is for navigation, recorder
+  interface is for editing an RGF)
+- Add a time bar to the recorder interface
+  o The time bar corresponds to a certain time interval (of fixed length)
+    of the game stream
+  o Visually represent each action on that time bar
+  o Use different colors/icons to indicate different types of actions
+    or different states (e.g. can be modified or not, initial or not, etc)
+  o Update the time interval whenever we update the time
+  o Actions can be selected/inserted/changed(/removed?) (if the validity check is ok)
+  o Actions can be drag and droped on the time bar (changing their time
+    variable), as long as they don't interfere with any other actions.
+- Add a visual RGF tree to the recorder interface:
+  o Again: use different colors/icons
+  o Again: Actions can be selected/inserted/changed/removed
+    (where removal means removing the whole subtree)
+  o Clicking on a node/property jumps to the corresponding time
+  o Maybe: allow drag and drop of nodes/properties/subtrees (?)
 
 
 Medium things:
@@ -15,6 +31,8 @@ Medium things:
 - Maybe the GameStream should itself implement KeyFrames if a certain
   "KeyFrame" distance is reached, it would have to call the board for
   this...
+- Allow queueing timed Actions without a counter parameter
+  (set counter to the last counter)
 - Increase the performance of seeking
   1. Rremove debug output
   2. Don't draw the board for each update, only at the end
@@ -26,27 +44,18 @@ Medium things:
   apply an action list...
 - write tester for MediaStream, MediaInterface, maybe also for RGFNode
 - complete the tester for GameStream
-- Write a GSEditInterface?:
-  It consists of a bar of a certain length, where length might be a time
-  duration or something bounded by a certain maximal amount of actions...
-  In that bar we visually represent each action and allow operations:
-  o Use e.g. different colors to indicate different types of actions...
-  o Update the bar when we update the time...
-  o Selection of Action(s)
-  o Insertion and Deletion of Action(s)?
-  o Drag and drop of action(s) (within the time interval of its
-    neighbouring actions).
+- "Clean up" the meaning of "Duration" in all possible contexts
 
 
 Small things:
 -------------
+- (BUG) escape character for "]", also be careful about "\\]"...
 - Test the removal of actions from the tree and the list
 - (BUG) find out why the "node" comparison doesn't work...
 - Finnish and polish the linear SGF import tool, i.e. implement other time modes
   like fischer, hourglass, japanese/canadian byo-yomi
 - Replay with constant time for each action instead of a time accurate replay.
 - "round" times up to 1 ms: Where?!
-- (BUG) escape character for "]", also be careful about "\\]"...
 
 
 Unsure:
@@ -59,11 +68,10 @@ Unsure:
   informations of the rgf game (so we would have to think about this
   carefully)...
 - How is the header (and what part of it?) passed on to the MediaStream and GameStream?
-- Make meaning of "Duration" in all possible context more clear + working
+- Version property for RGF?
+- additional media property for RGF? 
 - Undo/Redo?
 - At the moment no property lists are allowed for timestamped nodes (but not
   they are not really needed either)...
 - Allow time delay for media stream -> adjust status.currentTime accordingly
   (as if there was no delay)!
-- Version property for RGF?
-- additional media property for RGF? 

@@ -91,13 +91,18 @@ function DisplayGUI(baseId,msSources,duration) {
     this.board.init();
     
     // Allow the game stream to force an update of the time of the media stream manually
+    //TODO: Fix me, this doesn't look right
     this.gameStream.updateCurrentTime=this.mediaStream.updateTime.bind(this.mediaStream);
+    
     // The game stream is set to the initial (starting) position
     this.gameStream.update(0);
 
     // initialize the media stream
-    this.mediaStream.addInterface(this.gameStream.updatedStatus.bind(this.gameStream),this.gameStream.updatedTime.bind(this.gameStream));
-    this.mediaStream.addInterface(this.updatedStatus.bind(this));
+    this.mediaStream.bind('statusChange', this.gameStream.updatedStatus.bind(this.gameStream));
+    this.mediaStream.bind('timeChange', this.gameStream.updatedTime.bind(this.gameStream));
+    
+    this.mediaStream.bind('statusChange', this.updatedStatus.bind(this));
+    
     this.mediaInterface.init(this.mediaStream);
     this.mediaStream.init();
 

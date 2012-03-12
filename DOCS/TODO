@@ -27,6 +27,8 @@ Big things:
 
 Medium things:
 --------------
+- make a README.markup for github
+- add more licensing + copyright information
 - Implement a proper fallback mechanism for the MediaStream
 - Maybe the GameStream should itself implement KeyFrames if a certain
   "KeyFrame" distance is reached, it would have to call the board for

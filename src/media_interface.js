@@ -5,6 +5,15 @@
 function MediaInterface(interfaceId) {
     this.id=interfaceId;
     this.mediaStream;
+    
+    var self=this;
+    
+    this.onTimeChange = function(status) {
+        self.updateSeekBar(status);
+    }
+    this.onStatusChange = function(status) {
+        self.updateControls(status);
+    }
 }
 
 // to simplify selecting interface elements...
@@ -85,8 +94,9 @@ MediaInterface.prototype.html=function(style) {
 
 MediaInterface.prototype.init=function(mediaStream) {
     this.mediaStream=mediaStream;
-    // TODO, BUG: this has to be called before "canplay" triggers! So better take it outside...?
-    this.mediaStream.addInterface(this.updatedStatus.bind(this),this.updatedTime.bind(this));
+    this.mediaStream.bind('statusChange', this.onStatusChange);
+    this.mediaStream.bind('timeChange', this.onTimeChange);
+    
     var self=this;
     // initial setup, most of this is not really needed
     var initialStatus={
@@ -104,8 +114,8 @@ MediaInterface.prototype.init=function(mediaStream) {
         ended: false,
         ready: false
     };
-    this.updatedStatus(initialStatus);
-    this.updatedTime(initialStatus);
+    this.onStatusChange(initialStatus);
+    this.onTimeChange(initialStatus);
 
     /* set eventHandlers */
     this.sel('jp-play').click(function() {
@@ -149,7 +159,7 @@ MediaInterface.prototype.init=function(mediaStream) {
 };
 
 // Called whenever the time or duration changes
-MediaInterface.prototype.updatedTime = function(status) {
+MediaInterface.prototype.updateSeekBar = function(status) {
     this.sel('jp-current-time').text(this.mediaStream.convertTime(status.currentTime));
     var text;
     if (status.ready) {
@@ -171,7 +181,7 @@ MediaInterface.prototype.updatedTime = function(status) {
 };
 
 // Called whenever any stream.status entry changes that is not related to time/duration
-MediaInterface.prototype.updatedStatus = function(status) {
+MediaInterface.prototype.updateControls = function(status) {
     if (status.paused) {
         this.sel('jp-pause').hide();
         this.sel('jp-play').show();

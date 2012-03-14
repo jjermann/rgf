@@ -3,9 +3,8 @@
     Responsible to keep track of applied changes, where we are in this chain and to update the
     current board drawing accordingly. It kind of "hijacks" the board...
 */
-function GameStream(gameId,board,maxDuration) {
+function GameStream(gameId,maxDuration) {
     this.id=gameId;
-    this.board=board;
     
     /* List of all KeyFrames:
        A KeyFrame describes how to get the whole current SGF tree and the current position.
@@ -47,6 +46,42 @@ function GameStream(gameId,board,maxDuration) {
     this.queueTimedAction({time:-2, counter:0, name:"KeyFrame", arg:"", position:[], force:1});
     // called outside of GameStream since the board might not be ready yet:
     // this.update(0);
+
+
+    var self=this;
+    
+    this.onStatusChange = function(newStatus) {
+        // TODO...
+    }
+
+    this.onTimeChange = function(newStatus) {
+        // TODO: maybe more happens depending on the new status...
+        if (self.status.inControl) {
+            // TODO: maybe we need to store the whole newStatus using e.g. deepClone?
+            // But since performance is an issue here it just stores currentTime for now...
+            self.status.storedTime=newStatus.currentTime;
+        } else if ((newStatus.currentTime==0 && self.status.time>0) || (newStatus.currentTime >0 && newStatus.currentTime!=self.status.time)) {
+            self.update(newStatus.currentTime);
+        }
+    }
+
+    this.onInsertActions = function(actions) {
+        self.applyActionList(actions);
+    }
+};
+
+GameStream.prototype.attachStream = function (stream) {
+    this.attachedStream = stream;
+
+    stream.bind('statusChange', this.onStatusChange);
+    stream.bind('timeChange', this.onTimeChange);
+};
+
+GameStream.prototype.detachStream = function () {
+    stream = this.attachedStream;
+
+    stream.unbind('statusChange', this.onStatusChange);
+    stream.unbind('timeChange', this.onTimeChange);
 };
 
 // TODO: support insertions inbetween
@@ -334,20 +369,6 @@ GameStream.prototype.writeRGF = function(node,base) {
     return output;
 };
 
-GameStream.prototype.updatedStatus = function(newStatus) {
-    // TODO...
-};
-
-GameStream.prototype.updatedTime = function(newStatus) {
-    // TODO: maybe more happens depending on the new status...
-    if (this.status.inControl) {
-        // TODO: maybe we need to store the whole newStatus using e.g. deepClone?
-        // But since performance is an issue here it just stores currentTime for now...
-        this.status.storedTime=newStatus.currentTime;
-    } else if ((newStatus.currentTime==0 && this.status.time>0) || (newStatus.currentTime >0 && newStatus.currentTime!=this.status.time)) {
-        this.update(newStatus.currentTime);
-    }
-};
 
 GameStream.prototype.updateCurrentTime = function() {
     this.status.storedTime=this.status.time;
@@ -397,10 +418,10 @@ GameStream.prototype._advanceTo = function(nextTime,nextCounter) {
             So the length of arrays in the tree may only increase and deleted indices may not be used
             again for new purposes (because the RGF tree behaves that way). */
         if (action.name!="KeyFrame") {
-            this.board.apply(action);
+            this.trigger('applyAction',action);
         } else if (this.status.timeIndex==0) {
             // ok, we apply the very first keyframe...
-            this.board.apply(action);
+            this.trigger('applyAction',action);
         }
 
         i++;
@@ -442,7 +463,7 @@ GameStream.prototype._reverseTo = function(nextTime,nextCounter) {
         }
         
         var action=this._actionList[i];
-        this.board.apply(action);
+        this.trigger('applyAction',action);
 
         i++;
     }
@@ -512,3 +533,5 @@ GameStream.prototype.step = function(steps,noInitial,ignoreList,isWhiteList) {
         this.update(nextAction.time,nextAction.counter);
     }
 };
+
+asEvented.call(GameStream.prototype);

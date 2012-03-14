@@ -20,6 +20,17 @@ function DisplayGUI(baseId,msSources,duration) {
     this.mediaInterface=new MediaInterface(this.id+"_media_interface");
     this.gameInterface=new GameInterface(this.id+"_game_interface");
 
+    // attach the mediaStream to the gameStream
+    this.gameStream.attachStream(this.mediaStream);
+    // Allow the game stream to force an update of the time of the media stream manually
+    this.gameStream.updateCurrentTime=this.mediaStream.updateTime.bind(this.mediaStream);
+    // attach the gameStream to the board
+    this.board.attachStream(this.gameStream);
+    // "attach" the board to the gameStream
+    this.board.bind('insertActions', this.gameStream.onInsertActions);
+    // "attach" the mediaStream to the GUI
+    this.mediaStream.bind('statusChange', this.onStatusChange);
+
     // initialize the main HTML element(s)
     this.html=document.createElement("div");
     this.html.id=this.id;    
@@ -86,31 +97,24 @@ function DisplayGUI(baseId,msSources,duration) {
     // insert the gui into the html body
     document.body.appendChild(this.html);
 
-    // initialize the board
-    this.board.eidogoConfig.gsInsertAction=this.gameStream.applyActionList.bind(this.gameStream);
+    // The game stream is set to the initial (starting) position,
+    // the other components are initialized
     this.board.init();
-    
-    // Allow the game stream to force an update of the time of the media stream manually
-    this.gameStream.updateCurrentTime=this.mediaStream.updateTime.bind(this.mediaStream);
-    // The game stream is set to the initial (starting) position
     this.gameStream.update(0);
-
-    // initialize the media stream
-    this.mediaStream.addInterface(this.gameStream.updatedStatus.bind(this.gameStream),this.gameStream.updatedTime.bind(this.gameStream));
-    this.mediaStream.addInterface(this.updatedStatus.bind(this));
     this.mediaInterface.init(this.mediaStream);
     this.mediaStream.init();
-
-    // Initialize the game interface
     this.gameInterface.init(this.gameStream, this.mediaStream);
+
+    
+    var self=this;
+    this.onStatusChange = function(newstatus) {
+        if (newstatus.failed) {
+            // TODO: should load the fallback media stream...
+            alert("Media stream loading failed!");
+        }
+    };
 };
 
-DisplayGUI.prototype.updatedStatus = function(newstatus) {
-    if (newstatus.failed) {
-        // TODO: should load the fallback media stream...
-        alert("Media stream loading failed!");
-    }
-};
 
 DisplayGUI.prototype.hide = function() {
     $("div#"+this.id+" ").hide();

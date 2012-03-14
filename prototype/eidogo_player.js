@@ -22,7 +22,28 @@ function BoardPlayer(boardId) {
         container:       this.id+"_eidogo",
         sgf:             ";",
         loadPath:        [0,0],
+        
+        gsInsertActions:  this.gsInsertActions
     };
+    
+    var self=this;
+    this.onApplyAction = function(action) {
+        self.applyAction(action);
+    }
+};
+
+BoardPlayer.prototype.attachStream = function (stream) {
+    this.attachedStream = stream;
+    stream.bind('applyAction', this.onApplyAction);
+};
+
+BoardPlayer.prototype.detachStream = function () {
+    stream = this.attachedStream;
+    stream.unbind('applyAction', this.onApplyAction);
+};
+
+BoardPlayer.prototype.gsInsertActions = function(actions) {
+    this.trigger('insertActions',actions);
 };
 
 // Returns the html element for the board player
@@ -42,7 +63,7 @@ BoardPlayer.prototype._getEidogoPath=function(position) {
     return this.eidogoPlayer._getEidogoPath(pathToArray(position));
 };
 
-BoardPlayer.prototype.apply=function(action) {
+BoardPlayer.prototype.applyAction = function(action) {
     var path;
     if (action.name=="KeyFrame") {
         this.eidogoConfig.sgf=action.arg;
@@ -87,3 +108,5 @@ BoardPlayer.prototype.apply=function(action) {
     $('div#'+this.id+"_sgf").text(parser.rgf);
     $('div#'+this.id+"_actions").append(document.createTextNode(newActiontxt));
 };
+
+asEvented.call(BoardPlayer.prototype);

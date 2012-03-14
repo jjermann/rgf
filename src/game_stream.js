@@ -65,9 +65,7 @@ function GameStream(gameId,maxDuration) {
         }
     }
 
-    this.onInsertActions = function(actions) {
-        self.applyActionList(actions);
-    }
+    this.onInsertActions = this.applyActionList.bind(this);
 };
 
 GameStream.prototype.attachStream = function (stream) {

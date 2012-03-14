@@ -26,10 +26,7 @@ function BoardPlayer(boardId) {
         gsInsertActions:  this.gsInsertActions
     };
     
-    var self=this;
-    this.onApplyAction = function(action) {
-        self.applyAction(action);
-    }
+    this.onApplyAction = this.applyAction.bind(this);
 };
 
 BoardPlayer.prototype.attachStream = function (stream) {

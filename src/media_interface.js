@@ -8,12 +8,8 @@ function MediaInterface(interfaceId) {
     
     var self=this;
     
-    this.onTimeChange = function(status) {
-        self.updateSeekBar(status);
-    }
-    this.onStatusChange = function(status) {
-        self.updateControls(status);
-    }
+    this.onTimeChange = this.updateSeekBar.bind(this);
+    this.onStatusChange = this.updateControls.bind(this);
 }
 
 // to simplify selecting interface elements...

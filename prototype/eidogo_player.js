@@ -23,24 +23,33 @@ function BoardPlayer(boardId) {
         sgf:             ";",
         loadPath:        [0,0],
         
-        gsInsertActions:  this.gsInsertActions
+        gsInsertActions:  this.gsInsertActions.bind(this)
     };
     
     this.onApplyAction = this.applyAction.bind(this);
 };
 
 BoardPlayer.prototype.attachStream = function (stream) {
-    this.attachedStream = stream;
-    stream.bind('applyAction', this.onApplyAction);
+    var self = this;
+    
+    self.detachStream();
+    
+    self.attachedStream = stream;
+    stream.bind('applyAction', self.onApplyAction);
 };
 
 BoardPlayer.prototype.detachStream = function () {
-    stream = this.attachedStream;
-    stream.unbind('applyAction', this.onApplyAction);
+    var self = this,
+        stream = self.attachedStream;
+        
+    if (stream) {
+        stream.unbind('applyAction', self.onApplyAction);
+        delete self.attachedStream;
+    }
 };
 
 BoardPlayer.prototype.gsInsertActions = function(actions) {
-    this.trigger('insertActions',actions);
+    this.trigger('insertActions', actions);
 };
 
 // Returns the html element for the board player

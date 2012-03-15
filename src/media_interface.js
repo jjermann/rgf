@@ -3,13 +3,12 @@
     Defines the standard audio/video/control gui
 */
 function MediaInterface(interfaceId) {
-    this.id=interfaceId;
-    this.mediaStream;
+    var self = this;
     
-    var self=this;
+    self.id = interfaceId;
     
-    this.onTimeChange = this.updateSeekBar.bind(this);
-    this.onStatusChange = this.updateControls.bind(this);
+    self.onTimeChange = self.updateSeekBar.bind(self);
+    self.onStatusChange = self.updateControls.bind(self);
 }
 
 // to simplify selecting interface elements...

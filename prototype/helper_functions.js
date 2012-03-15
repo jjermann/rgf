@@ -97,6 +97,7 @@ ExampleCollection.prototype.loadExample = function(id) {
             this.exampleList[id].ms,
             this.exampleList[id].duration
         );
+        
         if (parser.actionList && !this.displayGuiList[id].gameStream.applyTimedActionList(parser.actionList)) {
             alert("Invalid action list!");
         }

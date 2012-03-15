@@ -11,30 +11,42 @@ function DisplayGUI(baseId,msSources,duration) {
                         ID_game_rgf
        GameInterface:   ID_game_interface
     */
-    this.id=baseId;
+    var self = this;
+    
+    self.id=baseId;
     
     // create components
-    this.board=new BoardPlayer(this.id+"_board");
-    this.gameStream=new GameStream(this.id+"_game",this.board,duration);
-    this.mediaStream=new MediaStream(this.id+"_media",msSources,duration);
-    this.mediaInterface=new MediaInterface(this.id+"_media_interface");
-    this.gameInterface=new GameInterface(this.id+"_game_interface");
+    self.boardPlayer=new BoardPlayer(self.id+"_board");
+    self.gameStream=new GameStream(self.id+"_game",self.boardPlayer,duration);
+    self.mediaStream=new MediaStream(self.id+"_media",msSources,duration);
+    self.mediaInterface=new MediaInterface(self.id+"_media_interface");
+    self.gameInterface=new GameInterface(self.id+"_game_interface");
 
     // attach the mediaStream to the gameStream
-    this.gameStream.attachStream(this.mediaStream);
-    // Allow the game stream to force an update of the time of the media stream manually
-    this.gameStream.updateCurrentTime=this.mediaStream.updateTime.bind(this.mediaStream);
+    self.gameStream.attachStream(self.mediaStream);
+    
     // attach the gameStream to the board
-    this.board.attachStream(this.gameStream);
+    self.boardPlayer.attachStream(self.gameStream);
+    
     // "attach" the board to the gameStream
-    this.board.bind('insertActions', this.gameStream.onInsertActions);
+    self.boardPlayer.bind('insertActions', function (actions) {
+        self.gameStream.applyActionList(actions);
+    });
+    
+    self.onStatusChange = function(newstatus) {
+        if (newstatus.failed) {
+            // TODO: should load the fallback media stream...
+            alert("Media stream loading failed!");
+        }
+    };
+    
     // "attach" the mediaStream to the GUI
-    this.mediaStream.bind('statusChange', this.onStatusChange);
+    self.mediaStream.bind('statusChange', self.onStatusChange);
 
     // initialize the main HTML element(s)
-    this.html=document.createElement("div");
-    this.html.id=this.id;    
-    this.html.appendChild(this.mediaStream.html({
+    self.html=document.createElement("div");
+    self.html.id=self.id;    
+    self.html.appendChild(self.mediaStream.html({
         position: "absolute",
         top:      "4px",
         left:     "4px",
@@ -42,7 +54,7 @@ function DisplayGUI(baseId,msSources,duration) {
         //height:   "500px",
         border:   "solid black 1px"
     }));
-    this.html.appendChild(this.board.html({
+    self.html.appendChild(self.boardPlayer.html({
         position: "absolute",
         /*
         overflow: "hidden";
@@ -52,7 +64,7 @@ function DisplayGUI(baseId,msSources,duration) {
         left:     "650px",
         top:      "4px"
     }));
-    this.html.appendChild(this.mediaInterface.html({
+    self.html.appendChild(self.mediaInterface.html({
         position: "absolute",
         left:     "654px",
 //        top:      "434px"
@@ -60,7 +72,7 @@ function DisplayGUI(baseId,msSources,duration) {
 //          left:     "1080px",
 //          top:      "8px"
     }));
-    this.html.appendChild(this.gameInterface.html({
+    self.html.appendChild(self.gameInterface.html({
         position: "absolute",
         left:     "770px",
 //        top:      "434px"
@@ -70,7 +82,7 @@ function DisplayGUI(baseId,msSources,duration) {
     }));
 
     // Textbox to output the current RGF tree
-    this.html.appendChild(createBox(this.id+"_game_rgf","Current RGF Tree",{
+    self.html.appendChild(createBox(self.id+"_game_rgf","Current RGF Tree",{
         position: "absolute",
         width:    "640px",
         height:   "500px",
@@ -78,7 +90,7 @@ function DisplayGUI(baseId,msSources,duration) {
         left:     "4px"
     }));
     // Textbox to output the current pseudo SGF file
-    this.html.appendChild(createBox(this.id+"_board_sgf","Current SGF tree", {
+    self.html.appendChild(createBox(self.id+"_board_sgf","Current SGF tree", {
         position: "absolute",
         width:    "422px",
         height:   "500px",
@@ -86,7 +98,7 @@ function DisplayGUI(baseId,msSources,duration) {
         left:     "650px"
     }));
     // Textbox to output the currently applied action list
-    this.html.appendChild(createBox(this.id+"_board_actions","Currently applied actions", {
+    self.html.appendChild(createBox(self.id+"_board_actions","Currently applied actions", {
         position: "absolute",
         width:    "382px",
         height:   "500px",
@@ -95,24 +107,16 @@ function DisplayGUI(baseId,msSources,duration) {
     }));
     
     // insert the gui into the html body
-    document.body.appendChild(this.html);
+    document.body.appendChild(self.html);
 
     // The game stream is set to the initial (starting) position,
     // the other components are initialized
-    this.board.init();
-    this.gameStream.update(0);
-    this.mediaInterface.init(this.mediaStream);
-    this.mediaStream.init();
-    this.gameInterface.init(this.gameStream, this.mediaStream);
+    self.boardPlayer.init();
+    self.gameStream.update(0);
+    self.mediaInterface.init(self.mediaStream);
+    self.mediaStream.init();
+    self.gameInterface.init(self.gameStream, self.mediaStream);
 
-    
-    var self=this;
-    this.onStatusChange = function(newstatus) {
-        if (newstatus.failed) {
-            // TODO: should load the fallback media stream...
-            alert("Media stream loading failed!");
-        }
-    };
 };
 
 

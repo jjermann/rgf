@@ -3,8 +3,10 @@
     Responsible to keep track of applied changes, where we are in this chain and to update the
     current board drawing accordingly. It kind of "hijacks" the board...
 */
-function GameStream(gameId,maxDuration) {
-    this.id=gameId;
+function GameStream(gameId, maxDuration) {
+    var self = this;
+    
+    self.id = gameId;
     
     /* List of all KeyFrames:
        A KeyFrame describes how to get the whole current SGF tree and the current position.
@@ -12,14 +14,16 @@ function GameStream(gameId,maxDuration) {
        to the now current position (note that the position is equal to the last position if it exists).
        The resulting SGF tree must be identical to the one we get by successively applying actions.
     */
-    this._keyframeList=[];
+    self._keyframeList = [];
     // list of all actions
-    this._actionList=[];
+    
+    self._actionList = [];
     // RGF tree/content
-    this._rgfTree=new RGFNode();
+    
+    self._rgfTree = new RGFNode();
 
     /* status information */
-    this.status = {
+    self.status = {
         // current game stream time
         time:-2,
         // current counter for the current game stream time
@@ -40,46 +44,59 @@ function GameStream(gameId,maxDuration) {
         // inControl => if the timeupdates of MediaStream should not be applied but instead be stored in "timeStored"
         inControl:false,
         timeStored:undefined
-    }
+    };
     
     /* The first action is set here to be an "empty" KeyFrame. Because it's the first action we have to set force=1... */
-    this.queueTimedAction({time:-2, counter:0, name:"KeyFrame", arg:"", position:[], force:1});
+    self.queueTimedAction({time:-2, counter:0, name:"KeyFrame", arg:"", position:[], force:1});
     // called outside of GameStream since the board might not be ready yet:
     // this.update(0);
-
-
-    var self=this;
     
-    this.onStatusChange = function(newStatus) {
-        // TODO...
-    }
+    self.onStatusChange = self.onStatusChange.bind(self);
+    self.onTimeChange = self.onTimeChange.bind(self);
+};
 
-    this.onTimeChange = function(newStatus) {
-        // TODO: maybe more happens depending on the new status...
-        if (self.status.inControl) {
-            // TODO: maybe we need to store the whole newStatus using e.g. deepClone?
-            // But since performance is an issue here it just stores currentTime for now...
-            self.status.storedTime=newStatus.currentTime;
-        } else if ((newStatus.currentTime==0 && self.status.time>0) || (newStatus.currentTime >0 && newStatus.currentTime!=self.status.time)) {
-            self.update(newStatus.currentTime);
-        }
-    }
+GameStream.prototype.onStatusChange = function (newStatus) {
+    // TODO...
+};
 
-    this.onInsertActions = this.applyActionList.bind(this);
+GameStream.prototype.onTimeChange = function (newStatus) {
+    var self = this,
+        status = self.status;
+    
+    // TODO: maybe more happens depending on the new status...
+    if (status.inControl) {
+        // TODO: maybe we need to store the whole newStatus using e.g. deepClone?
+        // But since performance is an issue here it just stores currentTime for now...
+        status.storedTime = newStatus.currentTime;
+    } else if (
+        (newStatus.currentTime == 0 && status.time > 0)
+        || (newStatus.currentTime > 0 && newStatus.currentTime != status.time)
+    ) {
+        self.update(newStatus.currentTime);
+    }
 };
 
 GameStream.prototype.attachStream = function (stream) {
-    this.attachedStream = stream;
+    var self = this;
+    
+    self.detachStream();
+    
+    self.attachedStream = stream;
 
-    stream.bind('statusChange', this.onStatusChange);
-    stream.bind('timeChange', this.onTimeChange);
+    stream.bind('statusChange', self.onStatusChange);
+    stream.bind('timeChange', self.onTimeChange);
 };
 
 GameStream.prototype.detachStream = function () {
-    stream = this.attachedStream;
+    var self = this,
+        stream = self.attachedStream;
 
-    stream.unbind('statusChange', this.onStatusChange);
-    stream.unbind('timeChange', this.onTimeChange);
+    if (stream) {
+        stream.unbind('statusChange', self.onStatusChange);
+        stream.unbind('timeChange', self.onTimeChange);
+        
+        delete self.attachedStream;
+    }
 };
 
 // TODO: support insertions inbetween
@@ -369,7 +386,14 @@ GameStream.prototype.writeRGF = function(node,base) {
 
 
 GameStream.prototype.updateCurrentTime = function() {
-    this.status.storedTime=this.status.time;
+    var self = this,
+        status = self.status;
+    
+    if (self.attachedStream) {
+        self.attachedStream.updateTime();
+    } else {
+        status.storedTime = status.time;
+    }
 };
 
 GameStream.prototype.update = function(nextTime,nextCounter) {

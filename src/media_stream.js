@@ -289,11 +289,14 @@ MediaStream.prototype.streamTypeUpdate = function(duration) {
 };
 
 MediaStream.prototype.fallback = function() {
-    this.status.ready="false";
-    this.status.failed="true";
+    var self = this,
+        status = self.status;
+        
+    status.ready = false;;
+    status.failed = true;
     
-    this.trigger('statusChange',self.status);
-    this.close();
+    self.trigger('statusChange', status);
+    self.close();
 };
 
 MediaStream.prototype.close = function() {

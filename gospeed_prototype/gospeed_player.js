@@ -84,15 +84,16 @@ GoSpeedPlayer.prototype.goTo = function(path) {
 };
 
 GoSpeedPlayer.prototype.applyAction = function(action) {
-    var path;
     if (action.name=="KeyFrame") {
         // load the Sgf while taking care of deleted nodes
         // alternative: directly load an sgf tree
 
-        // this.goTo(action.position);
+        if (action.position!=undefined) {
+            this.goTo(action.position);
+        }
     } else {
         if (action.position!=undefined) {
-            this.goTo(path);
+            this.goTo(action.position);
         }
         // if a node is added
         if (action.name==";") {

@@ -89,7 +89,10 @@ GoSpeedPlayer.prototype.applyAction = function(action) {
     if (action.name=="KeyFrame") {
         // load the Sgf while taking care of deleted nodes
         // alternative: directly load an sgf tree
-
+        // instead we simply clear everything for now
+        this.gospeed.clear();
+        this.gospeed.render();
+        
         if (action.position!=undefined) {
             this.goTo(action.position);
         }

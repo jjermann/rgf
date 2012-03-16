@@ -87,7 +87,7 @@ function DisplayGUI(baseId,msSources,duration) {
         position: "absolute",
         left:     "654px",
 //        top:      "434px"
-        top:      "471px"
+        top:      "800px"
 //          left:     "1080px",
 //          top:      "8px"
     }));
@@ -95,7 +95,7 @@ function DisplayGUI(baseId,msSources,duration) {
         position: "absolute",
         left:     "770px",
 //        top:      "434px"
-        top:      "461px"
+        top:      "790px"
 //          left:     "1080px",
 //          top:      "8px"
     }));

@@ -100,14 +100,13 @@ GoSpeedPlayer.prototype.applyAction = function(action) {
         if (action.position!=undefined) {
             this.goTo(action.position);
         }
-        // if a node is added
+
         if (action.name==";") {
             this.createNode();
-        // if a property is added
+        } else if (action.name=="VT") {
+        } else if (action.name=="RP") {
         } else {
-            if (action.name!="VT") {
-                this.addProperty(action.name,action.arg);
-            }
+            this.addProperty(action.name,action.arg);
         }
     }
 };

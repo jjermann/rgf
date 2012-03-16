@@ -32,7 +32,7 @@ function DisplayGUI(baseId,msSources,duration) {
         div_id_result: DIV_ID_RESULT,
         div_id_move_number: DIV_ID_MOVE_NUMBER,
         div_id_comments: DIV_ID_COMMENTS,
-        server_path_gospeed_root: "../../../",
+        server_path_gospeed_root: "../",
     };
 
     self.boardPlayer=new GoSpeedPlayer(conf);

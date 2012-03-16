@@ -1,31 +1,6 @@
 /* This should already exist! So _all_ content is for testing only... */
 function EidogoPlayer(boardId) {
     this.id=boardId;
-    
-    // Eidogo Player (initialized later)
-    this.eidogoPlayer;
-    this.eidogoConfig = {
-        theme:          "standard", // "standard" or "compact"
-        mode:           "play", // "play" or "view"
-        showComments:    true,
-        showPlayerInfo:  false,
-        showGameInfo:    true,
-        showTools:       true,
-        showOptions:     false,
-        showNavTree:     true,
-        markCurrent:     true,
-        markVariations:  true,
-        markNext:        false,
-        problemMode:     false,
-        enableShortcuts: false,
-        
-        container:       this.id+"_eidogo",
-        sgf:             ";",
-        loadPath:        [0,0],
-        
-        gsInsertActions:  this.gsInsertActions.bind(this)
-    };
-    
     this.onApplyAction = this.applyAction.bind(this);
 };
 
@@ -61,6 +36,28 @@ EidogoPlayer.prototype.html=function(style) {
 };
 
 EidogoPlayer.prototype.init=function() {
+    this.eidogoConfig = {
+        theme:          "standard", // "standard" or "compact"
+        mode:           "play", // "play" or "view"
+        showComments:    true,
+        showPlayerInfo:  false,
+        showGameInfo:    true,
+        showTools:       true,
+        showOptions:     false,
+        showNavTree:     true,
+        markCurrent:     true,
+        markVariations:  true,
+        markNext:        false,
+        problemMode:     false,
+        enableShortcuts: false,
+        
+        container:       this.id+"_eidogo",
+        sgf:             ";",
+        loadPath:        [0,0],
+        
+        gsInsertActions:  this.gsInsertActions.bind(this)
+    };
+
     this.eidogoPlayer = new eidogo.Player(this.eidogoConfig);
     this.eidogoPlayer.loadSgf(this.eidogoConfig);
 };

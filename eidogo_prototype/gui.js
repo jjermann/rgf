@@ -3,10 +3,10 @@ function DisplayGUI(baseId,msSources,duration) {
        DisplayGUI:      ID
        MediaStream:     ID_media
        MediaInterface:  ID_media_interface
-       EidogoPlayer:    ID_board
-                        ID_board_sgf
-                        ID_board_actions
-                        ID_board_eidogo
+       EidogoPlayer:    ID_player
+                        ID_player_sgf
+                        ID_player_actions
+                        ID_player_eidogo
        GameStream:      ID_game
                         ID_game_rgf
        GameInterface:   ID_game_interface
@@ -16,7 +16,7 @@ function DisplayGUI(baseId,msSources,duration) {
     self.id=baseId;
     
     // create components
-    self.boardPlayer=new EidogoPlayer(self.id+"_board");
+    self.boardPlayer=new EidogoPlayer(self.id+"_player");
     self.gameStream=new GameStream(self.id+"_game",self.boardPlayer,duration);
     self.mediaStream=new MediaStream(self.id+"_media",msSources,duration);
     self.mediaInterface=new MediaInterface(self.id+"_media_interface");
@@ -85,7 +85,7 @@ function DisplayGUI(baseId,msSources,duration) {
         left:     "4px"
     }));
     // Textbox to output the current pseudo SGF file
-    self.html.appendChild(createBox(self.id+"_board_sgf","Current SGF tree", {
+    self.html.appendChild(createBox(self.id+"_player_sgf","Current SGF tree", {
         position: "absolute",
         width:    "422px",
         height:   "500px",
@@ -93,7 +93,7 @@ function DisplayGUI(baseId,msSources,duration) {
         left:     "650px"
     }));
     // Textbox to output the currently applied action list
-    self.html.appendChild(createBox(self.id+"_board_actions","Currently applied actions", {
+    self.html.appendChild(createBox(self.id+"_player_actions","Currently applied actions", {
         position: "absolute",
         width:    "382px",
         height:   "500px",

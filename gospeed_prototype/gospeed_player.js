@@ -1,4 +1,9 @@
-function GoSpeedPlayer(config) {
+function GoSpeedPlayer(boardId) {
+        this.id=boardId;
+        this.onApplyAction = this.applyAction.bind(this);
+};
+
+GoSpeedPlayer.prototype.init = function(config) {
 	// Customize configuration
 		this.custom_config = {
 			mode: "play",
@@ -13,16 +18,11 @@ function GoSpeedPlayer(config) {
 			div_id_comments: config.div_id_comments,
 			server_path_gospeed_root: config.server_path_gospeed_root,
 		}
-	// Private props
-		this.new_node = false;
-
-        this.onApplyAction = this.applyAction.bind(this);
-};
-
-GoSpeedPlayer.prototype.init = function() {
 	// Initialize GoSpeed with custom config
 		this.gospeed = new GoSpeed(this.custom_config);
 		this.gospeed.disconnect();
+	// Private props
+		this.new_node = false;
 };
 
 GoSpeedPlayer.prototype.createNode = function() {
@@ -83,6 +83,8 @@ GoSpeedPlayer.prototype.goTo = function(path) {
 	return this.gospeed.goto_path(pathToArray(path));
 };
 
+
+/* OUR NEW MODIFICATIONS */
 GoSpeedPlayer.prototype.applyAction = function(action) {
     if (action.name=="KeyFrame") {
         // load the Sgf while taking care of deleted nodes
@@ -110,6 +112,7 @@ GoSpeedPlayer.prototype.applyAction = function(action) {
 GoSpeedPlayer.prototype.html = function(style) {
     var el, container, lvl1, lvl2;
     el=document.createElement("div");
+    el.id=this.id;
       container=document.createElement("div");
       container.id="rgf_board";
       el.appendChild(container);

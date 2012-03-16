@@ -3,7 +3,7 @@ function DisplayGUI(baseId,msSources,duration) {
        DisplayGUI:      ID
        MediaStream:     ID_media
        MediaInterface:  ID_media_interface
-       GoSpeedPlayer:      ...
+       GoSpeedPlayer:   ID_player
        GameStream:      ID_game
                         ID_game_rgf
        GameInterface:   ID_game_interface
@@ -12,9 +12,7 @@ function DisplayGUI(baseId,msSources,duration) {
     
     self.id=baseId;
     
-    // create components
-    //self.boardPlayer=new BoardPlayer(self.id+"_board");
-
+    /* Configuration for GoSpeed */
     DIV_ID_BOARD = "rgf_board";
     DIV_ID_TREE = "tree";
     DIV_ID_CAPTURED_W = "cap_w";
@@ -23,7 +21,7 @@ function DisplayGUI(baseId,msSources,duration) {
     DIV_ID_COMMENTS = "comments";
     DIV_ID_MOVE_NUMBER = "move_no";
 
-    var conf = {
+    var goSpeedConf = {
         size: 19,
         div_id_board: DIV_ID_BOARD,
         div_id_tree: DIV_ID_TREE,
@@ -32,22 +30,17 @@ function DisplayGUI(baseId,msSources,duration) {
         div_id_result: DIV_ID_RESULT,
         div_id_move_number: DIV_ID_MOVE_NUMBER,
         div_id_comments: DIV_ID_COMMENTS,
-        server_path_gospeed_root: "./",
+        server_path_gospeed_root: "./"
     };
 
-    self.boardPlayer=new GoSpeedPlayer(conf);
+    self.boardPlayer=new GoSpeedPlayer(self.id+"_player");
     self.gameStream=new GameStream(self.id+"_game",duration);
     self.mediaStream=new MediaStream(self.id+"_media",msSources,duration);
     self.mediaInterface=new MediaInterface(self.id+"_media_interface");
     self.gameInterface=new GameInterface(self.id+"_game_interface");
 
-    // attach the mediaStream to the gameStream
     self.gameStream.attachStream(self.mediaStream);
-    
-    // attach the gameStream to the board
     self.boardPlayer.attachStream(self.gameStream);
-    
-    // "attach" the board to the gameStream
     self.boardPlayer.bind('insertActions', function (actions) {
         self.gameStream.applyActionList(actions);
     });
@@ -114,12 +107,11 @@ function DisplayGUI(baseId,msSources,duration) {
 
     // The game stream is set to the initial (starting) position,
     // the other components are initialized
-    self.boardPlayer.init();
+    self.boardPlayer.init(goSpeedConf);
     self.gameStream.update(0);
     self.mediaInterface.init(self.mediaStream);
     self.mediaStream.init();
     self.gameInterface.init(self.gameStream, self.mediaStream);
-
 };
 
 

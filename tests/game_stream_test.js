@@ -7,7 +7,7 @@ MockBoard.prototype.apply=function(action) {
     // just for testing
     this.appliedActions.push(action);
 };
-MockBoard.prototype.insertActionIntoGS=function() {};
+asEvented.call(MockBoard.prototype);
 
 
 /* mock player */
@@ -43,7 +43,7 @@ MockPlayer.prototype.update=function() {
         this.timeout=setTimeout(function(){self.update();},action.wait*1000);
     } else {
         var curAction=this.gameStream._actionList[this.gameStream.status.timeIndex-1];
-        ok(this.board.insertActionIntoGS(action),"The new action was sucessfully inserted, the last action was: "+simplePrintAction(curAction));
+        ok(this.board.trigger('insertActions',action),"The new action was sucessfully inserted, the last action was: "+simplePrintAction(curAction));
         curAction=this.gameStream._actionList[this.gameStream.status.timeIndex-1];
         ok(simpleCompareAction(curAction,action),"The (new) last action agrees with the supplied action, it is: "+simplePrintAction(curAction));
         this.update();
@@ -58,8 +58,6 @@ function MockMediaStream(newDuration) {
         duration:newDuration,
         ended:false
     };
-    // this is just for testing
-    this.gameStream=gameStream;
 };
 MockMediaStream.prototype.timeupdate=function() {
     var self=this;
@@ -73,7 +71,7 @@ MockMediaStream.prototype.timeupdate=function() {
         } else {
             this.timeout=setTimeout(function(){self.timeupdate();},50);
         }
-        this.updateGS(self.status);
+        this.trigger('timeChange',self.status);
         // too much...
         // ok(true,"Updated GS time:"+this.status.currentTime);
     } else {
@@ -87,6 +85,7 @@ MockMediaStream.prototype.start=function() {
     this.timeupdate();
 };
 MockMediaStream.prototype.updateGS=function() {};
+asEvented.call(MockMediaStream.prototype);
 
 
 /* variables */
@@ -134,7 +133,7 @@ function compareActionLists(actions1,actions2) {
 function init(newDuration,msDuration) {
     board=new MockBoard();
     mediaStream=new MockMediaStream(msDuration);
-    gameStream=new GameStream("test",board,newDuration);
+    gameStream=new GameStream("test",newDuration);
     player=new MockPlayer(board,gameStream);
 
     
@@ -155,10 +154,11 @@ function init(newDuration,msDuration) {
     // how the initial keyframe should be
     initialKeyframe={time: -2, counter: 0, name: "KeyFrame", arg:"",position:[],node:gameStream._rgfTree};
 
-    // only needed for recording
-    board.insertActionIntoGS=gameStream.applyActionList.bind(gameStream);
-    // only needed for regular time updates
-    mediaStream.updateGS=gameStream.updatedTime.bind(gameStream);
+
+    // create the necessary hooks for the MS, GS and BOARD
+    gameStream.attachStream(mediaStream);
+    board.bind('insertActions', gameStream.applyActionList.bind(gameStream));
+    gameStream.bind('applyAction',board.apply.bind(board));
 }
 function setupGS() {
     gameStream.update(0);
@@ -174,6 +174,11 @@ function loadRGF(newRGF) {
     board.appliedActions=[];
 }
 function reset() {
+    // remove the hooks for the MS, GS and BOARD
+    gameStream.detachStream();
+    board.unbind('insertActions', gameStream.applyActionList.bind(gameStream));
+    gameStream.unbind('applyAction', board.apply.bind(board));
+
     if (player.timeout) clearTimeout(player.timeout);
     player=undefined;
     if (mediaStream.timeout) clearTimeout(mediaStream.timeout);
@@ -218,10 +223,7 @@ test("GameStream status", function(){
     equal(gameStream.status.ended,gsStatus.ended,"The game stream has not ended yet initially (not updated yet!).");
     equal(gameStream.status.waiting,gsStatus.waiting,"We are also not waiting initially (not updated yet!).");
 });
-test("Loading into the initial setup", function(){
-    board.insertActionIntoGS=gameStream.applyActionList.bind(gameStream);
-    mediaStream.updateGS=gameStream.updatedTime.bind(gameStream);
-    ok(true,"[DONE] Created hook for the board and media stream to call gamestream's insertAction resp. updatedTime function.");
+test("Jump to time 0", function(){
     gameStream.update(0);
     ok(true,"[DONE] Updated the GameStream to time 0.");
     deepEqual(board.appliedActions,[initialKeyframe],"board.apply should have been called once with the initial keyframe.");

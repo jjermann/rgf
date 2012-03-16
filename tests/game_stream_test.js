@@ -79,6 +79,9 @@ MockMediaStream.prototype.timeupdate=function() {
         start();
     }
 };
+MockMediaStream.prototype.updateTime=function() {
+    this.timeupdate();
+};
 MockMediaStream.prototype.start=function() {
     this.date=new Date();
     this.initialTime=this.date.getTime()/1000;

@@ -3,7 +3,7 @@ function DisplayGUI(baseId,msSources,duration) {
        DisplayGUI:      ID
        MediaStream:     ID_media
        MediaInterface:  ID_media_interface
-       BoardPlayer:     ID_board
+       EidogoPlayer:    ID_board
                         ID_board_sgf
                         ID_board_actions
                         ID_board_eidogo
@@ -16,19 +16,14 @@ function DisplayGUI(baseId,msSources,duration) {
     self.id=baseId;
     
     // create components
-    self.boardPlayer=new BoardPlayer(self.id+"_board");
+    self.boardPlayer=new EidogoPlayer(self.id+"_board");
     self.gameStream=new GameStream(self.id+"_game",self.boardPlayer,duration);
     self.mediaStream=new MediaStream(self.id+"_media",msSources,duration);
     self.mediaInterface=new MediaInterface(self.id+"_media_interface");
     self.gameInterface=new GameInterface(self.id+"_game_interface");
 
-    // attach the mediaStream to the gameStream
-    self.gameStream.attachStream(self.mediaStream);
-    
-    // attach the gameStream to the board
+    self.gameStream.attachStream(self.mediaStream);    
     self.boardPlayer.attachStream(self.gameStream);
-    
-    // "attach" the board to the gameStream
     self.boardPlayer.bind('insertActions', function (actions) {
         self.gameStream.applyActionList(actions);
     });

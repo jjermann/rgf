@@ -80,8 +80,7 @@ GoSpeedPlayer.prototype.getCurrentPath = function() {
 };
 
 GoSpeedPlayer.prototype.goTo = function(path) {
-        path=pathToArray(path);
-	return this.gospeed.goto_path(path);
+	return this.gospeed.goto_path(pathToArray(path));
 };
 
 GoSpeedPlayer.prototype.applyAction = function(action) {

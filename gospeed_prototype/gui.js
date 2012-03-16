@@ -13,13 +13,17 @@ function DisplayGUI(baseId,msSources,duration) {
     self.id=baseId;
     
     /* Configuration for GoSpeed */
-    DIV_ID_BOARD = "rgf_board";
-    DIV_ID_TREE = "tree";
-    DIV_ID_CAPTURED_W = "cap_w";
-    DIV_ID_CAPTURED_B = "cap_b";
-    DIV_ID_RESULT = "res";
-    DIV_ID_COMMENTS = "comments";
-    DIV_ID_MOVE_NUMBER = "move_no";
+    DIV_ID_BOARD = DIV_ID_TREE = DIV_ID_CAPTURED_W = DIV_ID_CAPTURED_B = DIV_ID_RESULT = DIV_ID_COMMENTS = DIV_ID_MOVE_NUMBER = self.id+"_player_";
+
+    DIV_ID_BOARD += "rgf_board";
+    DIV_ID_TREE += "tree";
+    // if performance is an issue set DIV_ID_TREE to undefined
+    // DIV_ID_TREE = undefined;
+    DIV_ID_CAPTURED_W += "cap_w";
+    DIV_ID_CAPTURED_B += "cap_b";
+    DIV_ID_RESULT += "res";
+    DIV_ID_COMMENTS += "comments";
+    DIV_ID_MOVE_NUMBER += "move_no";
 
     var goSpeedConf = {
         size: 19,

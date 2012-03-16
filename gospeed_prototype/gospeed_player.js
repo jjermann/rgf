@@ -116,11 +116,13 @@ GoSpeedPlayer.prototype.html = function(style) {
     el=document.createElement("div");
     el.id=this.id;
       container=document.createElement("div");
-      container.id="rgf_board";
+      container.id=this.id+"_rgf_board";
+      container.className="rgf_board";
       el.appendChild(container);
 
       container=document.createElement("div");
-      container.id="tree";
+      container.id=this.id+"_tree";
+      container.className="tree";
       el.appendChild(container);
 
       container=document.createElement("table");
@@ -130,7 +132,8 @@ GoSpeedPlayer.prototype.html = function(style) {
           lvl2.innerHTML='Captured W';
           lvl1.appendChild(lvl2);          
           lvl2=document.createElement("td");
-          lvl2.id="cap_w";
+          lvl2.id=this.id+"_cap_w";
+          lvl2.className="cap_w";
           lvl2.innerHTML='0';
           lvl1.appendChild(lvl2);
         container.appendChild(lvl1);
@@ -139,7 +142,8 @@ GoSpeedPlayer.prototype.html = function(style) {
           lvl2.innerHTML='Captured B';
           lvl1.appendChild(lvl2);          
           lvl2=document.createElement("td");
-          lvl2.id="cap_b";
+          lvl2.id=this.id+"_cap_b";
+          lvl2.className="cap_b";
           lvl2.innerHTML='0';
           lvl1.appendChild(lvl2);
         container.appendChild(lvl1);
@@ -148,7 +152,8 @@ GoSpeedPlayer.prototype.html = function(style) {
           lvl2.innerHTML='Result';
           lvl1.appendChild(lvl2);          
           lvl2=document.createElement("td");
-          lvl2.id="res";
+          lvl2.id=this.id+"_res";
+          lvl2.className="res";
           lvl2.innerHTML='0';
           lvl1.appendChild(lvl2);
         container.appendChild(lvl1);
@@ -157,14 +162,16 @@ GoSpeedPlayer.prototype.html = function(style) {
           lvl2.innerHTML='Move number';
           lvl1.appendChild(lvl2);          
           lvl2=document.createElement("td");
-          lvl2.id="move_no";
+          lvl2.id=this.id+"_move_no";
+          lvl2.className="move_no";
           lvl2.innerHTML='0';
           lvl1.appendChild(lvl2);
         container.appendChild(lvl1);
       el.appendChild(container);
 
       container=document.createElement("div");
-      container.id="comments";
+      container.id=this.id+"_comments";
+      container.className="comments";
       el.appendChild(container);
 
     extend(el.style,style);

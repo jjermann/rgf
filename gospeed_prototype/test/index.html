@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Test RGF Player</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<!-- QUnit -->
+	<link rel="stylesheet" href="qunit/qunit.css" type="text/css" media="screen">
+	<script type="text/javascript" src="qunit/qunit.js"></script>
+	<!-- Specific test -->
+	<script type="text/javascript" src="rgf-test.js"></script>
+	<!-- GoSpeed -->
+	<link type="text/css" href="../css/style.css" rel="stylesheet" />
+	<script type="text/javascript" src="../js/all.min.js"></script>
+	<script type="text/javascript" src="../js/rgf_player.js"></script>
+</head>
+<body>
+	<h1 id="qunit-header">Test RGF Player</h1>
+	<h2 id="qunit-banner"></h2>
+	<div id="qunit-testrunner-toolbar"></div>
+	<h2 id="qunit-userAgent"></h2>
+	<ol id="qunit-tests"></ol>
+	<div id="qunit-fixture">
+	</div>
+	<div>
+		<!-- Own tags -->
+		<div id="rgf_board" style="margin: 0px auto;"></div>
+		<div id="tree"></div>
+		<table class="rgf_stats">
+			<tr>
+				<th>
+					Captured W
+				</th>
+				<td id="cap_w">
+					0
+				</td>
+			</tr>
+			<tr>
+				<th>
+					Captured B
+				</th>
+				<td id="cap_b">
+					0
+				</td>
+			</tr>
+			<tr>
+				<th>
+					Result
+				</th>
+				<td id="res">
+					0
+				</td>
+			</tr>
+			<tr>
+				<th>
+					Move number
+				</th>
+				<td id="move_no">
+					0
+				</td>
+			</tr>
+		</table>
+		<div id="comments"></div>
+		<!-- -->
+
+		<!-- Own style -->
+		<style type="text/css">
+			table.rgf_stats {
+				border-collapse: collapse;
+				margin: 20px auto;
+				padding: 0px;
+				font-family: monospace;
+			}
+
+			table.rgf_stats td {
+				border-collapse: collapse;
+				padding: 5px;
+				margin: 0px;
+				border: 1px solid #888;
+				background-color: #EEE;
+			}
+
+			table.rgf_stats th {
+				border-collapse: collapse;
+				padding: 5px;
+				margin: 0px;
+				text-align: right;
+			}
+
+			div#tree {
+				margin: 20px auto;
+				position: relative;
+				font-family: monospace;
+				height: 100px;
+				width: 700px;
+				border: 1px solid #888;
+				overflow: auto;
+			}
+
+			div#comments {
+				margin: 20px auto;
+				width: 400px;
+				font-family: monospace;
+				border: 1px solid #888;
+				padding: 5px;
+			}
+		</style>
+		<!-- -->
+	</div>
+</body>
+</html>
+

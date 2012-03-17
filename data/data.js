@@ -104,7 +104,7 @@ vimeo.ms=[{
     type: "vimeo"
 }];
 
-vimeo.rgf=";TS[3]W[aa]TS[3:1] ;TS[10]B[ee]TS[10:1] ;TS[12]W[ab]TS[12:1] VT[ENDED]TS[20]";
+vimeo.rgf=";B[dd];TS[3]W[aa]TS[3:1] ;TS[10]B[ee]TS[10:1] ;TS[12]W[ab]TS[12:1] VT[ENDED]TS[20]";
 
 
 // baseplayer

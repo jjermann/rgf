@@ -2,7 +2,6 @@ function RGFNode(time,counter) {
     this.properties=[];
     this.children=[];
     this.parent=null;
-    this.position="";
     this.time=(time==undefined) ? -1 : +time;
     this.counter=(counter==undefined) ? 0: +counter;
 };
@@ -14,11 +13,6 @@ function RGFProperty(name,argument,time,counter) {
 };
 RGFNode.prototype.addNode=function(node) {
     node.parent=this;
-    if (this.parent==null) {
-        node.position=""+this.children.length;
-    } else {
-        node.position=this.position+"."+this.children.length;
-    }
     this.children.push(node);
     return node;
 }
@@ -27,11 +21,25 @@ RGFNode.prototype.addProp=function(property) {
     return property;
 }
 
-/*  Old definition of position... */
 RGFNode.prototype.descend = function(path) {
     path=pathToArray(path);
     if (!path.length) return this;
     return this.children[path[0]].descend(path.slice(1));
+};
+RGFNode.prototype.getIndex = function() {
+    if (this.parent==undefined) return null;
+    for (var i=0; i<this.parent.children.length; i++) {
+        if (this.parent.children[i]==this) return i;
+    }
+};
+RGFNode.prototype.getPosition = function(position) {
+    if (position==undefined) position=[];
+    if (this.parent==undefined) {
+        return position;
+    } else {
+        position.unshift(this.getIndex());
+        return this.parent.getPosition(position);
+    }
 };
 
 // returns the time/counter of the last property/node in the current subtree
@@ -63,11 +71,11 @@ RGFNode.prototype._getUnsortedActions = function() {
     if (this.parent==null && !this.children.length) {
         return actions;
     } else if (this.parent!=null) {
-        actions.push({time:this.time, counter:this.counter, name:";", arg:"", position:this.parent.position, _nodePos:this.position});
+        actions.push({time:this.time, counter:this.counter, name:";", arg:"", position:this.parent.getPosition(), _nodePos:this.getPosition()});
     }
 
     for (var i=0; i<this.properties.length; i++) {
-        actions.push({time:this.properties[i].time, counter:this.properties[i].counter, name:this.properties[i].name, arg:this.properties[i].argument, position:this.position});
+        actions.push({time:this.properties[i].time, counter:this.properties[i].counter, name:this.properties[i].name, arg:this.properties[i].argument, position:this.getPosition()});
     }
     for (var i=0; i<this.children.length; i++) {
         actions=actions.concat(this.children[i]._getUnsortedActions());
@@ -77,16 +85,16 @@ RGFNode.prototype._getUnsortedActions = function() {
 
 RGFNode.prototype._sortActions = function(actionList) {
     var actions=mergeSort(actionList,function(a, b) {if (a.time!=b.time) return (a.time - b.time); else return (a.counter-b.counter);});
-    var lastPosition="";
+    var lastPosition=[];
 
     for (var i=0; i<actions.length; i++) {
         //if (!actions[i].counter) delete actions[i].counter;
         if (actions[i].name==";") {
-            if (actions[i].position==lastPosition) delete actions[i].position;
+            if (compareArrays(actions[i].position,lastPosition)) delete actions[i].position;
             lastPosition=actions[i]._nodePos;
             delete actions[i]._nodePos;
         } else {
-            if (actions[i].position==lastPosition) delete actions[i].position;
+            if (compareArrays(actions[i].position,lastPosition)) delete actions[i].position;
             else lastPosition=actions[i].position;
         }
     }

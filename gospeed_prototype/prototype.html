@@ -5,12 +5,55 @@
 
     <link   type="text/css" href="../resources/skins/jplayer.blue.monday.css" rel="stylesheet" />
     <link   type="text/css" href="../resources/skins/gamestream_interface.css" rel="stylesheet" />
-    <link   type="text/css" href="../lib/player/css/player.css" rel="stylesheet" />
+    <link   type="text/css" href="css/style.css" rel="stylesheet" />
     <style  type="text/css">
         p.unselected {background: lightgrey;}
         p.unselected:hover {background: white;}
         p.selected {background: lightgreen;}
     </style>
+    <!-- Temporary Solution to handle part of the GoSpeed layout -->
+    <style type="text/css">
+       table.rgf_stats {
+         border-collapse: collapse;
+         margin: 20px auto;
+         padding: 0px;
+         font-family: monospace;
+       }
+
+       table.rgf_stats td {   
+         border-collapse: collapse;
+         padding: 5px;
+         margin: 0px;
+         border: 1px solid #888;
+         background-color: #EEE;
+       }
+
+       table.rgf_stats th { 
+         border-collapse: collapse;
+         padding: 5px;
+         margin: 0px;
+         text-align: right;
+       }
+
+       div.tree {   
+         margin: 20px auto;
+         position: relative;
+         font-family: monospace;
+         height: 100px;
+         width: 700px;
+         border: 1px solid #888;
+         overflow: auto;
+      }
+
+      div.comments { 
+         margin: 20px auto;
+         width: 400px;
+         font-family: monospace;
+         border: 1px solid #888;
+         padding: 5px;
+       }
+    </style>
+
 <!--
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
     <script type="text/javascript" src="http://popcornjs.org/code/dist/popcorn-complete.min.js"></script>
@@ -19,17 +62,6 @@
     <script type="text/javascript" src="../lib/popcorn-complete.js"></script>
     <script type="text/javascript" src="../lib/asevented.js"></script>
 
-    <script type="text/javascript" src="../lib/player/js/lang.js"></script>
-    <script type="text/javascript" src="../lib/player/js/eidogo.js"></script>
-    <script type="text/javascript" src="../lib/player/js/util.js"></script>
-    <script type="text/javascript" src="../lib/player/i18n/en.js"></script>
-    <script type="text/javascript" src="../lib/player/js/gametree.js"></script>
-    <script type="text/javascript" src="../lib/player/js/sgf.js"></script>
-    <script type="text/javascript" src="../lib/player/js/board.js"></script>
-    <script type="text/javascript" src="../lib/player/js/rules.js"></script>
-    <script type="text/javascript" src="../lib/player/js/rgf_player.js"></script>
-    <script type="text/javascript" src="../lib/player/js/init.js"></script>
-
     <script type="text/javascript" src="../src/helper_functions.js"></script>
     <script type="text/javascript" src="../src/rgf_node.js"></script>
     <script type="text/javascript" src="../src/rgf_parser.js"></script>
@@ -37,10 +69,14 @@
     <script type="text/javascript" src="../src/media_stream.js"></script>
     <script type="text/javascript" src="../src/game_stream.js"></script>
     <script type="text/javascript" src="../src/game_interface.js"></script>
+
+    <script type="text/javascript" src="../data/data.js"></script>
+
+    <script type="text/javascript" src="lib/all.min.js"></script>
+
     <script type="text/javascript" src="helper_functions.js"></script>
-    <script type="text/javascript" src="data.js"></script>
     <script type="text/javascript" src="gui.js"></script>
-    <script type="text/javascript" src="eidogo_player.js"></script>
+    <script type="text/javascript" src="gospeed_player.js"></script>
 
     <script>
         // ensure the web page (DOM) has loaded

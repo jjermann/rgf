@@ -5,7 +5,7 @@ dinerchtein=new Object();
 dinerchtein.id="dinerchtein";
 dinerchtein.description="Dinerchtein giving a video lecture (ogg)";
 dinerchtein.ms=[{
-    src:  "dinerchtein/lecture.ogv",
+    src:  "../data/dinerchtein/lecture.ogv",
     type: "video/ogg"
 }];
 //dinerchtein.duration=200;
@@ -104,7 +104,7 @@ vimeo.ms=[{
     type: "vimeo"
 }];
 
-vimeo.rgf=";TS[3]W[aa]TS[3:1] ;TS[10]B[ee]TS[10:1] ;TS[12]W[ab]TS[12:1] VT[ENDED]TS[20]";
+vimeo.rgf=";B[dd];TS[3]W[aa]TS[3:1] ;TS[10]B[ee]TS[10:1] ;TS[12]W[ab]TS[12:1] VT[ENDED]TS[20]";
 
 
 // baseplayer
@@ -123,7 +123,7 @@ recDinerchtein.id="recDinerchtein";
 recDinerchtein.description="Empty game stream, ready for recording...";
 //recDinerchtein.duration=Infinity;
 recDinerchtein.ms=[{
-    src:  "dinerchtein/lecture.ogv",
+    src:  "../data/dinerchtein/lecture.ogv",
     type: "video/ogg"
 }];
 

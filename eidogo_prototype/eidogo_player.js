@@ -1,9 +1,41 @@
 /* This should already exist! So _all_ content is for testing only... */
-function BoardPlayer(boardId) {
+function EidogoPlayer(boardId) {
     this.id=boardId;
+    this.onApplyAction = this.applyAction.bind(this);
+};
+
+EidogoPlayer.prototype.attachStream = function (stream) {
+    var self = this;
     
-    // Eidogo Player (initialized later)
-    this.eidogoPlayer;
+    self.detachStream();
+    
+    self.attachedStream = stream;
+    stream.bind('applyAction', self.onApplyAction);
+};
+
+EidogoPlayer.prototype.detachStream = function () {
+    var self = this,
+        stream = self.attachedStream;
+        
+    if (stream) {
+        stream.unbind('applyAction', self.onApplyAction);
+        delete self.attachedStream;
+    }
+};
+
+EidogoPlayer.prototype.gsInsertActions = function(actions) {
+    this.trigger('insertActions', actions);
+};
+
+// Returns the html element for the board player
+EidogoPlayer.prototype.html=function(style) {
+    var elEidogo=document.createElement("div");
+    elEidogo.id=this.id+"_eidogo";
+    extend(elEidogo.style,style);
+    return elEidogo;
+};
+
+EidogoPlayer.prototype.init=function() {
     this.eidogoConfig = {
         theme:          "standard", // "standard" or "compact"
         mode:           "play", // "play" or "view"
@@ -25,51 +57,16 @@ function BoardPlayer(boardId) {
         
         gsInsertActions:  this.gsInsertActions.bind(this)
     };
-    
-    this.onApplyAction = this.applyAction.bind(this);
-};
 
-BoardPlayer.prototype.attachStream = function (stream) {
-    var self = this;
-    
-    self.detachStream();
-    
-    self.attachedStream = stream;
-    stream.bind('applyAction', self.onApplyAction);
-};
-
-BoardPlayer.prototype.detachStream = function () {
-    var self = this,
-        stream = self.attachedStream;
-        
-    if (stream) {
-        stream.unbind('applyAction', self.onApplyAction);
-        delete self.attachedStream;
-    }
-};
-
-BoardPlayer.prototype.gsInsertActions = function(actions) {
-    this.trigger('insertActions', actions);
-};
-
-// Returns the html element for the board player
-BoardPlayer.prototype.html=function(style) {
-    var elEidogo=document.createElement("div");
-    elEidogo.id=this.id+"_eidogo";
-    extend(elEidogo.style,style);
-    return elEidogo;
-};
-
-BoardPlayer.prototype.init=function() {
     this.eidogoPlayer = new eidogo.Player(this.eidogoConfig);
     this.eidogoPlayer.loadSgf(this.eidogoConfig);
 };
 
-BoardPlayer.prototype._getEidogoPath=function(position) {
+EidogoPlayer.prototype._getEidogoPath=function(position) {
     return this.eidogoPlayer._getEidogoPath(pathToArray(position));
 };
 
-BoardPlayer.prototype.applyAction = function(action) {
+EidogoPlayer.prototype.applyAction = function(action) {
     var path;
     if (action.name=="KeyFrame") {
         this.eidogoConfig.sgf=action.arg;
@@ -115,4 +112,4 @@ BoardPlayer.prototype.applyAction = function(action) {
     $('div#'+this.id+"_actions").append(document.createTextNode(newActiontxt));
 };
 
-asEvented.call(BoardPlayer.prototype);
+asEvented.call(EidogoPlayer.prototype);

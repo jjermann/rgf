@@ -184,7 +184,7 @@ GameStream.prototype.queueTimedAction=function(action) {
         if (!nextAction.position) {
             // TODO: we should maybe insert a VT[N] event instead but that's not so easy... :-(
             if (nextAction.name==";") nextAction.position=nextAction.node.parent.position;
-            else nextAction.position=nextAction.node.position;
+            else nextAction.position=nextAction.node.getPosition();
         }
         // update the counters if necessary
         this._updateCounters(timeIndex,newAction.time,false);
@@ -270,7 +270,7 @@ GameStream.prototype.removeAction=function(index,force) {
         if (this._keyframeList[this._keyframeList.length-1]>=index) return false;
 
         if (action.name==";") {
-            var index=pathToArray(action.node.position);
+            var index=pathToArray(action.node.getPosition());
             index=index[index.length-1];
             if (index<action.node.parent.children.length-1) return false;
         } else {

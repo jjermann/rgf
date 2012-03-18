@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+  <head>
+    <title>RGF - A format to store time-accurate recordings of go lectures/games together with optional media</title>
+
+    <link   type="text/css" href="../resources/skins/jplayer.blue.monday.css" rel="stylesheet" />
+    <link   type="text/css" href="../resources/skins/gamestream_interface.css" rel="stylesheet" />
+    <link   type="text/css" href="../lib/player/css/player.css" rel="stylesheet" />
+    <style  type="text/css">
+        p.unselected {background: lightgrey;}
+        p.unselected:hover {background: white;}
+        p.selected {background: lightgreen;}
+    </style>
+<!--
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
+    <script type="text/javascript" src="http://popcornjs.org/code/dist/popcorn-complete.min.js"></script>
+-->
+    <script type="text/javascript" src="../lib/jquery-1.7.1.js"></script>
+    <script type="text/javascript" src="../lib/popcorn-complete.js"></script>
+    <script type="text/javascript" src="../lib/asevented.js"></script>
+
+    <script type="text/javascript" src="../src/helper_functions.js"></script>
+    <script type="text/javascript" src="../src/rgf_node.js"></script>
+    <script type="text/javascript" src="../src/rgf_parser.js"></script>
+    <script type="text/javascript" src="../src/media_interface.js"></script>
+    <script type="text/javascript" src="../src/media_stream.js"></script>
+    <script type="text/javascript" src="../src/game_stream.js"></script>
+    <script type="text/javascript" src="../src/game_interface.js"></script>
+
+    <script type="text/javascript" src="../data/data.js"></script>
+
+    <script type="text/javascript" src="../lib/player/js/lang.js"></script>
+    <script type="text/javascript" src="../lib/player/js/eidogo.js"></script>
+    <script type="text/javascript" src="../lib/player/js/util.js"></script>
+    <script type="text/javascript" src="../lib/player/i18n/en.js"></script>
+    <script type="text/javascript" src="../lib/player/js/gametree.js"></script>
+    <script type="text/javascript" src="../lib/player/js/sgf.js"></script>
+    <script type="text/javascript" src="../lib/player/js/board.js"></script>
+    <script type="text/javascript" src="../lib/player/js/rules.js"></script>
+    <script type="text/javascript" src="../lib/player/js/rgf_player.js"></script>
+    <script type="text/javascript" src="../lib/player/js/init.js"></script>
+
+    <script type="text/javascript" src="helper_functions.js"></script>
+    <script type="text/javascript" src="gui.js"></script>
+    <script type="text/javascript" src="eidogo_player.js"></script>
+
+    <script>
+        // ensure the web page (DOM) has loaded
+        document.addEventListener("DOMContentLoaded", function () {
+            collection=new ExampleCollection();
+            collection.insertExample(dinerchtein);
+            collection.insertExample(recDinerchtein);
+            //collection.insertExample(youtube);
+            collection.insertExample(vimeo);
+            collection.insertExample(baseplayer);
+            collection.insertExample(japaneseSGF);
+            collection.insertExample(canadianSGF);
+            collection.loadExample("dinerchtein");
+        }, false);
+  </script>
+  </head>
+  <body>
+  </body>
+</html>

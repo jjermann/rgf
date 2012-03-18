@@ -18,10 +18,8 @@ function GameStream(gsId,rgfGame) {
         timeIndex:0,
         // last (global) keyframe index before this.status.timeIndex
         lastKeyframeIndex:0,
-        // waiting => true if the current time/counter is ahead of the game stream (and the game stream has not ended)
-        // ended => true if the current time is equal to or ahead of the maximal duration of the game stream
+        // waiting => true if the current time/counter is ahead of the game stream
         waiting:false,
-        ended:false,
         // inControl => if the timeupdates of MediaStream should not be applied but instead be stored in "timeStored"
         inControl:false,
         timeStored:undefined
@@ -179,12 +177,8 @@ GameStream.prototype.update = function(nextTime,nextCounter) {
         this._reverseTo(nextTime,nextCounter);
     }
 
-    // maybe the GS is past (or equal to) its final time in which case it has ended.
-    if (this.status.time>=this.rgfGame.maxDuration) this.status.ended=true;
-    else this.status.ended=false;
-    // maybe the GS is behind the media stream but still has not ended
-    // in which case we are "waiting" for recording commands...
-    if (this.status.time<this.rgfGame.duration.time || this.status.ended || (this.status.time==this.rgfGame.duration.time && this.status.timeCounter < this.rgfGame.duration.counter) ) this.status.waiting=false;
+    // maybe the GS is behind the media stream in which case we are "waiting" for recording commands...
+    if (this.status.time<this.rgfGame.duration.time || (this.status.time==this.rgfGame.duration.time && this.status.timeCounter < this.rgfGame.duration.counter) ) this.status.waiting=false;
     else this.status.waiting=true;
 };
 

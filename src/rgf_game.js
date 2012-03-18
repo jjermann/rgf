@@ -13,7 +13,6 @@ function RGFGame(gameId) {
     self._rgfTree = new RGFNode();
 
     self.duration = {time:-2, counter:0};
-    self.maxDuration = Infinity;
     self.setup = true;
 
     /* The first action is set here to be an "empty" KeyFrame. Because it's the first action we have to set force=1... */
@@ -63,9 +62,7 @@ RGFGame.prototype.queueTimedAction=function(action) {
     // and return false if that might be the case.
 
     if (!action.force) {
-        if (action.time>this.maxDuration || (action.time==this.maxDuration && action.counter>0)) {
-            return false;
-        } else if (timeIndex===0) {
+        if (timeIndex===0) {
             return false;
         } else if (timeIndex<this._actionList.length) {
             // this is the latest durationtime/counter for the newNode subtree

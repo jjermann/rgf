@@ -39,7 +39,6 @@ function DisplayGUI(baseId,msSources,duration) {
 
     self.boardPlayer=new GoSpeedPlayer(self.id+"_player");
     self.gameStream=new GameStream(self.id+"_game");
-    if (duration!=undefined) self.gameStream.rgfGame.maxDuration=duration;
     self.mediaStream=new MediaStream(self.id+"_media",msSources,duration);
     self.mediaInterface=new MediaInterface(self.id+"_media_interface");
     self.gameInterface=new GameInterface(self.id+"_game_interface");

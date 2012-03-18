@@ -17,7 +17,8 @@ function DisplayGUI(baseId,msSources,duration) {
     
     // create components
     self.boardPlayer=new EidogoPlayer(self.id+"_player");
-    self.gameStream=new GameStream(self.id+"_game",self.boardPlayer,duration);
+    self.gameStream=new GameStream(self.id+"_game")
+    if (duration!=undefined) self.gameStream.rgfGame.maxDuration=duration;
     self.mediaStream=new MediaStream(self.id+"_media",msSources,duration);
     self.mediaInterface=new MediaInterface(self.id+"_media_interface");
     self.gameInterface=new GameInterface(self.id+"_game_interface");

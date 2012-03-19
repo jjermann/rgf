@@ -6,7 +6,7 @@ function GameStream(gsId,rgfGame) {
     var self = this;
     
     self.id = gsId;
-    self.rgfGame = (rgfGame) ? rgfGame: new RGFGame(gsId+"_game");
+    self.rgfGame = (rgfGame) ? rgfGame: new RGFGame(gsId+"_rgf");
 
     /* status information */
     self.status = {

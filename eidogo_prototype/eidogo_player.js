@@ -23,8 +23,14 @@ EidogoPlayer.prototype.detachStream = function () {
     }
 };
 
-EidogoPlayer.prototype.gsInsertActions = function(actions) {
-    this.trigger('insertActions', actions);
+EidogoPlayer.prototype.insertActions = function(actions) {
+    var self=this;
+    
+    if (self.attachedStream) {
+        return self.attachedStream.applyActionList(actions);
+    } else {
+        return false;
+    }
 };
 
 // Returns the html element for the board player
@@ -55,7 +61,7 @@ EidogoPlayer.prototype.init=function() {
         sgf:             ";",
         loadPath:        [0,0],
         
-        gsInsertActions:  this.gsInsertActions.bind(this)
+        gsInsertActions:  this.insertActions.bind(this)
     };
 
     this.eidogoPlayer = new eidogo.Player(this.eidogoConfig);

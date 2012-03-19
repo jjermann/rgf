@@ -120,7 +120,7 @@ RGFGame.prototype.queueTimedAction=function(action) {
     newAction.node=newNode;
 
     // For testing:
-    $('div#'+this.id+"_rgf").text(this.writeRGF());
+    $('div#'+this.id).text(this.writeRGF());
 
     return true;
 };

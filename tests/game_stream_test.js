@@ -1,11 +1,39 @@
 /* mock board */
 function MockBoard() {
+    var self=this;
+    
     // just for testing
-    this.appliedActions=[];
+    self.appliedActions=[];
+
+    self.onApplyAction = function(action) {
+        self.appliedActions.push(action);
+    }
 };
-MockBoard.prototype.apply=function(action) {
-    // just for testing
-    this.appliedActions.push(action);
+
+MockBoard.prototype.attachStream = function (stream) {
+    var self = this;
+
+    self.detachStream();
+    self.attachedStream = stream;
+    stream.bind('applyAction', self.onApplyAction);
+};
+MockBoard.prototype.detachStream = function () {
+    var self = this,
+
+    stream = self.attachedStream;
+    if (stream) {
+        stream.unbind('applyAction', self.onApplyAction);
+        delete self.attachedStream;
+    }
+};
+MockBoard.prototype.insertActions = function(actions) {  
+    var self=this;
+    
+    if (self.attachedStream) {
+        return self.attachedStream.applyActionList(actions);
+    } else {
+        return false;
+    }
 };
 asEvented.call(MockBoard.prototype);
 
@@ -43,7 +71,7 @@ MockPlayer.prototype.update=function() {
         this.timeout=setTimeout(function(){self.update();},action.wait*1000);
     } else {
         var curAction=this.gameStream.rgfGame._actionList[this.gameStream.status.timeIndex-1];
-        ok(this.board.trigger('insertActions',action),"The new action was sucessfully inserted, the last action was: "+simplePrintAction(curAction));
+        ok(this.board.insertActions(action),"The new action was sucessfully inserted, the last action was: "+simplePrintAction(curAction));
         curAction=this.gameStream.rgfGame._actionList[this.gameStream.status.timeIndex-1];
         ok(simpleCompareAction(curAction,action),"The (new) last action agrees with the supplied action, it is: "+simplePrintAction(curAction));
         this.update();
@@ -158,8 +186,7 @@ function init(newDuration,msDuration) {
 
     // create the necessary hooks for the MS, GS and BOARD
     gameStream.attachStream(mediaStream);
-    board.bind('insertActions', gameStream.applyActionList.bind(gameStream));
-    gameStream.bind('applyAction',board.apply.bind(board));
+    board.attachStream(gameStream);
 }
 function setupGS() {
     gameStream.update(0);
@@ -177,8 +204,7 @@ function loadRGF(newRGF) {
 function reset() {
     // remove the hooks for the MS, GS and BOARD
     gameStream.detachStream();
-    board.unbind('insertActions', gameStream.applyActionList.bind(gameStream));
-    gameStream.unbind('applyAction', board.apply.bind(board));
+    board.detachStream();
 
     if (player.timeout) clearTimeout(player.timeout);
     player=undefined;
@@ -225,7 +251,7 @@ test("GameStream status", function(){
 test("Jump to time 0", function(){
     gameStream.update(0);
     ok(true,"[DONE] Updated the GameStream to time 0.");
-    deepEqual(board.appliedActions,[initialKeyframe],"board.apply should have been called once with the initial keyframe.");
+    deepEqual(board.appliedActions,[initialKeyframe],"board.onApplyAction should have been called once with the initial keyframe.");
     board.appliedActions=[];
 });
 

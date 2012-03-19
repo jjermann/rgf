@@ -24,9 +24,6 @@ function DisplayGUI(baseId,msSources,duration) {
 
     self.gameStream.attachStream(self.mediaStream);    
     self.boardPlayer.attachStream(self.gameStream);
-    self.boardPlayer.bind('insertActions', function (actions) {
-        self.gameStream.applyActionList(actions);
-    });
     
     self.onStatusChange = function(newstatus) {
         if (newstatus.failed) {
@@ -34,8 +31,6 @@ function DisplayGUI(baseId,msSources,duration) {
             alert("Media stream loading failed!");
         }
     };
-    
-    // "attach" the mediaStream to the GUI
     self.mediaStream.bind('statusChange', self.onStatusChange);
 
     // initialize the main HTML element(s)

@@ -196,8 +196,14 @@ GoSpeedPlayer.prototype.detachStream = function () {
     }
 };
 
-GoSpeedPlayer.prototype.gsInsertActions = function(actions) {
-    this.trigger('insertActions', actions);
+GoSpeedPlayer.prototype.insertActions = function(actions) {
+    var self=this;
+
+    if (self.attachedStream) {
+        return self.attachedStream.insertActionList(actions);
+    } else {
+        return false;
+    }
 };
 
 asEvented.call(GoSpeedPlayer.prototype);

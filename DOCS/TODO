@@ -46,7 +46,7 @@ Medium things:
   apply an action list...
 - write tester for MediaStream, MediaInterface, maybe also for RGFNode
 - complete the tester for GameStream
-- "Clean up" the meaning of "Duration" in all possible contexts
+- [STARTED] "Clean up" the meaning of "Duration" in all possible contexts
 
 
 Small things:

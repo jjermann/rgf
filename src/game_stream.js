@@ -1,6 +1,6 @@
 /*  GameStream
     ----------
-    Keeps track of the current time and currently applied actions
+    Keeps track of the current time and currently applied actions from the RGF game
 */
 function GameStream(gsId,rgfGame) {
     var self = this;
@@ -18,7 +18,7 @@ function GameStream(gsId,rgfGame) {
         timeIndex:0,
         // last (global) keyframe index before this.status.timeIndex
         lastKeyframeIndex:0,
-        // waiting => true if the current time/counter is ahead of the game stream
+        // waiting => true if the GS time/counter is not behind the duration of the rgfGame
         waiting:false,
         // inControl => if the timeupdates of MediaStream should not be applied but instead be stored in "timeStored"
         inControl:false,
@@ -177,7 +177,6 @@ GameStream.prototype.update = function(nextTime,nextCounter) {
         this._reverseTo(nextTime,nextCounter);
     }
 
-    // maybe the GS is behind the media stream in which case we are "waiting" for recording commands...
     if (this.status.time<this.rgfGame.duration.time || (this.status.time==this.rgfGame.duration.time && this.status.timeCounter < this.rgfGame.duration.counter) ) this.status.waiting=false;
     else this.status.waiting=true;
 };

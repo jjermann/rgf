@@ -42,9 +42,9 @@ MockPlayer.prototype.update=function() {
     } else if (action.wait!=undefined) {
         this.timeout=setTimeout(function(){self.update();},action.wait*1000);
     } else {
-        var curAction=this.gameStream._actionList[this.gameStream.status.timeIndex-1];
+        var curAction=this.gameStream.rgfGame._actionList[this.gameStream.status.timeIndex-1];
         ok(this.board.trigger('insertActions',action),"The new action was sucessfully inserted, the last action was: "+simplePrintAction(curAction));
-        curAction=this.gameStream._actionList[this.gameStream.status.timeIndex-1];
+        curAction=this.gameStream.rgfGame._actionList[this.gameStream.status.timeIndex-1];
         ok(simpleCompareAction(curAction,action),"The (new) last action agrees with the supplied action, it is: "+simplePrintAction(curAction));
         this.update();
     }
@@ -136,7 +136,7 @@ function compareActionLists(actions1,actions2) {
 function init(newDuration,msDuration) {
     board=new MockBoard();
     mediaStream=new MockMediaStream(msDuration);
-    gameStream=new GameStream("test",newDuration);
+    gameStream=new GameStream("test");
     player=new MockPlayer(board,gameStream);
 
     
@@ -149,13 +149,11 @@ function init(newDuration,msDuration) {
         timeIndex:0,
         lastKeyframeIndex:0,
         duration:{time:-2, counter:0},
-        maxDuration:newDuration,
         waiting:false,
-        ended:false
     };
     
     // how the initial keyframe should be
-    initialKeyframe={time: -2, counter: 0, name: "KeyFrame", arg:"",position:[],node:gameStream._rgfTree};
+    initialKeyframe={time: -2, counter: 0, name: "KeyFrame", arg:"",position:[],node:gameStream.rgfGame._rgfTree};
 
 
     // create the necessary hooks for the MS, GS and BOARD
@@ -213,17 +211,15 @@ module("GameStream (after creation)", {
     teardown: reset
 });
 test("Internal GameStream properties", function(){
-    deepEqual(gameStream._actionList,[initialKeyframe],"The Action List consists of one KeyFrame.");
-    deepEqual(gameStream._keyframeList,[0],"The KeyFrame List has one entry pointing to the first KeyFrame in the ActionList.");
-    deepEqual(gameStream._rgfTree,new RGFNode(),"The rgf tree is an empty root node (without parent).");
+    deepEqual(gameStream.rgfGame._actionList,[initialKeyframe],"The Action List consists of one KeyFrame.");
+    deepEqual(gameStream.rgfGame._keyframeList,[0],"The KeyFrame List has one entry pointing to the first KeyFrame in the ActionList.");
+    deepEqual(gameStream.rgfGame._rgfTree,new RGFNode(),"The rgf tree is an empty root node (without parent).");
 });
 test("GameStream status", function(){
     equal(gameStream.status.time,gsStatus.time,"The time is set to 0 (not updated yet!).");
     equal(gameStream.status.timeIndex,gsStatus.timeIndex,"The next action is the initial KeyFrame (not updated yet!).");
     equal(gameStream.status.lastKeyframeIndex,gsStatus.lastKeyframeIndex,"The last KeyFrame is the initial KeyFrame (lastKeyframeIndex=0).");
-    deepEqual(gameStream.status.duration,gsStatus.duration,"The current duration is given by the KeyFrame: time is -2 and its counter is 0. That's because the action list doesn't have any other timestamped actions yet.");
-    equal(gameStream.status.maxDuration,gsStatus.maxDuration,"The duration of the final RGF is set to the duration argument we passed at the beginning.");
-    equal(gameStream.status.ended,gsStatus.ended,"The game stream has not ended yet initially (not updated yet!).");
+    deepEqual(gameStream.rgfGame.duration,gsStatus.duration,"The current duration is given by the KeyFrame: time is -2 and its counter is 0. That's because the action list doesn't have any other timestamped actions yet.");
     equal(gameStream.status.waiting,gsStatus.waiting,"We are also not waiting initially (not updated yet!).");
 });
 test("Jump to time 0", function(){
@@ -244,9 +240,9 @@ module("GameStream (after initial setup)", {
 });
 test("Internal GameStream properties", function(){
     // all properties remain the same
-    deepEqual(gameStream._actionList,[initialKeyframe],"The Action List consists of one KeyFrame.");
-    deepEqual(gameStream._keyframeList,[0],"The KeyFrame List has one entry pointing to the first KeyFrame in the ActionList.");
-    deepEqual(gameStream._rgfTree,new RGFNode(),"The rgf tree is an empty root node (without parent).");
+    deepEqual(gameStream.rgfGame._actionList,[initialKeyframe],"The Action List consists of one KeyFrame.");
+    deepEqual(gameStream.rgfGame._keyframeList,[0],"The KeyFrame List has one entry pointing to the first KeyFrame in the ActionList.");
+    deepEqual(gameStream.rgfGame._rgfTree,new RGFNode(),"The rgf tree is an empty root node (without parent).");
 });
 test("GameStream status", function(){
     gsStatus.time=0;
@@ -255,10 +251,8 @@ test("GameStream status", function(){
     equal(gameStream.status.time,gsStatus.time,"The time is 0.");
     equal(gameStream.status.timeIndex,gsStatus.timeIndex,"The time index points to the end of the Action List.");
     equal(gameStream.status.lastKeyframeIndex,gsStatus.lastKeyframeIndex,"The last KeyFrame is the initial KeyFrame (lastKeyframeIndex=0).");
-    deepEqual(gameStream.status.duration,gsStatus.duration,"The current duration is given by the KeyFrame: time is -2 and its counter is 0. That's because the action list doesn't have any other timestamped actions yet.");
-    equal(gameStream.status.maxDuration,gsStatus.maxDuration,"The duration of the final RGF is the duration argument we passed at the beginning.");
-    equal(gameStream.status.ended,gsStatus.ended,"The game stream has not ended yet because the current time is still smaller than the maximal duration.");
-    equal(gameStream.status.waiting,gsStatus.waiting,"We are waiting because the current time is bigger than the current duration.");
+    deepEqual(gameStream.rgfGame.duration,gsStatus.duration,"The current duration is given by the KeyFrame: time is -2 and its counter is 0. That's because the action list doesn't have any other timestamped actions yet.");
+    equal(gameStream.status.waiting,gsStatus.waiting,"We are waiting because the current time is not smaller than the GameStream duration.");
 });
 test("Loading a sorted timestamped action list, resp. loading from an RGF content/file", function(){
     parser=new RGFParser;
@@ -274,24 +268,22 @@ test("Loading a sorted timestamped action list, resp. loading from an RGF conten
     gsStatus.duration={time: parser.maxDuration, counter:0};
 
     gameStream.applyTimedActionList(actionList);
-    var appliedActions=gameStream._actionList.slice(1,gsStatus.timeIndex);
+    var appliedActions=gameStream.rgfGame._actionList.slice(1,gsStatus.timeIndex);
     ok(true,"[DONE] Queued the actions from RGFParser (actionList).");
     ok(_.isEqual(board.appliedActions,appliedActions),"All new actions with time smaller or equal to the current time (0) should have been applied.");
     board.appliedActions=[];
 
     ok(true,"[NEXT] We check the internal GameStream properties...");
-    ok(compareActionLists(gameStream._actionList,gameActionList),"The Action List is equal to the supplied action list except for: one additional KeyFrame at the beginning and one further node parameter for each action (NOT checked atm!!).");
-    deepEqual(gameStream._keyframeList,[0],"Since no new KeyFrame was added, the list still has only one entry pointing to the first KeyFrame in the Action List.");
-    ok(_.isEqual(gameStream._rgfTree,parser.rgfTree),"The rgf tree coincides with the rgf tree from RGFParser!");
+    ok(compareActionLists(gameStream.rgfGame._actionList,gameActionList),"The Action List is equal to the supplied action list except for: one additional KeyFrame at the beginning and one further node parameter for each action (NOT checked atm!!).");
+    deepEqual(gameStream.rgfGame._keyframeList,[0],"Since no new KeyFrame was added, the list still has only one entry pointing to the first KeyFrame in the Action List.");
+    ok(_.isEqual(gameStream.rgfGame._rgfTree,parser.rgfTree),"The rgf tree coincides with the rgf tree from RGFParser!");
 
     ok(true,"[NEXT] We check the GameStream status.");
     equal(gameStream.status.time,gsStatus.time,"The time is 0.");
     equal(gameStream.status.timeIndex,gsStatus.timeIndex,"The time index still points to the next action after the KeyFrame since we didn't update the time yet.");
     equal(gameStream.status.lastKeyframeIndex,gsStatus.lastKeyframeIndex,"The last KeyFrame is the initial KeyFrame (lastKeyframeIndex=0).");
-    deepEqual(gameStream.status.duration,gsStatus.duration,"The current duration is given by the time of the last supplied action (reported by RGFParser, it has count=0).");
-    equal(gameStream.status.maxDuration,gsStatus.maxDuration,"The duration of the final RGF is the duration argument we passed at the beginning.");
-    equal(gameStream.status.ended,gsStatus.ended,"The game stream has not ended yet because the current time is smaller than the maximal duration.");
-    equal(gameStream.status.waiting,gsStatus.waiting,"We are not waiting because the current time is not bigger than the current duration.");
+    deepEqual(gameStream.rgfGame.duration,gsStatus.duration,"The current duration is given by the time of the last supplied action (reported by RGFParser, it has count=0).");
+    equal(gameStream.status.waiting,gsStatus.waiting,"We are not waiting because the current time is smaller than the rgfGame duration.");
 });
 
 module("GameStream (with RGF)", {
@@ -302,13 +294,13 @@ module("GameStream (with RGF)", {
     teardown: reset
 });
 test("Writing an RGF.", function(){
-    equal(gameStream.writeRGF(),rgfTree.writeRGF(),"The generated RGF from GameStream should be equal to the RGF from RGFParser.");
+    equal(gameStream.rgfGame.writeRGF(),rgfTree.writeRGF(),"The generated RGF from GameStream should be equal to the RGF from RGFParser.");
 });
 test("Jump to time 37.", function(){
     gsStatus.time=37;
     gsStatus.timeIndex=14;
     gsStatus.duration={time: parser.maxDuration, counter:0};
-    var appliedActions=gameStream._actionList.slice(9,gsStatus.timeIndex);
+    var appliedActions=gameStream.rgfGame._actionList.slice(9,gsStatus.timeIndex);
 
     gameStream.update(37);
     ok(true,"[DONE] Updated the game stream to time 37.");
@@ -322,10 +314,8 @@ test("Jump to time 37.", function(){
     equal(gameStream.status.time,gsStatus.time,"The time is 37.");
     equal(gameStream.status.timeIndex,gsStatus.timeIndex,"The time index points to the next action after the last applied action.");
     equal(gameStream.status.lastKeyframeIndex,gsStatus.lastKeyframeIndex,"The last KeyFrame is still the initial KeyFrame (lastKeyframeIndex=0) because didn't pass any new KeyFrames...");
-    deepEqual(gameStream.status.duration,gsStatus.duration,"The current duration is given by the last supplied action (reported by RGFParser, it has count=0).");
-    equal(gameStream.status.maxDuration,gsStatus.maxDuration,"The duration of the final RGF is the duration argument we passed at the beginning.");
-    equal(gameStream.status.ended,gsStatus.ended,"The game stream has not ended yet because the current time is smaller than the maximal duration.");
-    equal(gameStream.status.waiting,gsStatus.waiting,"We are also not waiting because the current time is not bigger than the current duration.");
+    deepEqual(gameStream.rgfGame.duration,gsStatus.duration,"The current duration is given by the last supplied action (reported by RGFParser, it has count=0).");
+    equal(gameStream.status.waiting,gsStatus.waiting,"We are also not waiting because the current time is smaller than the rgfGame duration.");
 });
 
 
@@ -341,9 +331,9 @@ module("GameStream (with RGF at time 37)", {
 test("Jump to time 50.", function(){
     gsStatus.time=50;
     gsStatus.timeIndex=17;
-    gsStatus.ended=true;
+    gsStatus.waiting=true;
     gsStatus.duration={time: parser.maxDuration, counter: 0};
-    var appliedActions=gameStream._actionList.slice(14,gsStatus.timeIndex);
+    var appliedActions=gameStream.rgfGame._actionList.slice(14,gsStatus.timeIndex);
 
     gameStream.update(50);
     ok(true,"[DONE] Updated the game stream to time 50.");
@@ -355,19 +345,17 @@ test("Jump to time 50.", function(){
 
     ok(true,"[NEXT] We check the GameStream status.");
     equal(gameStream.status.time,gsStatus.time,"The time is 50.");
-    equal(gameStream.status.timeIndex,gsStatus.timeIndex,"The time index points to the end of the action list (gameStream._actionList.length).");
+    equal(gameStream.status.timeIndex,gsStatus.timeIndex,"The time index points to the end of the action list (gameStream.rgfGame._actionList.length).");
     equal(gameStream.status.lastKeyframeIndex,gsStatus.lastKeyframeIndex,"The last KeyFrame is still the initial KeyFrame (lastKeyframeIndex=0) because didn't pass any new KeyFrames...");
-    deepEqual(gameStream.status.duration,gsStatus.duration,"The current duration is given by the last supplied action (reported by RGFParser, it has count=0).");
-    equal(gameStream.status.maxDuration,gsStatus.maxDuration,"The duration of the final RGF is the duration argument we passed at the beginning.");
-    equal(gameStream.status.ended,gsStatus.ended,"The game stream has ended because the current time is equal to the maximal duration.");
-    equal(gameStream.status.waiting,gsStatus.waiting,"We are not waiting because the stream has ended (and because the current time is not bigger than the current duration).");
+    deepEqual(gameStream.rgfGame.duration,gsStatus.duration,"The current duration is given by the last supplied action (reported by RGFParser, it has count=0).");
+    equal(gameStream.status.waiting,gsStatus.waiting,"We are waiting because the current time is equal to (resp. bigger-equal than) the rgfDuration.");
 });
 test("Jump back to time 24.", function(){
     gsStatus.lastKeyframeIndex=0;
     gsStatus.time=24;
     gsStatus.timeIndex=12;
     gsStatus.duration={time: parser.maxDuration, counter: 0};
-    var appliedActions=gameStream._actionList.slice(gsStatus.lastKeyframeIndex,gsStatus.timeIndex);
+    var appliedActions=gameStream.rgfGame._actionList.slice(gsStatus.lastKeyframeIndex,gsStatus.timeIndex);
 
     gameStream.update(24);
     ok(true,"[DONE] Updated the game stream to time 24.");
@@ -381,10 +369,8 @@ test("Jump back to time 24.", function(){
     equal(gameStream.status.time,gsStatus.time,"The time is 24.");
     equal(gameStream.status.timeIndex,gsStatus.timeIndex,"The time index points to the next action after the last applied action.");
     equal(gameStream.status.lastKeyframeIndex,gsStatus.lastKeyframeIndex,"Since the last KeyFrame was the initial KeyFrame before and we jumped backwards it certainly is still that.");
-    deepEqual(gameStream.status.duration,gsStatus.duration,"The current duration is given by the last supplied action (reported by RGFParser, it has count=0).");
-    equal(gameStream.status.maxDuration,gsStatus.maxDuration,"The duration of the final RGF is the duration argument we passed at the beginning.");
-    equal(gameStream.status.ended,gsStatus.ended,"The game stream has not ended yet because the current time is smaller than the maximal duration.");
-    equal(gameStream.status.waiting,gsStatus.waiting,"We are also not waiting because the current time is not bigger than the current duration.");
+    deepEqual(gameStream.rgfGame.duration,gsStatus.duration,"The current duration is given by the last supplied action (reported by RGFParser, it has count=0).");
+    equal(gameStream.status.waiting,gsStatus.waiting,"We are also not waiting because the current time is smaller than the rgfGame duration.");
 });
 
 

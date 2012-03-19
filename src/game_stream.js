@@ -6,7 +6,7 @@ function GameStream(gsId,rgfGame) {
     var self = this;
     
     self.id = gsId;
-    self.rgfGame = (rgfGame) ? rgfGame: new RGFGame(gsId+"_rgf");
+    self._rgfGame = (rgfGame) ? rgfGame: new RGFGame(gsId+"_rgf");
 
     /* status information */
     self.status = {
@@ -79,13 +79,13 @@ GameStream.prototype.detachStream = function () {
 GameStream.prototype.applyTimedActionList=function(actions) {
     if (Array.isArray(actions)) {
         for(var i=0;i<actions.length;i++) {
-            if (!this.rgfGame.queueTimedAction(actions[i])) {
+            if (!this._rgfGame.queueTimedAction(actions[i])) {
                 // TODO: revert all previous changes?
                 return false;
             }
         }
     } else {
-        if (!this.rgfGame.queueTimedAction(actions)) return false;
+        if (!this._rgfGame.queueTimedAction(actions)) return false;
     }
     this.update();
     return true;
@@ -108,11 +108,11 @@ GameStream.prototype.applyActionList=function(actions) {
     } else if (this.status.storedTime!=this.status.time) {
         var lowerBound=0;
         var upperBound=Infinity;
-        if (this.status.timeIndex>1 && this.rgfGame._actionList[this.status.timeIndex-2].time>=0) {
-            lowerBound=this.rgfGame._actionList[this.status.timeIndex-2].time;
+        if (this.status.timeIndex>1 && this._rgfGame.actionList[this.status.timeIndex-2].time>=0) {
+            lowerBound=this._rgfGame.actionList[this.status.timeIndex-2].time;
         }
-        if (this.status.timeIndex<this.rgfGame._actionList.length-1 && this.rgfGame._actionList[this.status.timeIndex].time>=0) {
-            upperBound=this.rgfGame._actionList[this.status.timeIndex].time;
+        if (this.status.timeIndex<this._rgfGame.actionList.length-1 && this._rgfGame.actionList[this.status.timeIndex].time>=0) {
+            upperBound=this._rgfGame.actionList[this.status.timeIndex].time;
         }
         if (this.status.storedTime <= lowerBound || this.status.storedTime >= upperBound) {
             return false;
@@ -142,10 +142,10 @@ GameStream.prototype._insertAction=function(action) {
     newAction.time=this.status.time;
     newAction.counter=0;
     // set the new counter in case we insert an action at an already existing time
-    if (newAction.time>=0 && this.rgfGame._actionList[timeIndex-1].time===newAction.time) {
-        newAction.counter=this.rgfGame._actionList[timeIndex-1].counter+1;
+    if (newAction.time>=0 && this._rgfGame.actionList[timeIndex-1].time===newAction.time) {
+        newAction.counter=this._rgfGame.actionList[timeIndex-1].counter+1;
     }
-    if (this.rgfGame.queueTimedAction(newAction)) {
+    if (this._rgfGame.queueTimedAction(newAction)) {
         this.update(newAction.time,newAction.counter);
         return true;
     } else {
@@ -177,7 +177,7 @@ GameStream.prototype.update = function(nextTime,nextCounter) {
         this._reverseTo(nextTime,nextCounter);
     }
 
-    if (this.status.time<this.rgfGame.duration.time || (this.status.time==this.rgfGame.duration.time && this.status.timeCounter < this.rgfGame.duration.counter) ) this.status.waiting=false;
+    if (this.status.time<this._rgfGame.duration.time || (this.status.time==this._rgfGame.duration.time && this.status.timeCounter < this._rgfGame.duration.counter) ) this.status.waiting=false;
     else this.status.waiting=true;
 };
 
@@ -187,14 +187,14 @@ GameStream.prototype._advanceTo = function(nextTime,nextCounter) {
     if (nextCounter==undefined) nextCounter=Infinity;
 
     var i=this.status.timeIndex;
-    while (i<this.rgfGame._actionList.length && this.rgfGame._actionList[i].time<=nextTime) {
-        if (this.rgfGame._actionList[i].time==nextTime) {
-            if (this.rgfGame._actionList[i].counter > nextCounter) break;
-            else this.status.timeCounter=this.rgfGame._actionList[i].counter;
+    while (i<this._rgfGame.actionList.length && this._rgfGame.actionList[i].time<=nextTime) {
+        if (this._rgfGame.actionList[i].time==nextTime) {
+            if (this._rgfGame.actionList[i].counter > nextCounter) break;
+            else this.status.timeCounter=this._rgfGame.actionList[i].counter;
         } else {
             this.status.timeCounter=0;
         }
-        var action=this.rgfGame._actionList[i];
+        var action=this._rgfGame.actionList[i];
 
         /*  Since the SGFtree given by a KeyFrame should be _exactly_ identical to the SGFtree given by applying
             all actions up to that point, we don't need to apply the Keyframe here...
@@ -214,7 +214,7 @@ GameStream.prototype._advanceTo = function(nextTime,nextCounter) {
 
     this.status.timeIndex=i;
     this.status.time=nextTime;
-    while (this.status.lastKeyframeIndex<this.rgfGame._keyframeList.length && this.rgfGame._keyframeList[this.status.lastKeyframeIndex]<=this.status.timeIndex) {
+    while (this.status.lastKeyframeIndex<this._rgfGame.keyframeList.length && this._rgfGame.keyframeList[this.status.lastKeyframeIndex]<=this.status.timeIndex) {
         this.status.lastKeyframeIndex++;
     }
     this.status.lastKeyframeIndex--;
@@ -230,24 +230,24 @@ GameStream.prototype._reverseTo = function(nextTime,nextCounter) {
         this.status.lastKeyframeIndex=0;
     } else {
         // we assume that keyframes have no counters (resp. ignore the rest)
-        while (0<=this.status.lastKeyframeIndex && this.rgfGame._actionList[this.rgfGame._keyframeList[this.status.lastKeyframeIndex]].time>=nextTime) {
+        while (0<=this.status.lastKeyframeIndex && this._rgfGame.actionList[this._rgfGame.keyframeList[this.status.lastKeyframeIndex]].time>=nextTime) {
             this.status.lastKeyframeIndex--;
         }
     }
 
-    var i=this.rgfGame._keyframeList[this.status.lastKeyframeIndex];
+    var i=this._rgfGame.keyframeList[this.status.lastKeyframeIndex];
 
     // apply all actions up to nextTime (a reduced version of advanceTo)
     // note that the first action is applying the KeyFrame...
-    while (i<this.rgfGame._actionList.length && this.rgfGame._actionList[i].time<=nextTime) {
-        if (this.rgfGame._actionList[i].time==nextTime) {
-            if (this.rgfGame._actionList[i].counter > nextCounter) break;
-            else this.status.timeCounter=this.rgfGame._actionList[i].counter;
+    while (i<this._rgfGame.actionList.length && this._rgfGame.actionList[i].time<=nextTime) {
+        if (this._rgfGame.actionList[i].time==nextTime) {
+            if (this._rgfGame.actionList[i].counter > nextCounter) break;
+            else this.status.timeCounter=this._rgfGame.actionList[i].counter;
         } else {
             this.status.timeCounter=0;
         }
         
-        var action=this.rgfGame._actionList[i];
+        var action=this._rgfGame.actionList[i];
         this.trigger('applyAction',action);
 
         i++;
@@ -261,58 +261,58 @@ GameStream.prototype._reverseTo = function(nextTime,nextCounter) {
 // If an ignore list is given all actions with a name from that list are skipped
 GameStream.prototype.step = function(steps,noInitial,ignoreList,isWhiteList) {
     var i=this.status.timeIndex-1;
-    var nextAction=this.rgfGame._actionList[i];
+    var nextAction=this._rgfGame.actionList[i];
 
     if (steps>0) {
         for (var step=0; step<steps; step++) {
-            if (i<this.rgfGame._actionList.length-1) i++;
+            if (i<this._rgfGame.actionList.length-1) i++;
 
             if (noInitial) {
-                while (i<this.rgfGame._actionList.length-1 && this.rgfGame._actionList[i].time<0) {
+                while (i<this._rgfGame.actionList.length-1 && this._rgfGame.actionList[i].time<0) {
                     i++;
                 }
             }
         
-            nextAction=this.rgfGame._actionList[i];
-            while (i<this.rgfGame._actionList.length-1) {
+            nextAction=this._rgfGame.actionList[i];
+            while (i<this._rgfGame.actionList.length-1) {
                 var found=(ignoreList.indexOf(nextAction.name)!=-1);
                 if (found && (isWhiteList) || (!found) && (!isWhiteList)) {
                     break;
                 }
                 i++;
-                nextAction=this.rgfGame._actionList[i];
+                nextAction=this._rgfGame.actionList[i];
             }
             
-            if (i==this.rgfGame._actionList.length-1) break;
+            if (i==this._rgfGame.actionList.length-1) break;
         }
     } else if (steps<0) {
         for (var step=0; step<(-steps); step++) {
             if (noInitial) {
-                if (this.rgfGame._actionList[i].time<0) {
+                if (this._rgfGame.actionList[i].time<0) {
                     break;
                 }
             }
             if (i>0) i--;
 
-            nextAction=this.rgfGame._actionList[i];
+            nextAction=this._rgfGame.actionList[i];
             while (i>0) {
                 var found=(ignoreList.indexOf(nextAction.name)!=-1);
                 if (found && (isWhiteList) || (!found) && (!isWhiteList)) {
                     break;
                 }
                 if (noInitial) {
-                    if (this.rgfGame._actionList[i].time<0) {
+                    if (this._rgfGame.actionList[i].time<0) {
                         break;
                     }
                 }
                 if (i>0) i--;
-                nextAction=this.rgfGame._actionList[i];
+                nextAction=this._rgfGame.actionList[i];
             }
 
             if (i==0) break;
         }
     }
-    if (i==this.rgfGame._actionList.length-1 && nextAction.time<0) {
+    if (i==this._rgfGame.actionList.length-1 && nextAction.time<0) {
         this.update(0);
     } else {
         this.update(nextAction.time,nextAction.counter);

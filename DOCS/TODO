@@ -37,8 +37,9 @@ Medium things:
   (set counter to the last counter)
 - Increase the performance of seeking
   1. Rremove debug output
-  2. Don't draw the board for each update, only at the end
-  3. Implement KeyFrames
+  2. Don't draw the board and variations for each update, only at the end
+  3. improve performance for everything in a loop step
+  4. Implement KeyFrames
 - Add more basic checks whether arguments make sense and act accordingly
   (e.g. path descend)...
 - Implement and test KeyFrames

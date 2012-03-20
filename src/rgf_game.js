@@ -98,7 +98,7 @@ RGFGame.prototype.queueTimedAction=function(action,force,check) {
 
     if (timeIndex===this.actionList.length || action.name=="KeyFrame") {
     } else if (force==="remove_all") {
-        for (var i=this.actionList.length-1; i>timeIndex; i--) {
+        for (var i=this.actionList.length-1; i>=timeIndex; i--) {
             this.removeAction(i,true);
         }
     } else if (force==="remove_necessary") {
@@ -108,10 +108,10 @@ RGFGame.prototype.queueTimedAction=function(action,force,check) {
         }
         if (action.name==";") {
             // remove all older brothers
-            this.removeBigBrothers(newNode,{time:action.time, counter:action.counter},timeIndex);
+            this._removeBigBrothers(newNode,{time:action.time, counter:action.counter},timeIndex);
         } else {
             // remove all nodes and properties of the whole subtree (of newNode) which are older...
-            this.removeOlderDescendants(newNode,{time:action.time, counter:action.counter},timeIndex);
+            this._removeOlderDescendants(newNode,{time:action.time, counter:action.counter},timeIndex);
         }
     } else if (force==="remove_keyframes") {
         // remove all keyframes after the timeIndex
@@ -207,28 +207,31 @@ RGFGame.prototype.removeAction=function(index,force) {
     return true;
 };
 
-
 // TODO: UNTESTED, helper function to remove a subtree (doesn't update any other properties and does not perform any validity checks)
 RGFGame.prototype._removeTree=function(node,lowerBound) {
-    var nodeIndex=this._getIndex(node.time,node.counter,lowerBound)-1;
+    var tIndex=this._getIndex(node.time,node.counter,lowerBound)-1;
     
-    for (var i=0; i<node.children.length; i++) {
-        this._removeTree(node.children[i],nodeIndex);
-    }
-    for (var i=0; i<node.properties.length; i++) {
+    var i=node.properties.length-1;
+    while (i>=0) {
         var prop=node.properties[i];
-        var propIndex=this._getIndex(prop.time,prop.counter,nodeIndex)-1;
+        var propIndex=this._getIndex(prop.time,prop.counter,tIndex)-1;
         this._updateCounters(propIndex+1,prop.time,true);
         this.actionList.splice(propIndex,1);
         prop.remove();
+        i--;
+    }
+    var j=node.children.length-1;
+    while (j>=0) {
+        this._removeTree(node.children[j],tIndex);
+        j--;
     }
     
-    this._updateCounters(nodeIndex+1,node.time,true);
-    this.actionList.splice(nodeIndex,1);
+    this._updateCounters(tIndex+1,node.time,true);
+    this.actionList.splice(tIndex,1);
     node.remove();
 };
 
-RGFGame.prototype.removeBigBrothers = function(parent,myAge,lowerBound) {
+RGFGame.prototype._removeBigBrothers = function(parent,myAge,lowerBound) {
     if (lowerBound==undefined) lowerBound=0;
     
     if (parent.children.length) var oldestBrother=parent.children[parent.children.length-1];
@@ -239,7 +242,7 @@ RGFGame.prototype.removeBigBrothers = function(parent,myAge,lowerBound) {
     }
 };
 
-RGFGame.prototype.removeOlderDescendants = function(parent,duration,lowerBound) {
+RGFGame.prototype._removeOlderDescendants = function(parent,duration,lowerBound) {
     if (lowerBound==undefined) lowerBound=0;
 
     // basically do the same as in parent.getDuration but remove all corresponding actions...
@@ -251,8 +254,10 @@ RGFGame.prototype.removeOlderDescendants = function(parent,duration,lowerBound) 
         lastProp=parent.properties[parent.properties.length-1];
     }
 
-    for (var i=0; i<parent.children.length; i++) {
+    var i=parent.children.length-1;
+    while (i>=0) {
         this._removeOlderDescendants(parent.children[i],duration,lowerBound);
+        i--;
     }
 };
 

@@ -8,15 +8,30 @@ function RGFNode(time,counter) {
 function RGFProperty(name,argument,time,counter) {
     this.name=name;
     this.argument=argument;
+    this.parent=null;
     this.time=(time==undefined) ? -1 : +time;
     this.counter=(counter==undefined) ? 0: +counter;
 };
+RGFNode.prototype.remove = function() {
+    if (this.parent) this.parent.children.splice(this.getIndex(),1);
+};
+RGFProperty.prototype.remove = function() {
+    if (this.parent) this.parent.properties.splice(this.getIndex(),1);
+};
+RGFProperty.prototype.getIndex = function() {
+    if (this.parent==undefined) return null;
+    for (var i=0; i<this.parent.properties.length; i++) {
+        if (this.parent.properties[i]==this) return i;
+    }
+};
+
 RGFNode.prototype.addNode=function(node) {
     node.parent=this;
     this.children.push(node);
     return node;
 }
 RGFNode.prototype.addProp=function(property) {
+    property.parent=this;
     this.properties.push(property);
     return property;
 }

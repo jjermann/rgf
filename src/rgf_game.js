@@ -16,7 +16,7 @@ function RGFGame(gameId) {
     self.setup = true;
 
     /* The first action is set here to be an "empty" KeyFrame. Because it's the first action we have to set force=1... */
-    self.queueTimedAction({time:-2, counter:0, name:"KeyFrame", arg:"", position:[]},"all",false);
+    self.queueTimedAction({time:-2, counter:0, name:"KeyFrame", arg:"", position:[]},"force_insert",false);
 };
 
 RGFGame.prototype.writeRGF = function(node,base) {
@@ -61,7 +61,7 @@ RGFGame.prototype.queueTimedAction=function(action,force,check) {
     // otherwise we make sure that the action doesn't influence any already existing future actions
     // and return false if that might be the case.
 
-    if (force==="all") {
+    if (force==="force_insert") {
     } else if (timeIndex==0) {
         return false;
     } else if (timeIndex===this.actionList.length || action.name=="KeyFrame") {

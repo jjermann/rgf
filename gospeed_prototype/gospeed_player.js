@@ -23,7 +23,7 @@ GoSpeedPlayer.prototype.init = function(config) {
 		this.gospeed = new GoSpeed(this.custom_config);
 		this.gospeed.mode = "rgf";
 		this.gospeed.callbacks["rgf_board_click"] = function() {
-			self.boardClicked.call(self, arguments[0], arguments[1])
+			return self.boardClicked.call(self, arguments[0], arguments[1])
 		};
 	// Private props
 		this.new_node = false;
@@ -92,11 +92,9 @@ GoSpeedPlayer.prototype.goTo = function(path) {
 // GoSpeed click callback
 GoSpeedPlayer.prototype.boardClicked = function(row, col) {
 	// Do some stuff related with GameStream
-	// return false if it fails,
-	// or run the following code to draw the stone
-	var name = this.gospeed.get_next_move();
-	var arg = this.gospeed.pos_to_sgf_coord(row, col);
-	this.addProperty(name, arg);
+	// return false if it fails.
+	// return true if its ok and the stone will be placed.
+	return true;
 };
 
 GoSpeedPlayer.prototype.enableRecording = function() {

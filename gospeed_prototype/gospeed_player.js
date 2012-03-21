@@ -1,9 +1,10 @@
 function GoSpeedPlayer(boardId) {
-        this.id=boardId;
-        this.onApplyAction = this.applyAction.bind(this);
+	this.id=boardId;
+	this.onApplyAction = this.applyAction.bind(this);
 };
 
 GoSpeedPlayer.prototype.init = function(config) {
+	var self = this;
 	// Customize configuration
 		this.custom_config = {
 			mode: "play",
@@ -20,9 +21,13 @@ GoSpeedPlayer.prototype.init = function(config) {
 		}
 	// Initialize GoSpeed with custom config
 		this.gospeed = new GoSpeed(this.custom_config);
-		this.gospeed.disconnect();
+		this.gospeed.mode = "rgf";
+		this.gospeed.callbacks["rgf_board_click"] = function() {
+			self.boardClicked.call(self, arguments[0], arguments[1])
+		};
 	// Private props
 		this.new_node = false;
+		this.recording = false;
 };
 
 GoSpeedPlayer.prototype.createNode = function() {
@@ -39,7 +44,8 @@ GoSpeedPlayer.prototype.addProperty = function(name, arg) {
 		case "W":
 			// Check if turn corresponds with color
 			if (name == this.gospeed.get_next_move()) {
-				this.gospeed.connect();
+				var store_mode = this.gospeed.mode;
+				this.gospeed.mode = "play";
 				if (arg == "") {
 					// Pass
 					bRes = this.gospeed.pass();
@@ -48,7 +54,7 @@ GoSpeedPlayer.prototype.addProperty = function(name, arg) {
 					pos = this.gospeed.sgf_coord_to_pos(arg)
 					bRes = this.gospeed.play(pos.row, pos.col);
 				}
-				this.gospeed.disconnect();
+				this.gospeed.mode = store_mode;
 				this.new_node = false;
 			} else {
 				throw new Error("Not " + name + "'s turn...");
@@ -83,6 +89,32 @@ GoSpeedPlayer.prototype.goTo = function(path) {
 	return this.gospeed.goto_path(pathToArray(path));
 };
 
+// GoSpeed click callback
+GoSpeedPlayer.prototype.boardClicked = function(row, col) {
+	// Do some stuff related with GameStream
+	// return false if it fails,
+	// or run the following code to draw the stone
+	var name = this.gospeed.get_next_move();
+	var arg = this.gospeed.pos_to_sgf_coord(row, col);
+	this.addProperty(name, arg);
+};
+
+GoSpeedPlayer.prototype.enableRecording = function() {
+	this.gospeed.mode = "play";
+	this.recording = true;
+	return true;
+};
+
+GoSpeedPlayer.prototype.disableRecording = function() {
+	this.gospeed.mode = "rgf";
+	this.recording = false;
+	return true;
+};
+
+GoSpeedPlayer.prototype.isRecording = function() {
+	return this.recording;
+};
+
 
 /* OUR NEW MODIFICATIONS */
 GoSpeedPlayer.prototype.applyAction = function(action) {
@@ -92,7 +124,7 @@ GoSpeedPlayer.prototype.applyAction = function(action) {
         // instead we simply clear everything for now
         this.gospeed.clear();
         this.gospeed.render();
-        
+
         if (action.position!=undefined) {
             this.goTo(action.position);
         }
@@ -130,7 +162,7 @@ GoSpeedPlayer.prototype.html = function(style) {
         lvl1=document.createElement("tr");
           lvl2=document.createElement("th");
           lvl2.innerHTML='Captured W';
-          lvl1.appendChild(lvl2);          
+          lvl1.appendChild(lvl2);
           lvl2=document.createElement("td");
           lvl2.id=this.id+"_cap_w";
           lvl2.className="cap_w";
@@ -140,7 +172,7 @@ GoSpeedPlayer.prototype.html = function(style) {
         lvl1=document.createElement("tr");
           lvl2=document.createElement("th");
           lvl2.innerHTML='Captured B';
-          lvl1.appendChild(lvl2);          
+          lvl1.appendChild(lvl2);
           lvl2=document.createElement("td");
           lvl2.id=this.id+"_cap_b";
           lvl2.className="cap_b";
@@ -150,7 +182,7 @@ GoSpeedPlayer.prototype.html = function(style) {
         lvl1=document.createElement("tr");
           lvl2=document.createElement("th");
           lvl2.innerHTML='Result';
-          lvl1.appendChild(lvl2);          
+          lvl1.appendChild(lvl2);
           lvl2=document.createElement("td");
           lvl2.id=this.id+"_res";
           lvl2.className="res";
@@ -160,7 +192,7 @@ GoSpeedPlayer.prototype.html = function(style) {
         lvl1=document.createElement("tr");
           lvl2=document.createElement("th");
           lvl2.innerHTML='Move number';
-          lvl1.appendChild(lvl2);          
+          lvl1.appendChild(lvl2);
           lvl2=document.createElement("td");
           lvl2.id=this.id+"_move_no";
           lvl2.className="move_no";

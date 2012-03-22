@@ -93,7 +93,6 @@ GoSpeedPlayer.prototype.goTo = function(path) {
 
 // GoSpeed click callback
 GoSpeedPlayer.prototype.boardClicked = function(row, col) {
-console.log("ok");
 	// Do some stuff related with GameStream
 	// return false if it fails.
 	// return true if its ok and the stone was placed.

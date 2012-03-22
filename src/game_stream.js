@@ -76,16 +76,17 @@ GameStream.prototype.detachStream = function () {
 };
 
 // TODO: support insertions inbetween
-GameStream.prototype.applyTimedActionList=function(actions) {
+GameStream.prototype.applyTimedActionList=function(actions,force,check) {
     if (Array.isArray(actions)) {
+        if (check && actions.length>1) alert("Can't check validity for arrays!");
         for(var i=0;i<actions.length;i++) {
-            if (!this._rgfGame.queueTimedAction(actions[i])) {
+            if (!this._rgfGame.queueTimedAction(actions[i],force)) {
                 // TODO: revert all previous changes?
                 return false;
             }
         }
     } else {
-        if (!this._rgfGame.queueTimedAction(actions)) return false;
+        if (!this._rgfGame.queueTimedAction(actions,force,check)) return false;
     }
     this.update();
     return true;
@@ -93,50 +94,53 @@ GameStream.prototype.applyTimedActionList=function(actions) {
 
 // Adds one or more actions at the current time (a timeupdate is performed) if that time still corresponds
 // to the time of the board, otherwise return false. It also returns false if the insertion of an action failed.
-GameStream.prototype.applyActionList=function(actions) {
-    // update the current time without applying it yet
-    var oldControl=this.status.inControl;
-    this.status.inControl=true;
-    this.status.storedTime=undefined;
-    this.updateCurrentTime();
-    this.status.inControl=oldControl;
+GameStream.prototype.applyActionList=function(actions, force, check, dont_update_time) {
+    if (!dont_update_time) {
+        // update the current time without applying it yet
+        var oldControl=this.status.inControl;
+        this.status.inControl=true;
+        this.status.storedTime=undefined;
+        this.updateCurrentTime();
+        this.status.inControl=oldControl;
 
-    // VALIDITY CHECK: If the new time doesn't effect the board we update it, otherwise we return false
-    // We do nothing if the times agree (so we can still keep track of the counters)
-    if (this.status.storedTime==undefined) {
-        console.log("Warning: The time should have been updated but it was not (maybe the media stream is not ready)!");
-    } else if (this.status.storedTime!=this.status.time) {
-        var lowerBound=0;
-        var upperBound=Infinity;
-        if (this.status.timeIndex>1 && this._rgfGame.actionList[this.status.timeIndex-2].time>=0) {
-            lowerBound=this._rgfGame.actionList[this.status.timeIndex-2].time;
-        }
-        if (this.status.timeIndex<this._rgfGame.actionList.length-1 && this._rgfGame.actionList[this.status.timeIndex].time>=0) {
-            upperBound=this._rgfGame.actionList[this.status.timeIndex].time;
-        }
-        if (this.status.storedTime <= lowerBound || this.status.storedTime >= upperBound) {
-            return false;
-        } else {
-            this.update(this.status.storedTime);
+        // VALIDITY CHECK: If the new time doesn't effect the board we update it, otherwise we return false
+        // We do nothing if the times agree (so we can still keep track of the counters)
+        if (this.status.storedTime==undefined) {
+            console.log("Warning: The time should have been updated but it was not (maybe the media stream is not ready)!");
+        } else if (this.status.storedTime!=this.status.time) {
+            var lowerBound=0;
+            var upperBound=Infinity;
+            if (this.status.timeIndex>1 && this._rgfGame.actionList[this.status.timeIndex-2].time>=0) {
+                lowerBound=this._rgfGame.actionList[this.status.timeIndex-2].time;
+            }
+            if (this.status.timeIndex<this._rgfGame.actionList.length-1 && this._rgfGame.actionList[this.status.timeIndex].time>=0) {
+                upperBound=this._rgfGame.actionList[this.status.timeIndex].time;
+            }
+            if (this.status.storedTime <= lowerBound || this.status.storedTime >= upperBound) {
+                return false;
+            } else {
+                this.update(this.status.storedTime);
+            }
         }
     }
 
     if (Array.isArray(actions)) {
+        if (check && actions.length>1) alert("Can't check validity for arrays!");
         for(var i=0;i<actions.length;i++) {
-            if (!this._insertAction(actions[i])) {
+            if (!this._insertAction(actions[i],force)) {
                 // TODO: revert all previous changes...
                 return false;
             }
         }
     } else {
-        if (!this._insertAction(actions)) return false;
+        if (!this._insertAction(actions,force,check)) return false;
     }
     return true;
 }
 
 // Adds an action at the current time index if possible, return false if not.
 // Not timeupdate is performed!
-GameStream.prototype._insertAction=function(action) {
+GameStream.prototype._insertAction=function(action, force,check) {
     var newAction={name:action.name, arg:action.arg, position:action.position};
     var timeIndex=this.status.timeIndex;
     newAction.time=this.status.time;
@@ -145,7 +149,9 @@ GameStream.prototype._insertAction=function(action) {
     if (newAction.time>=0 && this._rgfGame.actionList[timeIndex-1].time===newAction.time) {
         newAction.counter=this._rgfGame.actionList[timeIndex-1].counter+1;
     }
-    if (this._rgfGame.queueTimedAction(newAction)) {
+    if (this._rgfGame.queueTimedAction(newAction,force,check)) {
+        // note that the counter might have decreased (if we removed stuff)
+        // but that's ok since it is an upper bound in any case
         this.update(newAction.time,newAction.counter);
         return true;
     } else {

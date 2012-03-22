@@ -28,6 +28,8 @@ GoSpeedPlayer.prototype.init = function(config) {
 	// Private props
 		this.new_node = false;
 		this.recording = false;
+		
+		this.enableRecording();
 };
 
 GoSpeedPlayer.prototype.createNode = function() {
@@ -91,10 +93,16 @@ GoSpeedPlayer.prototype.goTo = function(path) {
 
 // GoSpeed click callback
 GoSpeedPlayer.prototype.boardClicked = function(row, col) {
+console.log("ok");
 	// Do some stuff related with GameStream
 	// return false if it fails.
-	// return true if its ok and the stone will be placed.
-	return true;
+	// return true if its ok and the stone was placed.
+        var actionName = this.gospeed.get_next_move();
+        var actionArg = this.gospeed.pos_to_sgf_coord(row, col);
+        var success=this.insertActions([{name:";"}, {name: actionName, arg: actionArg}]);
+        
+        // we handle adding things on our own...
+        return false;
 };
 
 GoSpeedPlayer.prototype.enableRecording = function() {
@@ -230,7 +238,7 @@ GoSpeedPlayer.prototype.insertActions = function(actions) {
     var self=this;
 
     if (self.attachedStream) {
-        return self.attachedStream.insertActionList(actions);
+        return self.attachedStream.applyActionList(actions);
     } else {
         return false;
     }

@@ -237,7 +237,7 @@ GoSpeedPlayer.prototype.insertActions = function(actions) {
     var self=this;
 
     if (self.attachedStream) {
-        return self.attachedStream.applyActionList(actions);
+        return self.attachedStream.applyActionList(actions,"remove_necessary");
     } else {
         return false;
     }

@@ -1,26 +1,18 @@
 function DisplayGUI(baseId,msSources,duration) {
-    /*
-       DisplayGUI:      ID
-       MediaStream:     ID_media
-       MediaInterface:  ID_media_interface
-       EidogoPlayer:    ID_player
-                        ID_player_sgf
-                        ID_player_actions
-                        ID_player_eidogo
-       GameStream:      ID_game
-                        ID_game_rgf
-       GameInterface:   ID_game_interface
-    */
     var self = this;
     
     self.id=baseId;
     
+    // create the main html container elements
+    document.body.appendChild(self.html());
+
     // create components
-    self.boardPlayer=new EidogoPlayer(self.id+"_player");
-    self.gameStream=new GameStream(self.id+"_game")
+    self.boardPlayer=new EidogoPlayer(self.id+"_player",self.id+"_player_sgf",self.id+"_player_actions");
+    self.gameStream=new GameStream(self.id+"_game_rgf")
+    self.gameStream.update(0);
     self.mediaStream=new MediaStream(self.id+"_media",msSources,duration);
-    self.mediaInterface=new MediaInterface(self.id+"_media_interface");
-    self.gameInterface=new GameInterface(self.id+"_game_interface");
+    self.mediaInterface=new MediaInterface(self.id+"_media_interface",self.mediaStream);
+    self.gameInterface=new GameInterface(self.id+"_game_interface",self.gameStream,self.mediaStream);
 
     self.gameStream.attachStream(self.mediaStream);    
     self.boardPlayer.attachStream(self.gameStream);
@@ -32,83 +24,38 @@ function DisplayGUI(baseId,msSources,duration) {
         }
     };
     self.mediaStream.bind('statusChange', self.onStatusChange);
-
-    // initialize the main HTML element(s)
-    self.html=document.createElement("div");
-    self.html.id=self.id;    
-    self.html.appendChild(self.mediaStream.html({
-        position: "absolute",
-        top:      "4px",
-        left:     "4px",
-        width:    "640px",
-        //height:   "500px",
-        border:   "solid black 1px"
-    }));
-    self.html.appendChild(self.boardPlayer.html({
-        position: "absolute",
-        /*
-        overflow: "hidden";
-        width:    "431px",
-        height:   "431px",
-        */
-        left:     "650px",
-        top:      "4px"
-    }));
-    self.html.appendChild(self.mediaInterface.html({
-        position: "absolute",
-        left:     "654px",
-//        top:      "434px"
-        top:      "471px"
-//          left:     "1080px",
-//          top:      "8px"
-    }));
-    self.html.appendChild(self.gameInterface.html({
-        position: "absolute",
-        left:     "770px",
-//        top:      "434px"
-        top:      "461px"
-//          left:     "1080px",
-//          top:      "8px"
-    }));
-
-    // Textbox to output the current RGF tree
-    self.html.appendChild(createBox(self.id+"_game_rgf","Current RGF Tree",{
-        position: "absolute",
-        width:    "640px",
-        height:   "500px",
-        top:      "560px",
-        left:     "4px"
-    }));
-    // Textbox to output the current pseudo SGF file
-    self.html.appendChild(createBox(self.id+"_player_sgf","Current SGF tree", {
-        position: "absolute",
-        width:    "422px",
-        height:   "500px",
-        top:      "560px",   
-        left:     "650px"
-    }));
-    // Textbox to output the currently applied action list
-    self.html.appendChild(createBox(self.id+"_player_actions","Currently applied actions", {
-        position: "absolute",
-        width:    "382px",
-        height:   "500px",
-        top:      "560px",   
-        left:     "1078px"
-    }));
-    
-    // insert the gui into the html body
-    document.body.appendChild(self.html);
-
-    // The game stream is set to the initial (starting) position,
-    // the other components are initialized
-    self.boardPlayer.init();
-    self.gameStream.update(0);
-    self.mediaInterface.init(self.mediaStream);
-    self.mediaStream.init();
-    self.gameInterface.init(self.gameStream, self.mediaStream);
-
 };
 
+DisplayGUI.prototype.html = function() {
+    var self=this;
+    
+    var gui=document.createElement("div");
+    gui.id=self.id;
+    gui.className="gui";
+    var el=document.createElement("div");
+    el.id=self.id+"_player";
+    el.className="gui_player";
+    gui.appendChild(el);
+
+    gui.appendChild(createBox("gui_game_rgf",self.id+"_game_rgf","Current RGF Tree"));
+    gui.appendChild(createBox("gui_player_sgf",self.id+"_player_sgf","Current SGF tree"));
+    gui.appendChild(createBox("gui_player_actions",self.id+"_player_actions","Currently applied actions"));
+
+    el=document.createElement("div");
+    el.id=self.id+"_media";
+    el.className="gui_media";
+    gui.appendChild(el);
+    el=document.createElement("div");
+    el.id=self.id+"_media_interface";
+    el.className="gui_media_interface";
+    gui.appendChild(el);
+    el=document.createElement("div");
+    el.id=self.id+"_game_interface";
+    el.className="gui_game_interface";
+    gui.appendChild(el);
+
+    return gui;
+};
 
 DisplayGUI.prototype.hide = function() {
     $("div#"+this.id+" ").hide();

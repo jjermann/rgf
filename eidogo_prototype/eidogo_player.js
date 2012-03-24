@@ -1,7 +1,14 @@
 /* This should already exist! So _all_ content is for testing only... */
-function EidogoPlayer(boardId) {
-    this.id=boardId;
-    this.onApplyAction = this.applyAction.bind(this);
+function EidogoPlayer(playerId,sgfId,actionsId) {
+    var self=this;
+    
+    self.id=playerId;
+    self.sgfId=sgfId;
+    self.actionsId=actionsId;
+    self.onApplyAction = self.applyAction.bind(self);
+
+    // Initializes the Player (no further HTML needs to be added)
+    self.init();
 };
 
 EidogoPlayer.prototype.attachStream = function (stream) {
@@ -33,14 +40,6 @@ EidogoPlayer.prototype.insertActions = function(actions) {
     }
 };
 
-// Returns the html element for the board player
-EidogoPlayer.prototype.html=function(style) {
-    var elEidogo=document.createElement("div");
-    elEidogo.id=this.id+"_eidogo";
-    extend(elEidogo.style,style);
-    return elEidogo;
-};
-
 EidogoPlayer.prototype.init=function() {
     this.eidogoConfig = {
         theme:          "standard", // "standard" or "compact"
@@ -57,7 +56,7 @@ EidogoPlayer.prototype.init=function() {
         problemMode:     false,
         enableShortcuts: false,
         
-        container:       this.id+"_eidogo",
+        container:       this.id,
         sgf:             ";",
         loadPath:        [0,0],
         
@@ -102,20 +101,21 @@ EidogoPlayer.prototype.applyAction = function(action) {
 
     // demo output
     if (action.name=="KeyFrame") {
-        $('div#'+this.id+"_actions").text("");
+        $('#'+this.actionsId).text("");
     }
     
     var newActiontxt="board.apply({"
-         + "time: " + ((action.time!==undefined)  ? (action.time)                               : "-1")
-         + ((action.name!==undefined)             ? (", name: \"" + action.name +"\"")          :   "")
-         + ((action.arg!==undefined)              ? (", arg: \"" + action.arg + "\"")           :   "")
-         + ((action.position!==undefined)         ? (", position: \"" + action.position + "\"") :   "")
+         + ((action.time!==undefined)       ? ("time: " + action.time)                    :   "No time")
+         + ((action.counter!==undefined)    ? (", counter: " + action.counter)            :   "")
+         + ((action.name!==undefined)       ? (", name: \"" + action.name +"\"")          :   "")
+         + ((action.arg!==undefined)        ? (", arg: \"" + action.arg + "\"")           :   "")
+         + ((action.position!==undefined)   ? (", position: \"" + action.position + "\"") :   "")
     + "});\n";
 
     var parser=new RGFParser;
     parser.loadRGF(this.eidogoPlayer.cursor.getGameRoot().toSgf());
-    $('div#'+this.id+"_sgf").text(parser.rgf);
-    $('div#'+this.id+"_actions").append(document.createTextNode(newActiontxt));
+    $('#'+this.sgfId).text(parser.rgf);
+    $('#'+this.actionsId).append(document.createTextNode(newActiontxt));
 };
 
 asEvented.call(EidogoPlayer.prototype);

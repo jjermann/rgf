@@ -5,12 +5,8 @@
 
     <link   type="text/css" href="../resources/skins/jplayer.blue.monday.css" rel="stylesheet" />
     <link   type="text/css" href="../resources/skins/gamestream_interface.css" rel="stylesheet" />
-    <link   type="text/css" href="../lib/player/css/player.css" rel="stylesheet" />
-    <style  type="text/css">
-        p.unselected {background: lightgrey;}
-        p.unselected:hover {background: white;}
-        p.selected {background: lightgreen;}
-    </style>
+    <link   type="text/css" href="lib/player/css/player.css" rel="stylesheet" />
+    <link   type="text/css" href="css/eidogo_prototype.css" rel="stylesheet" />
 <!--
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
     <script type="text/javascript" src="http://popcornjs.org/code/dist/popcorn-complete.min.js"></script>
@@ -30,16 +26,16 @@
 
     <script type="text/javascript" src="../data/data.js"></script>
 
-    <script type="text/javascript" src="../lib/player/js/lang.js"></script>
-    <script type="text/javascript" src="../lib/player/js/eidogo.js"></script>
-    <script type="text/javascript" src="../lib/player/js/util.js"></script>
-    <script type="text/javascript" src="../lib/player/i18n/en.js"></script>
-    <script type="text/javascript" src="../lib/player/js/gametree.js"></script>
-    <script type="text/javascript" src="../lib/player/js/sgf.js"></script>
-    <script type="text/javascript" src="../lib/player/js/board.js"></script>
-    <script type="text/javascript" src="../lib/player/js/rules.js"></script>
-    <script type="text/javascript" src="../lib/player/js/rgf_player.js"></script>
-    <script type="text/javascript" src="../lib/player/js/init.js"></script>
+    <script type="text/javascript" src="lib/player/js/lang.js"></script>
+    <script type="text/javascript" src="lib/player/js/eidogo.js"></script>
+    <script type="text/javascript" src="lib/player/js/util.js"></script>
+    <script type="text/javascript" src="lib/player/i18n/en.js"></script>
+    <script type="text/javascript" src="lib/player/js/gametree.js"></script>
+    <script type="text/javascript" src="lib/player/js/sgf.js"></script>
+    <script type="text/javascript" src="lib/player/js/board.js"></script>
+    <script type="text/javascript" src="lib/player/js/rules.js"></script>
+    <script type="text/javascript" src="lib/player/js/rgf_player.js"></script>
+    <script type="text/javascript" src="lib/player/js/init.js"></script>
 
     <script type="text/javascript" src="helper_functions.js"></script>
     <script type="text/javascript" src="gui.js"></script>
@@ -48,7 +44,7 @@
     <script>
         // ensure the web page (DOM) has loaded
         document.addEventListener("DOMContentLoaded", function () {
-            collection=new ExampleCollection();
+            collection=new ExampleCollection("menu");
             collection.insertExample(dinerchtein);
             collection.insertExample(recDinerchtein);
             //collection.insertExample(youtube);
@@ -61,5 +57,6 @@
   </script>
   </head>
   <body>
+    <div id="menu" class="menu"/>
   </body>
 </html>

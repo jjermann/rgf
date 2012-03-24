@@ -2,19 +2,24 @@
     --------------
     Defines the standard audio/video/control gui
 */
-function MediaInterface(interfaceId) {
+function MediaInterface(interfaceId,mediaStream) {
     var self = this;
     
     self.id = interfaceId;
+    self.mediaStream = mediaStream;
     
     self.onTimeChange = self.updateSeekBar.bind(self);
     self.onStatusChange = self.updateControls.bind(self);
+
+    // add the necessary html and initialize the MediaInterface
+    document.getElementById(self.id).appendChild(self.html());
+    self.init();
 }
 
 // to simplify selecting interface elements...
-MediaInterface.prototype.sel=function(s) { return $('div#'+this.id+' .'+s); };
+MediaInterface.prototype.sel=function(s) { return $('#'+this.id+' .'+s); };
 
-MediaInterface.prototype.html=function(style) {
+MediaInterface.prototype.html=function() {
     var el, container, singletype, gui, lvl1, lvl2, lvl3;
     /* jp-controls */
     el=document.createElement("div");
@@ -83,62 +88,46 @@ MediaInterface.prototype.html=function(style) {
         container.appendChild(singletype);
       el.appendChild(container);
 
-    extend(el.style,style);
     return el;
 };
 
-MediaInterface.prototype.init=function(mediaStream) {
-    this.mediaStream=mediaStream;
-    this.mediaStream.bind('statusChange', this.onStatusChange);
-    this.mediaStream.bind('timeChange', this.onTimeChange);
-    
+MediaInterface.prototype.init=function() {
     var self=this;
-    // initial setup, most of this is not really needed
-    var initialStatus={
-        currentTime: 0,
-        seekable: false,
-        seekEnd: 0,
-        seekPercent: 0,
-        currentPercentRelative: 0,
-        currentPercentAbsolute: 0,
-        paused: true,
-        muted: false,
-        // TODO: set this somewhere else...
-        verticalVolume: false,
-        volume: 0.8,
-        ended: false,
-        ready: false
-    };
-    this.onStatusChange(initialStatus);
-    this.onTimeChange(initialStatus);
 
-    /* set eventHandlers */
-    this.sel('jp-play').click(function() {
+    self.mediaStream.bind('statusChange', self.onStatusChange);
+    self.mediaStream.bind('timeChange', self.onTimeChange);
+    
+    // set the initial status
+    self.onStatusChange(self.mediaStream.status);
+    self.onTimeChange(self.mediaStream.status);
+
+    // set eventHandlers
+    self.sel('jp-play').click(function() {
         self.mediaStream.player.play();
     });
-    this.sel('jp-pause').click(function() {
+    self.sel('jp-pause').click(function() {
         self.mediaStream.player.pause();
     });
-    this.sel('jp-stop').click(function() {
+    self.sel('jp-stop').click(function() {
         self.mediaStream.player.pause();
         self.mediaStream.seekTime(0);
         self.mediaStream.player.trigger("stop");
     });
-    this.sel('jp-mute').click(function() {
+    self.sel('jp-mute').click(function() {
         self.mediaStream.player.mute();
     });
-    this.sel('jp-unmute').click(function() {
+    self.sel('jp-unmute').click(function() {
         self.mediaStream.player.unmute();
     });
 
-    this.sel('jp-seek-bar').click(function(e) {
+    self.sel('jp-seek-bar').click(function(e) {
         var offset = self.sel('jp-seek-bar').offset();
         var x = e.pageX - offset.left;
         var w = self.sel('jp-seek-bar').width();
         var p = x/w;
         self.mediaStream.seekPer(p);
     });
-    this.sel('jp-volume-bar').click(function(e) {
+    self.sel('jp-volume-bar').click(function(e) {
         var offset = self.sel('jp-volume-bar').offset();
         var x = e.pageX - offset.left;
         var w = self.sel('jp-volume-bar').width();

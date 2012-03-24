@@ -1,0 +1,91 @@
+/* Menu */
+div#menu {
+    position:      fixed;
+    width:         20%;
+    height:        50%;
+    top:           0%;  
+    right:         0%;
+    z-index:       1;   
+    overflow:      hidden;
+    background:    white;
+    border:        4px solid black;
+    padding:       8px;
+}
+div#menu p.unselected {
+    background:    lightgrey;
+}
+div#menu p.unselected:hover {
+    background:    white;
+}
+div#menu p.selected {
+    background:    lightgreen;
+}
+
+/* Other GUI components */
+.jp-jplayer {
+    position:      absolute;
+    top:           4px;
+    left:          4px;
+    width:         640px;
+    border:        solid black 1px;
+}
+div.gui_player {
+    position:      absolute;
+    left:          650px;
+    top:           4px;
+}
+div.gui_media_interface {
+    position:      absolute;
+    left:          654px;
+    top:           471px;
+}
+div.gui_game_interface {
+    position:      absolute;
+    left:          770px;
+    top:           461px;
+}
+div.gui_game_rgf {
+    position:      absolute;
+    width:         640px;
+    height:        500px;
+    top:           560px;
+    left:          4px;
+}
+div.gui_player_sgf {
+    position:      absolute;
+    width:         422px;
+    height:        500px;
+    top:           560px;
+    left:          650px;
+}
+div.gui_player_actions {
+    position:      absolute;
+    width:         382px;
+    height:        500px;
+    top:           560px;
+    left:          1078px;
+}
+
+/* Layout for boxes */
+div.box_title {
+    top:           0px;
+    left:          0px;
+    right:         0px;
+    border:        solid grey 1px;
+    overflow:      hidden;
+    font-weight:   bold;
+    font-size:     100%;
+    margin:        0px;
+    margin-bottom: 4px;
+    padding:       4px;
+}
+div.box_body {
+    bottom:        0px;
+    left:          0px;
+    right:         0px;
+    border:        solid black 1px;
+    margin:        0px;
+    padding:       4px;
+    white-space:   pre;
+    overflow:      auto;
+};

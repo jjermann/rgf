@@ -5,6 +5,7 @@
 */
 function MediaStream(mediaId,msSources,duration) {
     this.id=mediaId;
+    this.popcornId=mediaId+"_popcorn";
     
     /* fixed header informations */
     // none (no media), audio/video (audio video file/address), youtube, vimeo
@@ -66,6 +67,10 @@ function MediaStream(mediaId,msSources,duration) {
     // used for fallback trigger "failedLoading"
     this.timeoutTime=5;
     this.timeoutValue;
+
+    // add the necessary html and initialize the MediaStream
+    document.getElementById(this.id).appendChild(this.html());
+    this.init();
 }
 
 // a useful function to have in any case (so it is left in MediaStream class)
@@ -81,10 +86,8 @@ MediaStream.prototype.convertTime = function(s) {
 };
 
 // Returns the html element for media stream
-MediaStream.prototype.html=function(style) {
-    var el, container;
-    //el=document.createElement("div");
-    //el.id=this.id;
+MediaStream.prototype.html=function() {
+    var container;
       if (this.mediaType=="none") {
           container=document.createElement("div");
       } else if (this.mediaType=="audio") {
@@ -108,10 +111,8 @@ MediaStream.prototype.html=function(style) {
       } else {
           alert("illegal type: "+this.mediaType);
       }
-      container.id=this.id;
-      extend(container.style,style);
-      //container.className="jp-jplayer";
-    //el.appendChild(container);
+      container.id=this.popcornId;
+      container.className="jp-jplayer";
 
     return container;
 };
@@ -123,15 +124,15 @@ MediaStream.prototype.init=function() {
     
     if (this.mediaType=="none") {
         Popcorn.player("baseplayer");
-        pl=Popcorn.baseplayer("#"+this.id);
+        pl=Popcorn.baseplayer("#"+this.popcornId);
     } else if (this.mediaType=="audio") {
-        pl=Popcorn("#"+this.id);
+        pl=Popcorn("#"+this.popcornId);
     } else if (this.mediaType=="video") {
-        pl=Popcorn("#"+this.id);
+        pl=Popcorn("#"+this.popcornId);
     } else if (this.mediaType=="youtube") {
-        pl=Popcorn.youtube("#"+this.id,this.sources[0].src);
+        pl=Popcorn.youtube("#"+this.popcornId,this.sources[0].src);
     } else if (this.mediaType=="vimeo") {
-        pl=Popcorn.vimeo("#"+this.id,this.sources[0].src);
+        pl=Popcorn.vimeo("#"+this.popcornId,this.sources[0].src);
     } else { alert("illegal type: "+this.mediaType); }
 
     this.timeoutValue=setTimeout(function() {
@@ -261,13 +262,11 @@ MediaStream.prototype.init=function() {
             },1000);
         });
     }
-    
+
 //var events=["abort","canplay","canplaythrough","durationchange","canshowcurrentframe","dataunavailable","emptied","empty","ended","error","loadeddata","loadedmetadata","loadstart","mozaudioavailable","pause","play","playing","progress","ratechange","seeked","seeking","suspend","volumechange","waiting"];
 //events.forEach(function(e) {
 //    self.player.listen(e, function() { self.date=new Date(); console.log(self.mediaId+": "+e+" , t="+(self.date.getTime()-self.dateZero)+", ready="+self.status.ready+", paused="+self.status.paused+", currentTime="+self.status.currentTime+", duration="+self.status.duration+", ended="+self.status.ended); });
 //});
-    
-    return this.player;
 };
 
 MediaStream.prototype.streamTypeUpdate = function(duration) {

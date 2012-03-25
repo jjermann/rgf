@@ -1,24 +1,32 @@
-function GoSpeedPlayer(boardId) {
-	this.id=boardId;
-	this.onApplyAction = this.applyAction.bind(this);
+function GoSpeedPlayer(playerId,config) {
+    var self=this;
+    
+    self.id=playerId;
+
+    // Customize configuration
+    this.custom_config = {
+        mode: "play",
+        shower: "graphic",
+        size: config.size,
+        div_id_board: config.div_id_board,
+        div_id_tree: config.div_id_tree,
+        div_id_captured_w: config.div_id_captured_w,
+        div_id_captured_b: config.div_id_captured_b,
+        div_id_result: config.div_id_result,
+        div_id_move_number: config.div_id_move_number,
+        div_id_comments: config.div_id_comments,
+        server_path_gospeed_root: config.server_path_gospeed_root,
+    }
+ 
+    self.onApplyAction = self.applyAction.bind(self);
+
+
+    // Initializes the Player (the HTML is organized by the GUI)
+    self.init(this.custom_config);
 };
 
 GoSpeedPlayer.prototype.init = function(config) {
 	var self = this;
-	// Customize configuration
-		this.custom_config = {
-			mode: "play",
-			shower: "graphic",
-			size: config.size,
-			div_id_board: config.div_id_board,
-			div_id_tree: config.div_id_tree,
-			div_id_captured_w: config.div_id_captured_w,
-			div_id_captured_b: config.div_id_captured_b,
-			div_id_result: config.div_id_result,
-			div_id_move_number: config.div_id_move_number,
-			div_id_comments: config.div_id_comments,
-			server_path_gospeed_root: config.server_path_gospeed_root,
-		}
 	// Initialize GoSpeed with custom config
 		this.gospeed = new GoSpeed(this.custom_config);
 		this.gospeed.mode = "rgf";
@@ -109,13 +117,11 @@ GoSpeedPlayer.prototype.enableRecording = function() {
 	this.recording = true;
 	return true;
 };
-
 GoSpeedPlayer.prototype.disableRecording = function() {
 	this.gospeed.mode = "rgf";
 	this.recording = false;
 	return true;
 };
-
 GoSpeedPlayer.prototype.isRecording = function() {
 	return this.recording;
 };
@@ -148,73 +154,6 @@ GoSpeedPlayer.prototype.applyAction = function(action) {
     }
 };
 
-GoSpeedPlayer.prototype.html = function(style) {
-    var el, container, lvl1, lvl2;
-    el=document.createElement("div");
-    el.id=this.id;
-      container=document.createElement("div");
-      container.id=this.id+"_rgf_board";
-      container.className="rgf_board";
-      el.appendChild(container);
-
-      container=document.createElement("div");
-      container.id=this.id+"_tree";
-      container.className="tree";
-      el.appendChild(container);
-
-      container=document.createElement("table");
-      container.className="rgf_stats";
-        lvl1=document.createElement("tr");
-          lvl2=document.createElement("th");
-          lvl2.innerHTML='Captured W';
-          lvl1.appendChild(lvl2);
-          lvl2=document.createElement("td");
-          lvl2.id=this.id+"_cap_w";
-          lvl2.className="cap_w";
-          lvl2.innerHTML='0';
-          lvl1.appendChild(lvl2);
-        container.appendChild(lvl1);
-        lvl1=document.createElement("tr");
-          lvl2=document.createElement("th");
-          lvl2.innerHTML='Captured B';
-          lvl1.appendChild(lvl2);
-          lvl2=document.createElement("td");
-          lvl2.id=this.id+"_cap_b";
-          lvl2.className="cap_b";
-          lvl2.innerHTML='0';
-          lvl1.appendChild(lvl2);
-        container.appendChild(lvl1);
-        lvl1=document.createElement("tr");
-          lvl2=document.createElement("th");
-          lvl2.innerHTML='Result';
-          lvl1.appendChild(lvl2);
-          lvl2=document.createElement("td");
-          lvl2.id=this.id+"_res";
-          lvl2.className="res";
-          lvl2.innerHTML='0';
-          lvl1.appendChild(lvl2);
-        container.appendChild(lvl1);
-        lvl1=document.createElement("tr");
-          lvl2=document.createElement("th");
-          lvl2.innerHTML='Move number';
-          lvl1.appendChild(lvl2);
-          lvl2=document.createElement("td");
-          lvl2.id=this.id+"_move_no";
-          lvl2.className="move_no";
-          lvl2.innerHTML='0';
-          lvl1.appendChild(lvl2);
-        container.appendChild(lvl1);
-      el.appendChild(container);
-
-      container=document.createElement("div");
-      container.id=this.id+"_comments";
-      container.className="comments";
-      el.appendChild(container);
-
-    extend(el.style,style);
-    return el;
-};
-
 GoSpeedPlayer.prototype.attachStream = function (stream) {
     var self = this;
 
@@ -222,7 +161,6 @@ GoSpeedPlayer.prototype.attachStream = function (stream) {
     self.attachedStream = stream;
     stream.bind('applyAction', self.onApplyAction);
 };
-
 GoSpeedPlayer.prototype.detachStream = function () {
     var self = this,
         stream = self.attachedStream;
@@ -232,7 +170,6 @@ GoSpeedPlayer.prototype.detachStream = function () {
         delete self.attachedStream;
     }
 };
-
 GoSpeedPlayer.prototype.insertActions = function(actions) {
     var self=this;
 

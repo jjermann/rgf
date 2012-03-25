@@ -1,28 +1,18 @@
-div.gs-interface ul.gs-controls li {
-        display:inline;
-        float: left;
+.gs-step-back, .gs-step-forward {
+    width:28px;
+    height:28px;
+    cursor:pointer;
+    overflow:hidden;
 }
-div.gs-interface ul.gs-controls a {
-	display:block;
-	overflow:hidden;
-        text-indent:-9999px;
+.gs-step-back {
+    background: url("jplayer.blue.monday.jpg") 0 -112px no-repeat;
 }
-a.gs-step-backward, a.gs-step-forward {
-        width:28px;
-        height:28px;
-        margin-left:10px;
-        margin-right:10px;
+.gs-step-back:hover {
+    background: url("jplayer.blue.monday.jpg") -29px -112px no-repeat;
 }
-a.gs-step-backward {
-        background: url("jplayer.blue.monday.jpg") 0 -112px no-repeat;
+.gs-step-forward {
+    background: url("jplayer.blue.monday.jpg") 0 -141px no-repeat;
 }
-a.gs-step-backward:hover {
-        background: url("jplayer.blue.monday.jpg") -29px -112px no-repeat;
+.gs-step-forward:hover {
+    background: url("jplayer.blue.monday.jpg") -29px -141px no-repeat;
 }
-a.gs-step-forward {
-        background: url("jplayer.blue.monday.jpg") 0 -141px no-repeat;
-}
-a.gs-step-forward:hover {
-        background: url("jplayer.blue.monday.jpg") -29px -141px no-repeat;
-}
-

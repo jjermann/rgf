@@ -5,54 +5,8 @@
 
     <link   type="text/css" href="../resources/skins/jplayer.blue.monday.css" rel="stylesheet" />
     <link   type="text/css" href="../resources/skins/gamestream_interface.css" rel="stylesheet" />
-    <link   type="text/css" href="css/style.css" rel="stylesheet" />
-    <style  type="text/css">
-        p.unselected {background: lightgrey;}
-        p.unselected:hover {background: white;}
-        p.selected {background: lightgreen;}
-    </style>
-    <!-- Temporary Solution to handle part of the GoSpeed layout -->
-    <style type="text/css">
-       table.rgf_stats {
-         border-collapse: collapse;
-         margin: 20px auto;
-         padding: 0px;
-         font-family: monospace;
-       }
-
-       table.rgf_stats td {   
-         border-collapse: collapse;
-         padding: 5px;
-         margin: 0px;
-         border: 1px solid #888;
-         background-color: #EEE;
-       }
-
-       table.rgf_stats th { 
-         border-collapse: collapse;
-         padding: 5px;
-         margin: 0px;
-         text-align: right;
-       }
-
-       div.tree {   
-         margin: 20px auto;
-         position: relative;
-         font-family: monospace;
-         height: 100px;
-         width: 700px;
-         border: 1px solid #888;
-         overflow: auto;
-      }
-
-      div.comments { 
-         margin: 20px auto;
-         width: 400px;
-         font-family: monospace;
-         border: 1px solid #888;
-         padding: 5px;
-       }
-    </style>
+    <link   type="text/css" href="css/gospeed_board.css" rel="stylesheet" />
+    <link   type="text/css" href="css/gospeed_prototype.css" rel="stylesheet" />
 
 <!--
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
@@ -82,7 +36,7 @@
     <script>
         // ensure the web page (DOM) has loaded
         document.addEventListener("DOMContentLoaded", function () {
-            collection=new ExampleCollection();
+            collection=new ExampleCollection("menu");
             collection.insertExample(dinerchtein);
             collection.insertExample(recDinerchtein);
             //collection.insertExample(youtube);
@@ -95,5 +49,6 @@
   </script>
   </head>
   <body>
+    <div id="menu" class="menu"/>
   </body>
 </html>

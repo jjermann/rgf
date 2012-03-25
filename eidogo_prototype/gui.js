@@ -1,6 +1,5 @@
 function DisplayGUI(baseId,msSources,duration) {
     var self = this;
-    
     self.id=baseId;
     
     // create the main html container elements
@@ -12,7 +11,7 @@ function DisplayGUI(baseId,msSources,duration) {
     self.gameStream.update(0);
     self.mediaStream=new MediaStream(self.id+"_media",msSources,duration);
     self.mediaInterface=new MediaInterface(self.id+"_media_interface",self.mediaStream);
-    self.gameInterface=new GameInterface(self.id+"_game_interface",self.gameStream,self.mediaStream);
+    self.gameInterface=new GameInterface({stepForwardId: self.id+"_game_step_forward", stepBackId: self.id+"_game_step_back"},self.gameStream,self.mediaStream);
 
     self.gameStream.attachStream(self.mediaStream);    
     self.boardPlayer.attachStream(self.gameStream);
@@ -32,29 +31,48 @@ DisplayGUI.prototype.html = function() {
     var gui=document.createElement("div");
     gui.id=self.id;
     gui.className="gui";
-    var el=document.createElement("div");
-    el.id=self.id+"_player";
-    el.className="gui_player";
-    gui.appendChild(el);
-
-    gui.appendChild(createBox("gui_game_rgf",self.id+"_game_rgf","Current RGF Tree"));
-    gui.appendChild(createBox("gui_player_sgf",self.id+"_player_sgf","Current SGF tree"));
-    gui.appendChild(createBox("gui_player_actions",self.id+"_player_actions","Currently applied actions"));
 
     el=document.createElement("div");
     el.id=self.id+"_media";
     el.className="gui_media";
     gui.appendChild(el);
-    el=document.createElement("div");
-    el.id=self.id+"_media_interface";
-    el.className="gui_media_interface";
-    gui.appendChild(el);
-    el=document.createElement("div");
-    el.id=self.id+"_game_interface";
-    el.className="gui_game_interface";
+
+    var el=document.createElement("div");
+    el.id=self.id+"_player";
+    el.className="gui_player";
     gui.appendChild(el);
 
+    var el=document.createElement("div");
+    el.className="gui_player_interface";
+    el.appendChild(self.playerInterfaceHtml());
+    gui.appendChild(el);
+
+    gui.appendChild(createBox("gui_game_rgf",self.id+"_game_rgf","Current RGF Tree"));
+    gui.appendChild(createBox("gui_player_sgf",self.id+"_player_sgf","Current SGF tree"));
+    gui.appendChild(createBox("gui_player_actions",self.id+"_player_actions","Currently applied actions"));
     return gui;
+};
+
+DisplayGUI.prototype.playerInterfaceHtml = function() {
+    var self=this;
+    var controls=document.createDocumentFragment();
+    
+    var el=document.createElement("div");
+    el.id=self.id+"_media_interface";
+    el.className="gui_media_interface";
+    controls.appendChild(el);
+    
+    el=document.createElement("div");
+    el.id=self.id+"_game_step_back";
+    el.className="gs-step-back";
+    controls.appendChild(el);
+
+    el=document.createElement("div");
+    el.id=self.id+"_game_step_forward";
+    el.className="gs-step-forward";
+    controls.appendChild(el);
+    
+    return controls;
 };
 
 DisplayGUI.prototype.hide = function() {

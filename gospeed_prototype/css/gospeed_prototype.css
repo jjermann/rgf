@@ -1,10 +1,8 @@
 /* Menu */
 div#menu {
-    position:      fixed;
-    width:         20%;
-    height:        50%;
-    top:           0%;  
-    right:         0%;
+    position:      absolute;
+    left:          1160px;
+    top:           4px;
     z-index:       1;   
     overflow:      hidden;
     background:    white;
@@ -96,8 +94,8 @@ div.gui_player div.player_tree {
     margin: 20px auto;
     position: relative;
     font-family: monospace;
-    height: 100px;
-    width: 700px;
+    width: 495px;
+    height: 200px;
     border: 1px solid #888;
     overflow: auto;
 }
@@ -117,15 +115,19 @@ div.player_interface {
     top:           0px;
 }
 div.player_interface div.gui_media_interface {
-    margin:        4px;
+    margin-top:    4px;
+    margin-left:   35px;
+    display:       block;
 }
 div.player_interface a.gs-step-back {
     position:      absolute;
+    margin-left:   35px;
     left:          160px;
     top:           4px;
 }
 div.player_interface a.gs-step-forward {
     position:      absolute;
+    margin-left:   35px;
     left:          220px;
     top:           4px;
 }

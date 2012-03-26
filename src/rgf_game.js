@@ -256,7 +256,13 @@ RGFGame.prototype._removeOlderDescendants = function(parent,duration,lowerBound)
 
     var i=parent.children.length-1;
     while (i>=0) {
-        this._removeOlderDescendants(parent.children[i],duration,lowerBound);
+        var child=parent.children[i];
+        if (duration.time<child.time || (duration.time==child.time && duration.counter<=child.counter)) {
+            var nodeIndex=this._getIndex(child.time,child.counter,lowerBound)-1;      
+            this.removeAction(nodeIndex,true);
+        } else {
+            this._removeOlderDescendants(child,duration,lowerBound);
+        }
         i--;
     }
 };

@@ -157,6 +157,8 @@ RGFGame.prototype.queueTimedAction=function(action,force,check) {
     // set the node for the action
     newAction.node=newNode;
 
+    this.trigger("actionQueued",timeIndex);
+
     // For testing:
     $('#'+this.id).text(this.writeRGF());
 
@@ -175,8 +177,8 @@ RGFGame.prototype.modifyActionTime = function(index,dt,check) {
     if (dt<dprev || dt>dnext) return false;
     // at the moment we don't touch the initial setup
     if ((action.time+dt)<0) return false;
-    // if (dt==0) the time doesn't change, we still return true...
-    if (dt==0) return true;
+    // if (dt==0) the time doesn't change
+    if (dt==0) return false;
 
     if (check) return true;
     
@@ -202,6 +204,8 @@ RGFGame.prototype.modifyActionTime = function(index,dt,check) {
         if (this.duration.time>=0) this.setup=false;
         else this.setup=true;
     }
+
+    this.trigger("timeChange",index);
 
     return true;
 };
@@ -255,7 +259,26 @@ RGFGame.prototype.removeAction=function(index,force) {
         this._updateCounters(index+1,action.time,true);
         this.actionList.splice(index,1);
     } else if (action.name==";") {
-        this._removeTree(action.node,force,index);
+        var node=action.node;
+        var j=node.children.length-1;
+        while (j>=0) {
+            var child=node.children[j];
+            var cIndex=this._getIndex(child.time,child.counter,index)-1;
+            this.removeAction(cIndex,true);
+            j=node.children.length-1;
+        }
+
+        var k=action.node.properties.length-1;
+        while (k>=0) {
+            var prop=node.properties[k];
+            var pIndex=this._getIndex(prop.time,prop.counter,index)-1;
+            this.removeAction(pIndex,true);
+            k=action.node.properties.length-1;
+        }
+        
+        this._updateCounters(index+1,node.time,true);
+        this.actionList.splice(index,1);
+        node.remove();
     } else {
         this._updateCounters(index+1,action.time,true);
         this.actionList.splice(index,1);
@@ -266,31 +289,10 @@ RGFGame.prototype.removeAction=function(index,force) {
     this.duration.time=this.actionList[this.actionList.length-1].time;
     this.duration.counter=this.actionList[this.actionList.length-1].counter;
     if (this.duration.time<0) this.setup=true;
-    return true;
-};
+    
+    this.trigger("removedAction",action,index);
 
-// helper function to remove a subtree (doesn't update any other properties and does not perform any validity checks)
-RGFGame.prototype._removeTree=function(node,lowerBound) {
-    var tIndex=this._getIndex(node.time,node.counter,lowerBound)-1;
-    
-    var i=node.properties.length-1;
-    while (i>=0) {
-        var prop=node.properties[i];
-        var propIndex=this._getIndex(prop.time,prop.counter,tIndex)-1;
-        this._updateCounters(propIndex+1,prop.time,true);
-        this.actionList.splice(propIndex,1);
-        prop.remove();
-        i--;
-    }
-    var j=node.children.length-1;
-    while (j>=0) {
-        this._removeTree(node.children[j],tIndex);
-        j--;
-    }
-    
-    this._updateCounters(tIndex+1,node.time,true);
-    this.actionList.splice(tIndex,1);
-    node.remove();
+    return true;
 };
 
 RGFGame.prototype._removeBigBrothers = function(parent,myAge,lowerBound) {
@@ -378,3 +380,4 @@ RGFGame.prototype._updateCounters=function(timeIndex,time,decrease) {
     }
 };
 
+asEvented.call(RGFGame.prototype);

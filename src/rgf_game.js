@@ -163,7 +163,69 @@ RGFGame.prototype.queueTimedAction=function(action,force,check) {
     return true;
 };
 
-// TODO: UNTESTED
+// UNTESTED
+RGFGame.prototype.modifyActionTime(index,dt,check) {
+    var action=this.actionList[index];
+    
+    // VALIDITY CHECKS
+    if (index<=0 || index>=this.actionList.length) return false;
+    var dprev=this.actionList[index-1].time-action.time;
+    var dnext=Infinity;
+    if (index<this.actionList.length-1) dnext=this.actionList[index+1].time-action.time;
+    if (dt<dprev || dt>dnext) return false;
+    // at the moment we don't touch the initial setup
+    if ((action.time+dt)<0) return false;
+    // if (dt==0) the time doesn't change, we still return true...
+    if (dt==0) return true;
+
+    if (check) return true;
+    
+    // CHANGE THE TIME AND COUNTERS ACCORDINGLY
+    if (dt==dprev) {
+        // when modifying towards the left border
+        this._setActionTime(index,action.time+dt,this.actionList[index-1].counter+1);
+    } else {
+        this._setActionTime(index,action.time+dt,0);
+    }
+    
+    if (dt==dnext) {
+        // when modifying towards the right border
+        this._updateCounters(index+1,this.actionList[index+1].time,false);
+    } else if (dnext==0) {
+        // when modifying from the right border
+        this._updateCounters(index+1,this.actionList[index+1].time,true);
+    }
+    
+    if (dnext==Infinity) {
+        this.duration.time=action.time;
+        this.duration.counter=action.counter;
+        if (this.duration.time>=0) this.setup=false;
+        else this.setup=true;
+    }
+
+    return true;
+};
+
+
+// helper function to set the time and counter of just _one single_ action
+RGFGame.prototype._setActionTime(index,time,counter) {
+    var action=this.actionList[index];
+    var node=action.node;
+    var prop=undefined;
+    if (action.name=="KeyFrame") {
+    } else if (action.name==";") {
+        node.time=time;
+        node.counter=counter;
+    } else {
+        prop=this._getProp(node,action.time,action.counter);
+        prop.time=time;
+        prop.counter=counter;
+    }
+    action.time=time;
+    action.counter=counter;
+};
+
+
 RGFGame.prototype.removeAction=function(index,force) {
     var action=this.actionList[index];
 
@@ -207,7 +269,7 @@ RGFGame.prototype.removeAction=function(index,force) {
     return true;
 };
 
-// TODO: UNTESTED, helper function to remove a subtree (doesn't update any other properties and does not perform any validity checks)
+// helper function to remove a subtree (doesn't update any other properties and does not perform any validity checks)
 RGFGame.prototype._removeTree=function(node,lowerBound) {
     var tIndex=this._getIndex(node.time,node.counter,lowerBound)-1;
     

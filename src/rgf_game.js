@@ -164,7 +164,7 @@ RGFGame.prototype.queueTimedAction=function(action,force,check) {
 };
 
 // UNTESTED
-RGFGame.prototype.modifyActionTime(index,dt,check) {
+RGFGame.prototype.modifyActionTime = function(index,dt,check) {
     var action=this.actionList[index];
     
     // VALIDITY CHECKS
@@ -208,7 +208,7 @@ RGFGame.prototype.modifyActionTime(index,dt,check) {
 
 
 // helper function to set the time and counter of just _one single_ action
-RGFGame.prototype._setActionTime(index,time,counter) {
+RGFGame.prototype._setActionTime = function(index,time,counter) {
     var action=this.actionList[index];
     var node=action.node;
     var prop=undefined;

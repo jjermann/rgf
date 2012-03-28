@@ -166,36 +166,43 @@ RGFGame.prototype.queueTimedAction=function(action,force,check) {
 };
 
 // UNTESTED
-RGFGame.prototype.modifyActionTime = function(index,dt,check) {
-    var action=this.actionList[index];
+RGFGame.prototype.modifyActionTime = function(firstIndex,lastIndex,dt,check) {
+    var firstAction = this.actionList[firstIndex],
+        lastAction  = this.actionList[lastIndex];
     
     // VALIDITY CHECKS
-    if (index<=0 || index>=this.actionList.length) return false;
-    var dprev=this.actionList[index-1].time-action.time;
+    if (lastIndex-firstIndex<=0) return false;
+    if (firstIndex<=0 || lastIndex>=this.actionList.length) return false;
+    var dprev=this.actionList[firstIndex-1].time-firstAction.time;
     var dnext=Infinity;
-    if (index<this.actionList.length-1) dnext=this.actionList[index+1].time-action.time;
+    if (lastIndex<this.actionList.length-1) dnext=this.actionList[lastIndex+1].time-lastAction.time;
     if (dt<dprev || dt>dnext) return false;
     // at the moment we don't touch the initial setup
-    if ((action.time+dt)<0) return false;
+    if ((firstAction.time+dt)<0) return false;
     // if (dt==0) the time doesn't change
     if (dt==0) return false;
 
     if (check) return true;
     
     // CHANGE THE TIME AND COUNTERS ACCORDINGLY
-    if (dt==dprev) {
+    var firstTime=this.actionList[firstIndex-1].time;
+    var counter=ths.actionList[firstIndex-1].counter;
+    var i=firstIndex;
+    while (i<=lastIndex) {
+        var action=this.actionList[i];
         // when modifying towards the left border
-        this._setActionTime(index,action.time+dt,this.actionList[index-1].counter+1);
-    } else {
-        this._setActionTime(index,action.time+dt,0);
+        if (action.time+dt==firstTime) counter++;
+        else counter=action.counter; 
+        this._setActionTime(i,action.time+dt,counter);
+        i++;
     }
     
     if (dt==dnext) {
         // when modifying towards the right border
-        this._updateCounters(index+1,this.actionList[index+1].time,false);
+        this._updateCounters(lastIndex+1,this.actionList[lastIndex+1].time,false);
     } else if (dnext==0) {
         // when modifying from the right border
-        this._updateCounters(index+1,this.actionList[index+1].time,true);
+        this._updateCounters(lastIndex+1,this.actionList[lastIndex+1].time,true);
     }
     
     if (dnext==Infinity) {
@@ -205,7 +212,7 @@ RGFGame.prototype.modifyActionTime = function(index,dt,check) {
         else this.setup=true;
     }
 
-    this.trigger("timeChange",index);
+    this.trigger("timeChange",firstIndex,lastIndex);
 
     return true;
 };

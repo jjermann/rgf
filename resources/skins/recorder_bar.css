@@ -1,0 +1,32 @@
+.recorder_bar {
+    background: lightgreen;
+}
+
+.basemarker {
+    top: 0px;
+    left: 0px;
+    width: 1px;
+    height: 100px;
+    background: black;
+}
+
+/*
+.action_container {
+}
+*/
+
+.action {
+    left: -7px;
+    top: -40px;
+    width: 14px;
+    height: 80px;
+    border: 1px solid grey;
+    background: lightblue;
+}
+
+.action.name_B, .action.name_AB {
+    background: black;
+}
+.action.name_W, .action.name_AW {
+    background: white;
+}

@@ -32,26 +32,36 @@ div#menu p.selected {
 }
 
 
+/* Layout for the RecorderBar */
+div.gui_recorder_bar_interface {
+    position:      absolute;
+    width:         1454px;
+    height:        100px;
+    top:           560px;
+    left:          4px;
+    border:        solid black 1px;
+}
+
 /* Layout for the debug output */
 div.gui_game_rgf {
     position:      absolute;
     width:         640px;
     height:        500px;
-    top:           560px;
+    top:           670px;
     left:          4px;
 }
 div.gui_player_sgf {
     position:      absolute;
     width:         422px;
     height:        500px;
-    top:           560px;
+    top:           670px;
     left:          650px;
 }
 div.gui_player_actions {
     position:      absolute;
     width:         382px;
     height:        500px;
-    top:           560px;
+    top:           670px;
     left:          1078px;
 }
 

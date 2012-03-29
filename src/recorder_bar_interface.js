@@ -16,7 +16,7 @@ function RecorderBarInterface(config,gameStream,mediaStream) {
 
     self.config={
         interfaceId: config.interfaceId,
-        timeInterval: config.timeInterval ? config.timeInterval : 60,
+        timeInterval: config.timeInterval ? config.timeInterval : 120,
         _width: parseInt($('#'+config.interfaceId).width(),10),
         _height: parseInt($('#'+config.interfaceId).height(),10)
     };
@@ -28,23 +28,6 @@ function RecorderBarInterface(config,gameStream,mediaStream) {
     document.getElementById(self.config.interfaceId).appendChild(self.html(self.config));
     self.init();
 }
-
-RecorderBarInterface.prototype._getPos = function(time) {
-    return Math.round(time*this.config._barWidth/this.config.timeInterval);
-};
-RecorderBarInterface.prototype.updateTime = function(time) {
-    if (time!=undefined) this.status.time=time;
-    this._bar.style.left=(this.config._barBasePos-this._getPos(this.status.time))+"px";
-};
-// RecorderBarInterface.prototype.updateDuration = function(duration) {
-//    if (duration!=undefined) this.status.duration=duration;
-//    this._bar.style.width=this._getPos(this.status.duration):
-//};
-RecorderBarInterface.prototype.setBasePos = function(p) {
-    this.config._barBasePos=Math.round(this.config._barWidth*p);
-    this._baseMarker.style.left=this.config._barBasePos+"px";
-    this.updateTime();
-};
 
 RecorderBarInterface.prototype.html = function(config) {
     var self=this;
@@ -92,7 +75,7 @@ RecorderBarInterface.prototype.actionHtml = function(index) {
     var action=self.gameStream._rgfGame.actionList[index];
     
     if (action.time>=0) {
-        var pos=self._getPos(parseInt(action.time));
+        var pos=self._getPos(action.time);
     } else {
         var pos=self._getPos(0);
     }
@@ -111,7 +94,7 @@ RecorderBarInterface.prototype.actionHtml = function(index) {
       else el.className+=" noarg";
       if (action.position) el.className+=" pos";
       else el.className+=" nopos";
-      if (parseInt(action.time)<0) el.className+=" initial";
+      if (action.time<0) el.className+=" initial";
       else el.className+=" regular";
       el.style.zIndex=index+1;
       container.appendChild(el);
@@ -119,9 +102,6 @@ RecorderBarInterface.prototype.actionHtml = function(index) {
     return container;
 };
 
-RecorderBarInterface.prototype.insertAction = function(index) {
-    this._bar.appendChild(this.actionHtml(index));
-}
 
 RecorderBarInterface.prototype.init = function() {
     var self=this;
@@ -139,3 +119,23 @@ RecorderBarInterface.prototype.init = function() {
     self.setBasePos(0.5);
 };
 
+
+RecorderBarInterface.prototype._getPos = function(time) {
+    return Math.round(time*this.config._barWidth/this.config.timeInterval);
+};
+RecorderBarInterface.prototype.updateTime = function(time) {
+    if (time!=undefined) this.status.time=time;
+    this._bar.style.left=(this.config._barBasePos-this._getPos(this.status.time))+"px";
+};
+// RecorderBarInterface.prototype.updateDuration = function(duration) {
+//    if (duration!=undefined) this.status.duration=duration;
+//    this._bar.style.width=this._getPos(this.status.duration):
+//};
+RecorderBarInterface.prototype.setBasePos = function(p) {
+    this.config._barBasePos=Math.round(this.config._barWidth*p);
+    this._baseMarker.style.left=this.config._barBasePos+"px";
+    this.updateTime();
+};
+RecorderBarInterface.prototype.insertAction = function(index) {
+    this._bar.appendChild(this.actionHtml(index));
+}

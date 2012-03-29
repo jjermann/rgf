@@ -10,23 +10,33 @@
     background: black;
 }
 
-/*
 .action_container {
 }
-*/
 
 .action {
-    left: -7px;
+    left: -5px;
     top: -40px;
-    width: 14px;
+    width: 10px;
     height: 80px;
     border: 1px solid grey;
-    background: lightblue;
 }
 
 .action.name_B, .action.name_AB {
     background: black;
 }
+
 .action.name_W, .action.name_AW {
     background: white;
+}
+.action.name_VT {
+    background: lightblue;
+}
+.action.name_AE {
+    background: lightred;
+}
+.action.name_CR, .action_name_LB, .action_name_TR, .action_name_MA, .action_name_SQ, .action_name_TW, .action_name_TB, .action_name_DD {
+    background: lightyellow;
+}
+.action.name_C, .action.name_N, .action.name_GB, .action.name_GW, .action.name_DM, .action.name_HO, .action.name_UC, .action.name_V, .action.name_BM, .action.name_DO, .action.name_IT, .action.name_TE {
+    background: lightgrey;
 }

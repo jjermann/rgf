@@ -1,18 +1,14 @@
 /*  RecorderBarInterface
     --------------------
-    Provides a recorder interface for the game stream with access to the media stream
+    Provides a recorder interface for the game stream
 */
-function RecorderBarInterface(config,gameStream,mediaStream) {
+function RecorderBarInterface(config,gameStream) {
     var self=this;
     
     self.onActionQueued = self.insertAction.bind(self);
-    self.onTimeChange = function(status) {
-        self.updateTime(status.currentTime);
-    }
-    self.onStatusChange = function(status) { }
+    self.onUpdate = self.update.bind(self);
 
     self.gameStream=gameStream;
-    self.mediaStream=mediaStream;
 
     self.config={
         interfaceId: config.interfaceId,
@@ -23,7 +19,9 @@ function RecorderBarInterface(config,gameStream,mediaStream) {
     self.config._barWidth=self.config._width;
     self.config._barHeight=Math.round(self.config._height*0.4);
     self.config._barHalfHeight=Math.round(self.config._barHeight/2);
-    
+
+    self.status={ };
+        
     // add the necessary html and initialize the RecorderBar
     document.getElementById(self.config.interfaceId).appendChild(self.html(self.config));
     self.init();
@@ -97,6 +95,24 @@ RecorderBarInterface.prototype.actionHtml = function(index) {
       if (action.time<0) el.className+=" initial";
       else el.className+=" regular";
       el.style.zIndex=index+1;
+
+        var el2=document.createElement("div");
+        el2.className="top";
+        el2.style.top="0px";
+        el2.style.zIndex=index+1;
+        el.appendChild(el2);
+
+        var el2=document.createElement("div");
+        el2.className="center";
+        el2.style.zIndex=index+1;
+        el.appendChild(el2);
+
+        var el2=document.createElement("div");
+        el2.className="bottom";
+        el2.style.bottom="0px";
+        el2.style.zIndex=index+1;
+        el.appendChild(el2);
+
       container.appendChild(el);
 
     return container;
@@ -107,15 +123,9 @@ RecorderBarInterface.prototype.init = function() {
     var self=this;
 
     self.gameStream._rgfGame.bind('actionQueued', self.onActionQueued);
-    self.mediaStream.bind('statusChange', self.onStatusChange);
-    self.mediaStream.bind('timeChange', self.onTimeChange);
+    self.gameStream.bind('update', self.onUpdate);
 
-    self.status={
-        time: 0,
-//        duration: undefined
-    };
-
-//    self.updateDuration(self.gameStream._rgfGame.duration.time);
+    self.setDuration(self.gameStream._rgfGame.duration.time);
     self.setBasePos(0.5);
 };
 
@@ -123,19 +133,39 @@ RecorderBarInterface.prototype.init = function() {
 RecorderBarInterface.prototype._getPos = function(time) {
     return Math.round(time*this.config._barWidth/this.config.timeInterval);
 };
-RecorderBarInterface.prototype.updateTime = function(time) {
-    if (time!=undefined) this.status.time=time;
-    this._bar.style.left=(this.config._barBasePos-this._getPos(this.status.time))+"px";
+RecorderBarInterface.prototype.update = function() {
+    var gsIndex=this.gameStream.status.timeIndex-1,
+        gsTime=this.gameStream.status.time,
+        gsCounter=this.gameStream.status.timeCounter;
+    gsIndex=(gsIndex < 0) ? 0 : gsIndex;
+
+    this.setCurrentAction(gsIndex);
+    this.setCurrentTime(gsTime,gsCounter);
 };
-// RecorderBarInterface.prototype.updateDuration = function(duration) {
-//    if (duration!=undefined) this.status.duration=duration;
-//    this._bar.style.width=this._getPos(this.status.duration):
-//};
+RecorderBarInterface.prototype.setDuration = function(duration) {
+    this._bar.style.width=this._getPos(duration)+"px";
+    this.status.gsDuration=duration;
+};
 RecorderBarInterface.prototype.setBasePos = function(p) {
     this.config._barBasePos=Math.round(this.config._barWidth*p);
     this._baseMarker.style.left=this.config._barBasePos+"px";
-    this.updateTime();
+    this.update();
+};
+RecorderBarInterface.prototype.setCurrentAction = function(index) {
+    if (index==this.status.gsIndex) return;
+    if (index!=undefined) $('#'+this.config.interfaceId+"_aid_"+index+" .action").addClass("currentAction");
+    $('#'+this.config.interfaceId+"_aid_"+this.status.gsIndex+" .action").removeClass("currentAction");
+
+    this.status.gsIndex=index;
+};
+RecorderBarInterface.prototype.setCurrentTime = function(time,counter) {
+    this._bar.style.left=(this.config._barBasePos-this._getPos(time))+"px";
+    this.status.gsTime=time;
+    this.status.gsCounter=counter;
 };
 RecorderBarInterface.prototype.insertAction = function(index) {
+    var gsDuration=this.gameStream._rgfGame.duration.time;
+
+    this.setDuration(gsDuration);
     this._bar.appendChild(this.actionHtml(index));
 }

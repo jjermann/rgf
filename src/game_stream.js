@@ -171,20 +171,23 @@ GameStream.prototype.updateCurrentTime = function() {
 };
 
 GameStream.prototype.update = function(nextTime,nextCounter) {
+    var nTime=nextTime, nCounter=nextCounter;
     if (nextTime==undefined) {
-        nextTime=this.status.time;
-        nextCounter=this.status.timeCounter;
+        nTime=this.status.time;
+        nCounter=this.status.timeCounter;
     } else if (nextCounter==undefined) {
-        nextCounter=Infinity;
+        nCounter=Infinity;
     }
-    if (nextTime>this.status.time || (nextTime==this.status.time && nextCounter>=this.status.timeCounter)) {
-        this._advanceTo(nextTime,nextCounter);
+    if (nTime>this.status.time || (nTime==this.status.time && nCounter>=this.status.timeCounter)) {
+        this._advanceTo(nTime,nCounter);
     } else {
-        this._reverseTo(nextTime,nextCounter);
+        this._reverseTo(nTime,nCounter);
     }
 
     if (this.status.time<this._rgfGame.duration.time || (this.status.time==this._rgfGame.duration.time && this.status.timeCounter < this._rgfGame.duration.counter) ) this.status.waiting=false;
     else this.status.waiting=true;
+    
+    this.trigger("update",nextTime,nextCounter);
 };
 
 /* Applies all actions from the current timeIndex (resp. this.status.time) up to nextTime.

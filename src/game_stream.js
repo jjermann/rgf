@@ -28,12 +28,7 @@ function GameStream(rgfId,rgfGame) {
     // called outside of GameStream since the board might not be ready yet:
     // this.update(0);
     
-    self.onStatusChange = self.onStatusChange.bind(self);
     self.onTimeChange = self.onTimeChange.bind(self);
-};
-
-GameStream.prototype.onStatusChange = function (newStatus) {
-    // TODO...
 };
 
 GameStream.prototype.onTimeChange = function (newStatus) {
@@ -59,7 +54,6 @@ GameStream.prototype.attachStream = function (stream) {
     
     self.attachedStream = stream;
 
-    stream.bind('statusChange', self.onStatusChange);
     stream.bind('timeChange', self.onTimeChange);
 };
 
@@ -68,7 +62,6 @@ GameStream.prototype.detachStream = function () {
         stream = self.attachedStream;
 
     if (stream) {
-        stream.unbind('statusChange', self.onStatusChange);
         stream.unbind('timeChange', self.onTimeChange);
         
         delete self.attachedStream;

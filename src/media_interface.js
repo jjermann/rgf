@@ -9,6 +9,7 @@ function MediaInterface(interfaceId,mediaStream) {
     self.mediaStream = mediaStream;
     
     self.onTimeChange = self.updateSeekBar.bind(self);
+    self.onDurationChange = self.updateSeekDuration.bind(self);
     self.onStatusChange = self.updateControls.bind(self);
 
     // add the necessary html and initialize the MediaInterface
@@ -95,10 +96,12 @@ MediaInterface.prototype.init=function() {
     var self=this;
 
     self.mediaStream.bind('statusChange', self.onStatusChange);
+    self.mediaStream.bind('durationChange', self.onDurationChange);
     self.mediaStream.bind('timeChange', self.onTimeChange);
     
     // set the initial status
     self.onStatusChange(self.mediaStream.status);
+    self.onDurationChange(self.mediaStream.status);
     self.onTimeChange(self.mediaStream.status);
 
     // set eventHandlers
@@ -142,9 +145,8 @@ MediaInterface.prototype.init=function() {
     });
 };
 
-// Called whenever the time or duration changes
-MediaInterface.prototype.updateSeekBar = function(status) {
-    this.sel('jp-current-time').text(this.mediaStream.convertTime(status.currentTime));
+// Called whenever the duration changes
+MediaInterface.prototype.updateSeekDuration = function(status) {
     var text;
     if (status.ready) {
         var s=status.streamType;
@@ -160,6 +162,11 @@ MediaInterface.prototype.updateSeekBar = function(status) {
         text="Loading...";
     }
     this.sel('jp-duration').text(text);
+};
+
+// Called whenever the time changes
+MediaInterface.prototype.updateSeekBar = function(status) {
+    this.sel('jp-current-time').text(this.mediaStream.convertTime(status.currentTime));
     this.sel('jp-seek-bar').width(status.seekPercent*100+"%");
     this.sel('jp-play-bar').width(status.currentPercentRelative*100+"%");
 };
@@ -184,7 +191,6 @@ MediaInterface.prototype.updateControls = function(status) {
         this.sel('jp-unmute').hide();
         this.sel('jp-volume-bar-value').show();
         this.sel('jp-volume-bar').show();
-        this.sel('jp-volume-bar-value')[status.verticalVolume ? "height" : "width"](status.volume*100+"%");
-                                                
+        this.sel('jp-volume-bar-value')[status.verticalVolume ? "height" : "width"](status.volume*100+'%');
     }
 };

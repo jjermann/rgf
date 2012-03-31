@@ -26,7 +26,8 @@ function MediaStream(mediaId,msSources,duration) {
         // we store the rgf duration in case we need to fallback to the baseplayer
         rgfDuration: duration,
         
-        // options for "onTimeChange"
+        // Options for: TIME CHANGES
+        // -------------------------
         currentTime: 0,
         seekable: false,
         // For the interface: where we can maximally seek to
@@ -35,6 +36,9 @@ function MediaStream(mediaId,msSources,duration) {
         // For the interface: where we currently are in relative/absolute percentages
         currentPercentRelative: 0,
         currentPercentAbsolute: 0,
+
+        // Options for: DURATION CHANGES
+        // -----------------------------
         // If setSuration is not set, duration will be set initially in "canplay",
         // until then it is set to 0 (which produces an error later if it is not changed)
         duration: (this.mediaType=="none") ? duration : 0,
@@ -47,7 +51,8 @@ function MediaStream(mediaId,msSources,duration) {
         */
         streamType: "",
 
-        // options for "onStatusChange"
+        // Options for: STATUS CHANGES
+        // ---------------------------
         paused: true,
         muted: false,
         // TODO: set this somewhere else than (manually) here...
@@ -178,11 +183,10 @@ MediaStream.prototype.init=function() {
     this.player.listen("canplay", function() {
         if (!self.status.ready) {
             self.status.ready=true;
-            if (!self.status.setDuration) self.status.duration=this.duration();
-            self.streamTypeUpdate(self.status.duration);
-                
-            self.trigger('statusChange',self.status);
+//            self.trigger('statusChange',self.status);
+            this.trigger("durationchange");
             this.trigger("timeupdate");
+            self.trigger('statusChange',self.status);
         }
     });
     this.player.listen("failedLoading", function() { self.fallback(); });
@@ -236,9 +240,14 @@ MediaStream.prototype.init=function() {
         if (self.status.ready) {
             if (!self.status.setDuration) self.status.duration=this.duration();
             self.streamTypeUpdate(self.status.duration);
-            if (self.status.currentTime<self.status.duration) { self.status.ended=false; }
+
+            if (self.status.currentTime<self.status.duration) {
+                self.status.ended=false;
+                self.trigger('statusChange', self.status);
+            }
+
+            self.trigger('durationChange', self.status);
         }
-        self.trigger('timeChange',self.status);
     });
     this.player.listen("volumechange", function() {
         self.status.muted=this.muted();

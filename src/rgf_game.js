@@ -297,7 +297,7 @@ RGFGame.prototype.removeAction=function(index,force) {
     this.duration.counter=this.actionList[this.actionList.length-1].counter;
     if (this.duration.time<0) this.setup=true;
     
-    this.trigger("removedAction",action,index);
+    this.trigger("removedAction",index,action);
 
     return true;
 };

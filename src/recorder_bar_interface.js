@@ -93,10 +93,20 @@ RecorderBarInterface.prototype.html = function(config) {
       bar.style.position="absolute";
       bar.style.top=Math.round((self.config._height-self.config._barIntHeight)/2)+"px";
       bar.style.height=self.config._barIntHeight+"px";
-      // TODO: add a duration bar on top?
       bar.style.width="1000000px";
       bar.style.left="0px";
+        var el=document.createElement("div");
+        el.className="recorder_bar_beginning";
+        el.style.position="absolute";
+        el.style.left=0;
+        bar.appendChild(el);
+        el=document.createElement("div");
+        el.className="recorder_bar_end";
+        el.style.position="absolute";
+        el.style.right=0;
+        bar.appendChild(el);
       barInterface.appendChild(bar);
+console.log(barInterface);
       
       $(bar).draggable({
           cursor:      "move",
@@ -108,14 +118,14 @@ RecorderBarInterface.prototype.html = function(config) {
               else self.gameStream.update(time);
           }
       });
-      
+
       var baseMarker=document.createElement("div");
       self._baseMarker=baseMarker;
       baseMarker.id=self.config.interfaceId+"_basemarker";
       baseMarker.style.position="absolute";
       baseMarker.style.top="0px";
       baseMarker.style.left="0px";
-        var el=document.createElement("div");
+        el=document.createElement("div");
         el.style.position="absolute";
         el.style.zIndex=10000;
         el.className="basemarker";

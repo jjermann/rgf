@@ -2,6 +2,18 @@
     background: lightgreen;
     cursor: move;
 }
+.recorder_bar_beginning {
+    top: -40px;
+    bottom: -40px;
+    width: 1px;
+    background: green;
+}
+.recorder_bar_end {
+    top: -40px;
+    bottom: -40px;
+    width: 1px;
+    background: green;
+}
 
 .basemarker {
     top: 0px;

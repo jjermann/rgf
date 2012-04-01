@@ -171,7 +171,7 @@ RGFGame.prototype.modifyActionTime = function(firstIndex,lastIndex,dt,check) {
         lastAction  = this.actionList[lastIndex];
     
     // VALIDITY CHECKS
-    if (lastIndex-firstIndex<=0) return false;
+    if (lastIndex-firstIndex<0) return false;
     if (firstIndex<=0 || lastIndex>=this.actionList.length) return false;
     var dprev=this.actionList[firstIndex-1].time-firstAction.time;
     var dnext=Infinity;
@@ -186,7 +186,7 @@ RGFGame.prototype.modifyActionTime = function(firstIndex,lastIndex,dt,check) {
     
     // CHANGE THE TIME AND COUNTERS ACCORDINGLY
     var firstTime=this.actionList[firstIndex-1].time;
-    var counter=ths.actionList[firstIndex-1].counter;
+    var counter=this.actionList[firstIndex-1].counter;
     var i=firstIndex;
     while (i<=lastIndex) {
         var action=this.actionList[i];
@@ -212,7 +212,7 @@ RGFGame.prototype.modifyActionTime = function(firstIndex,lastIndex,dt,check) {
         else this.setup=true;
     }
 
-    this.trigger("timeChange",firstIndex,lastIndex);
+    this.trigger("timeModified",firstIndex,lastIndex);
 
     return true;
 };

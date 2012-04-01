@@ -163,7 +163,7 @@ GameStream.prototype.updateCurrentTime = function() {
     }
 };
 
-GameStream.prototype.update = function(nextTime,nextCounter) {
+GameStream.prototype.update = function(nextTime,nextCounter,hard) {
     var nTime=nextTime, nCounter=nextCounter;
     if (nextTime==undefined) {
         nTime=this.status.time;
@@ -171,8 +171,14 @@ GameStream.prototype.update = function(nextTime,nextCounter) {
     } else if (nextCounter==undefined) {
         nCounter=Infinity;
     }
+    
+    if (hard) this._reverseTo(-2,0);
+    
     if (nTime>this.status.time || (nTime==this.status.time && nCounter>=this.status.timeCounter)) {
         this._advanceTo(nTime,nCounter);
+    } else if (this.status.timeIndex>1 && nTime<this.status.time && this._rgfGame.actionList[this.status.timeIndex-2].time<nTime) {
+        this.status.time=nTime;
+        this.status.counter=0;
     } else {
         this._reverseTo(nTime,nCounter);
     }
@@ -319,6 +325,23 @@ GameStream.prototype.step = function(steps,noInitial,ignoreList,isWhiteList) {
     } else {
         this.update(nextAction.time,nextAction.counter);
     }
+};
+
+GameStream.prototype.modifyActionTime = function(firstIndex,lastIndex,dt,check) {
+    var self=this;
+    
+    var res=self._rgfGame.modifyActionTime(firstIndex,lastIndex,dt,check);
+    if (res && !check) {
+        var firstTime=self._rgfGame.actionList[firstIndex].time;
+        if (dt<0) firstTime+=dt;
+        var lastTime=self._rgfGame.actionList[lastIndex].time;
+        if (dt>0) lastTime+=dt;
+        
+        if (self.status.time>=firstTime && self.status.time<=lastTime) self.update(undefined,undefined,true);
+        else self.update();
+    }
+    
+    return res;
 };
 
 asEvented.call(GameStream.prototype);

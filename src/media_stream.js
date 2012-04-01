@@ -327,6 +327,7 @@ MediaStream.prototype.seekTime = function(time) {
     if (time<0) time=0;
     if (this.status.ready && (this.status.seekable || this.status.streamType=="knownDuration")) {
         this.player.currentTime(time);
+        this.player.trigger("timeupdate");
     }
 };
 

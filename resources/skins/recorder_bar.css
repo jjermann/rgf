@@ -36,9 +36,9 @@
 }
 
 .action {
-    left: -5px;
+    left: -3px;
     top: -40px;
-    width: 10px;
+    width: 6px;
     height: 80px;
     border: 1px solid grey;
 }
@@ -64,11 +64,14 @@
 
 .action .drag {
     position: absolute;
-    left: 0px;
-    top: 0px;
-    right: 0px;
-    bottom: 60px;
+    left: -6px;
+    top: -6px;
+    right: -6px;
+    height: 18px;
     cursor: move;
+}
+.action .drag:hover {
+    background: green
 }
 
 .action.currentAction {

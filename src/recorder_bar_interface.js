@@ -106,7 +106,6 @@ RecorderBarInterface.prototype.html = function(config) {
         el.style.right=0;
         bar.appendChild(el);
       barInterface.appendChild(bar);
-console.log(barInterface);
       
       $(bar).draggable({
           cursor:      "move",
@@ -225,6 +224,11 @@ RecorderBarInterface.prototype.update = function() {
     this._setCurrentTime(gsTime,gsCounter);
 };
 
+RecorderBarInterface.prototype._updateBarContainment = function() {
+    var x1=Math.round($(this._barInterface).offset().left-$(this._bar).width()+this.config._barBasePos);
+    var x2=x1+$(this._bar).width();
+    $(this._bar).draggable("option", "containment", [x1,-10000,x2,10000]);
+};
 RecorderBarInterface.prototype.updateDuration = function() {
     var self=this;
     
@@ -237,15 +241,13 @@ RecorderBarInterface.prototype.updateDuration = function() {
 
     var barWidth=self._getPos(nDuration)+"px";
     self._bar.style.width=barWidth;
-
-    var x1=Math.round($(self._barInterface).offset().left-$(self._bar).width()+self.config._barBasePos);
-    var x2=x1+$(self._bar).width();
-    $(self._bar).draggable("option", "containment", [x1,-10000,x2,10000]);
+    self._updateBarContainment();
 };
 RecorderBarInterface.prototype.setBasePos = function(p) {
     if (p<0 || p>1) alert("invalid percentage!");
     this.config._barBasePos=Math.round(this.config._barIntWidth*p);
     this._baseMarker.style.left=this.config._barBasePos+"px";
+    this._updateBarContainment();
     this.update();
 };
 RecorderBarInterface.prototype._setCurrentAction = function(index) {

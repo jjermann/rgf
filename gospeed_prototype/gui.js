@@ -38,7 +38,7 @@ function DisplayGUI(baseId,msSources,duration) {
     self.mediaStream=new MediaStream(self.id+"_media",msSources,duration);
     self.mediaInterface=new MediaInterface(self.id+"_media_interface",self.mediaStream);
     self.gameInterface=new GameInterface({stepForwardId: self.id+"_game_step_forward", stepBackId: self.id+"_game_step_back"},self.gameStream,self.mediaStream);
-    self.recorderBarInterface=new RecorderBarInterface({interfaceId: self.id+"_player_recorder_bar_interface", timeInterval: 60},self.gameStream,self.mediaStream);
+    self.recorderBarInterface=new RecorderBarInterface({interfaceId: self.id+"_player_recorder_bar_interface", timeInterval: 30},self.gameStream,self.mediaStream);
     
     self.gameStream.attachStream(self.mediaStream);    
     self.boardPlayer.attachStream(self.gameStream);

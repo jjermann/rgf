@@ -38,7 +38,8 @@ function DisplayGUI(baseId,msSources,duration) {
     self.mediaStream=new MediaStream(self.id+"_media",msSources,duration);
     self.mediaInterface=new MediaInterface(self.id+"_media_interface",self.mediaStream);
     self.gameInterface=new GameInterface({stepForwardId: self.id+"_game_step_forward", stepBackId: self.id+"_game_step_back"},self.gameStream,self.mediaStream);
-
+    self.recorderBarInterface=new RecorderBarInterface({interfaceId: self.id+"_player_recorder_bar_interface", timeInterval: 60},self.gameStream,self.mediaStream);
+    
     self.gameStream.attachStream(self.mediaStream);    
     self.boardPlayer.attachStream(self.gameStream);
     
@@ -100,6 +101,11 @@ DisplayGUI.prototype.playerHtml = function() {
       container.appendChild(self.playerInterfaceHtml());
       el.appendChild(container);
       
+      container=document.createElement("div");
+      container.id=self.id+"_player_recorder_bar_interface";
+      container.className="player_recorder_bar_interface";
+      el.appendChild(container);
+
       container=document.createElement("div");
       container.id=self.id+"_player_tree";
       container.className="player_tree";

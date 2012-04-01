@@ -71,6 +71,12 @@ div.gui_player {
     left:          650px;
     top:           4px;
 }
+div.player_recorder_bar_interface {
+    width:         495px;
+    height:        100px;
+    margin:        4px;
+    border:        solid black 1px;
+}
 div.gui_player table.player_stats {
     border-collapse: collapse;
     margin: 20px auto;

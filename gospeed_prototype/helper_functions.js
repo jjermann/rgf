@@ -13,6 +13,24 @@ function createBox(boxName,bodyId,title) {
     return el;
 };
 
+function printAction(action) {
+    var txt=action.name
+        + ((action.arg!==undefined && action.arg!="") ?
+            "[" + action.arg + "]" :
+            "")
+        + ((action.time!==undefined) ?
+            "TS[" + action.time + ((action.counter!==undefined) ?
+                ":" + action.counter :
+                 "")
+            + "]" :
+            "")
+        + ((action.position!==undefined) ?
+            " (pos: " + action.position + ")" :
+            "")
+        + " ";
+    return txt;
+};
+
 
 // Container for examples and display gui...
 function ExampleCollection(menuId) {

@@ -50,19 +50,19 @@ div.gui_game_rgf {
     top:           670px;
     left:          4px;
 }
+div.gui_game_actions {
+    position:      absolute;
+    width:         382px;
+    height:        500px;
+    top:           670px;
+    left:          1078px;
+}
 div.gui_player_sgf {
     position:      absolute;
     width:         422px;
     height:        500px;
     top:           670px;
     left:          650px;
-}
-div.gui_player_actions {
-    position:      absolute;
-    width:         382px;
-    height:        500px;
-    top:           670px;
-    left:          1078px;
 }
 
 

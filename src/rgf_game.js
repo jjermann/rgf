@@ -2,10 +2,9 @@
     ----------
     Responsible to store a whole game/lecture together with all timing informations.
 */
-function RGFGame(rgfId) {
+function RGFGame() {
     var self = this;
 
-    self.id = rgfId;
     // A KeyFrames should contain all necessary information to restore the situation from the given time,
     // it must set the position to the last known position
     self.keyframeList = [];

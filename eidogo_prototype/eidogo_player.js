@@ -1,10 +1,9 @@
 /* This should already exist! So _all_ content is for testing only... */
-function EidogoPlayer(playerId,sgfId,actionsId) {
+function EidogoPlayer(playerId,sgfId) {
     var self=this;
     
     self.id=playerId;
     self.sgfId=sgfId;
-    self.actionsId=actionsId;
     self.onApplyAction = self.applyAction.bind(self);
 
     // Initializes the Player (no further HTML needs to be added)
@@ -99,23 +98,10 @@ EidogoPlayer.prototype.applyAction = function(action) {
         this.eidogoPlayer.refresh();
     }
 
-    // demo output
-    if (action.name=="KeyFrame") {
-        $('#'+this.actionsId).text("");
-    }
-    
-    var newActiontxt="board.apply({"
-         + ((action.time!==undefined)       ? ("time: " + action.time)                    :   "No time")
-         + ((action.counter!==undefined)    ? (", counter: " + action.counter)            :   "")
-         + ((action.name!==undefined)       ? (", name: \"" + action.name +"\"")          :   "")
-         + ((action.arg!==undefined)        ? (", arg: \"" + action.arg + "\"")           :   "")
-         + ((action.position!==undefined)   ? (", position: \"" + action.position + "\"") :   "")
-    + "});\n";
-
+    // debug output
     var parser=new RGFParser;
     parser.loadRGF(this.eidogoPlayer.cursor.getGameRoot().toSgf());
     $('#'+this.sgfId).text(parser.rgf);
-    $('#'+this.actionsId).append(document.createTextNode(newActiontxt));
 };
 
 asEvented.call(EidogoPlayer.prototype);

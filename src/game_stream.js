@@ -2,11 +2,10 @@
     ----------
     Keeps track of the current time and currently applied actions from the RGF game
 */
-function GameStream(rgfId,rgfGame) {
+function GameStream(rgfGame) {
     var self = this;
     
-    self.id = rgfId;
-    self._rgfGame = (rgfGame) ? rgfGame: new RGFGame(rgfId);
+    self._rgfGame = (rgfGame) ? rgfGame: new RGFGame();
 
     /* status information */
     self.status = {

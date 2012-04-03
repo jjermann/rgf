@@ -33,7 +33,7 @@ function DisplayGUI(baseId,msSources,duration) {
 
     // create components
     self.boardPlayer=new GoSpeedPlayer(self.id+"_player",goSpeedConf);
-    self.gameStream=new GameStream(self.id+"_game_rgf")
+    self.gameStream=new GameStream()
     self.gameStream.update(0);
     self.mediaStream=new MediaStream(self.id+"_media",msSources,duration);
     self.mediaInterface=new MediaInterface(self.id+"_media_interface",self.mediaStream);
@@ -50,12 +50,35 @@ function DisplayGUI(baseId,msSources,duration) {
         }
     };
     self.mediaStream.bind('statusChange', self.onStatusChange);
+
+    // Debug output
     self.updateRGFDebug = function() {
         $('#'+self.id+"_game_rgf").text(self.gameStream._rgfGame.writeRGF());
     };
-    self.gameStream._rgfGame.bind('actionQueued', self.updateRGFDebug); 
-    self.gameStream._rgfGame.bind('timeModified', self.updateRGFDebug);
-    self.gameStream._rgfGame.bind('removedAction', self.updateRGFDebug);
+    self.updateActionListDebug = function() {
+        var txt="";
+        for (var i=0; i<self.gameStream._rgfGame.actionList.length; i++) {
+            if (i==self.gameStream.status.timeIndex) txt+="---- CURRENT INDEX ----\n";
+            txt+=printAction(self.gameStream._rgfGame.actionList[i])+"\n";
+        }
+        if (i==self.gameStream.status.timeIndex) txt+="---- CURRENT INDEX ----\n";
+        $('#'+self.id+"_game_actions").text(txt);
+    };
+    self.gameStream.bind('update', function() {
+        self.updateActionListDebug();
+    });
+    self.gameStream._rgfGame.bind('actionQueued', function(index) {
+        self.updateRGFDebug();
+        self.updateActionListDebug();
+    });
+    self.gameStream._rgfGame.bind('timeModified', function(firstIndex,lastIndex,dt) {
+        self.updateRGFDebug();
+        self.updateActionListDebug();
+    });
+    self.gameStream._rgfGame.bind('removedAction', function(index,action) {
+        self.updateRGFDebug();
+        self.updateActionListDebug();
+    });
 };
 
 DisplayGUI.prototype.hide = function() {
@@ -81,7 +104,8 @@ DisplayGUI.prototype.html = function() {
     gui.appendChild(el);
 
     /* RGF debug output */
-    gui.appendChild(createBox("gui_game_rgf",self.id+"_game_rgf","Current RGF Tree"));
+    gui.appendChild(createBox("gui_game_rgf",self.id+"_game_rgf","RGF Tree"));
+    gui.appendChild(createBox("gui_game_actions",self.id+"_game_actions","ActionList"));
 
     /* Media Stream */
     el=document.createElement("div");

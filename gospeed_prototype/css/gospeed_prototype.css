@@ -33,10 +33,17 @@ div#menu p.selected {
 /* Layout for the RGF debug output */
 div.gui_game_rgf {
     position:      absolute;
-    width:         640px;
+    width:         400px;
     height:        500px;
     top:           560px;
     left:          4px;
+}
+div.gui_game_actions {
+    position:      absolute;
+    width:         236px;
+    height:        500px;
+    top:           560px;
+    left:          410px;
 }
 
 

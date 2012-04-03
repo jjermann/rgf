@@ -6,8 +6,8 @@ function DisplayGUI(baseId,msSources,duration) {
     document.body.appendChild(self.html());
 
     // create components
-    self.boardPlayer=new EidogoPlayer(self.id+"_player",self.id+"_player_sgf",self.id+"_player_actions");
-    self.gameStream=new GameStream(self.id+"_game_rgf")
+    self.boardPlayer=new EidogoPlayer(self.id+"_player",self.id+"_player_sgf");
+    self.gameStream=new GameStream();
     self.gameStream.update(0);
     self.mediaStream=new MediaStream(self.id+"_media",msSources,duration);
     self.mediaInterface=new MediaInterface(self.id+"_media_interface",self.mediaStream);
@@ -25,12 +25,34 @@ function DisplayGUI(baseId,msSources,duration) {
     };
     self.mediaStream.bind('statusChange', self.onStatusChange);
 
+    // Debug output
     self.updateRGFDebug = function() {
         $('#'+self.id+"_game_rgf").text(self.gameStream._rgfGame.writeRGF());
     };
-    self.gameStream._rgfGame.bind('actionQueued', self.updateRGFDebug);
-    self.gameStream._rgfGame.bind('timeModified', self.updateRGFDebug);
-    self.gameStream._rgfGame.bind('removedAction', self.updateRGFDebug);
+    self.updateActionListDebug = function() {
+        var txt="";
+        for (var i=0; i<self.gameStream._rgfGame.actionList.length; i++) {
+            if (i==self.gameStream.status.timeIndex) txt+="---- CURRENT INDEX ----\n";
+            txt+=printAction(self.gameStream._rgfGame.actionList[i])+"\n";
+        }
+        if (i==self.gameStream.status.timeIndex) txt+="---- CURRENT INDEX ----\n";
+        $('#'+self.id+"_game_actions").text(txt);
+    };
+    self.gameStream.bind('update', function() {
+        self.updateActionListDebug();
+    }); 
+    self.gameStream._rgfGame.bind('actionQueued', function(index) {
+        self.updateRGFDebug();
+        self.updateActionListDebug();
+    }); 
+    self.gameStream._rgfGame.bind('timeModified', function(firstIndex,lastIndex,dt) {
+        self.updateRGFDebug();
+        self.updateActionListDebug();
+    });
+    self.gameStream._rgfGame.bind('removedAction', function(index,action) {
+        self.updateRGFDebug();
+        self.updateActionListDebug();
+    });
 };
 
 DisplayGUI.prototype.html = function() {
@@ -60,9 +82,9 @@ DisplayGUI.prototype.html = function() {
     el.className="gui_recorder_bar_interface";
     gui.appendChild(el);
 
-    gui.appendChild(createBox("gui_game_rgf",self.id+"_game_rgf","Current RGF Tree"));
+    gui.appendChild(createBox("gui_game_rgf",self.id+"_game_rgf","RGF Tree"));
+    gui.appendChild(createBox("gui_game_actions",self.id+"_game_actions","ActionList"));
     gui.appendChild(createBox("gui_player_sgf",self.id+"_player_sgf","Current SGF tree"));
-    gui.appendChild(createBox("gui_player_actions",self.id+"_player_actions","Currently applied actions"));
     return gui;
 };
 
@@ -95,5 +117,3 @@ DisplayGUI.prototype.hide = function() {
 DisplayGUI.prototype.show = function() {
     $("div#"+this.id+" ").show();
 };
-
-    

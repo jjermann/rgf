@@ -159,9 +159,6 @@ RGFGame.prototype.queueTimedAction=function(action,force,check) {
 
     this.trigger("actionQueued",timeIndex);
 
-    // For testing:
-    $('#'+this.id).text(this.writeRGF());
-
     return true;
 };
 

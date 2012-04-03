@@ -50,6 +50,12 @@ function DisplayGUI(baseId,msSources,duration) {
         }
     };
     self.mediaStream.bind('statusChange', self.onStatusChange);
+    self.updateRGFDebug = function() {
+        $('#'+self.id+"_game_rgf").text(self.gameStream._rgfGame.writeRGF());
+    };
+    self.gameStream._rgfGame.bind('actionQueued', self.updateRGFDebug); 
+    self.gameStream._rgfGame.bind('timeModified', self.updateRGFDebug);
+    self.gameStream._rgfGame.bind('removedAction', self.updateRGFDebug);
 };
 
 DisplayGUI.prototype.hide = function() {

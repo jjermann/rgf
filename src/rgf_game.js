@@ -212,7 +212,7 @@ RGFGame.prototype.modifyActionTime = function(firstIndex,lastIndex,dt,check) {
         else this.setup=true;
     }
 
-    this.trigger("timeModified",firstIndex,lastIndex);
+    this.trigger("timeModified",firstIndex,lastIndex,dt);
 
     return true;
 };

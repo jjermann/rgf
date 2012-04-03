@@ -8,9 +8,9 @@ function RecorderBarInterface(config,gameStream,mediaStream) {
     self.onActionQueued = self.insertAction.bind(self);
     self.onRemovedAction = self.removeAction.bind(self);
     self.onUpdate = self.update.bind(self);
-    self.onTimeModified = function(firstIndex,lastIndex) {
+    self.onTimeModified = function(firstIndex,lastIndex,dt) {
         for (var i=firstIndex; i<=lastIndex; i++) {
-            self._updateActionTime(i);
+            self.updateActionPlacement(i,dt);
         }
     }
 
@@ -33,12 +33,12 @@ function RecorderBarInterface(config,gameStream,mediaStream) {
         _initialKeyFrameTime: -6,
         _setupTime: -3
     };
-    self.config._barIntWidth=self.config._width;
-    self.config._barIntHeight=Math.round(self.config._height*0.4);
-    self.config._barIntHalfHeight=Math.round(self.config._barIntHeight/2);
+    self.config._barHeight=Math.round(self.config._height*0.4);
+    self.config._barHalfHeight=Math.round(self.config._barHeight/2);
 
     self.status={
-        actionList: []
+        actionList: [],
+        timeList: []
     };
         
     // add the necessary html and initialize the RecorderBar
@@ -47,7 +47,6 @@ function RecorderBarInterface(config,gameStream,mediaStream) {
     if (gameStream) self.attachStream(gameStream);
     if (mediaStream) self.attachMediaStream(mediaStream);
 }
-
 RecorderBarInterface.prototype.attachStream = function(gameStream) {
     var self=this;
 
@@ -64,7 +63,6 @@ RecorderBarInterface.prototype.attachStream = function(gameStream) {
     self.updateDuration();
     self.setBasePos(0.5);
 };
-
 RecorderBarInterface.prototype.attachMediaStream = function(mediaStream) {
     var self=this;
 
@@ -74,6 +72,8 @@ RecorderBarInterface.prototype.attachMediaStream = function(mediaStream) {
     self.onDurationChange(self.mediaStream.status);
 };
 
+
+/* HTML code */
 RecorderBarInterface.prototype.html = function(config) {
     var self=this;
 
@@ -91,8 +91,8 @@ RecorderBarInterface.prototype.html = function(config) {
       self._bar=bar;
       bar.className="recorder_bar ui-widget-content";
       bar.style.position="absolute";
-      bar.style.top=Math.round((self.config._height-self.config._barIntHeight)/2)+"px";
-      bar.style.height=self.config._barIntHeight+"px";
+      bar.style.top=Math.round((self.config._height-self.config._barHeight)/2)+"px";
+      bar.style.height=self.config._barHeight+"px";
       bar.style.width="1000000px";
       bar.style.left="0px";
         var el=document.createElement("div");
@@ -142,14 +142,14 @@ RecorderBarInterface.prototype.html = function(config) {
           axis:        "x",
           containment: "parent",
           drag: function(e,ui) {
-              var p=ui.position.left/self.config._barIntWidth;
+              var p=ui.position.left/self.config._width;
               self.setBasePos(p);
           }
       });
 
     return self._barInterface;
 };
-
+/* HTML code of an individual action */
 RecorderBarInterface.prototype.actionHtml = function(index) {
     var self=this,
         action=self.gameStream._rgfGame.actionList[index];
@@ -157,7 +157,7 @@ RecorderBarInterface.prototype.actionHtml = function(index) {
     var container=document.createElement("div");
     container.className="action_container ui-widget-content";
     container.style.position="absolute";
-    container.style.top=self.config._barIntHalfHeight+"px";
+    container.style.top=self.config._barHalfHeight+"px";
 
       var el=document.createElement("div");
       el.style.position="absolute";
@@ -192,43 +192,16 @@ RecorderBarInterface.prototype.actionHtml = function(index) {
 };
 
 
-RecorderBarInterface.prototype._updateActionTime = function(index) {
-    var self=this,
-        action=self.gameStream._rgfGame.actionList[index];
-
-    if (action.time>=0) {
-        var pos=self._getPos(action.time);
-    } else if (action.time==-1) {
-        var pos=self._getPos(self.config._setupTime);
-    } else if (action.time==-2) {
-        var pos=self._getPos(self.config._initialKeyFrameTime);
-    } else {
-        alert("Invalid time...");
-    }
-    
-    self.status.actionList[index].style.left=pos+"px";
-};
+/* Conversion functions between positions and time */
 RecorderBarInterface.prototype._getPos = function(time) {
-    return Math.round(time*this.config._barIntWidth/this.config.timeInterval);
+    return Math.round(time*this.config._width/this.config.timeInterval);
 };
 RecorderBarInterface.prototype._getTime = function(pos) {
-    return pos*this.config.timeInterval/this.config._barIntWidth;
+    return pos*this.config.timeInterval/this.config._width;
 };
 
-RecorderBarInterface.prototype.update = function() {
-    var gsIndex=this.gameStream.status.timeIndex-1,
-        gsTime=this.gameStream.status.time,
-        gsCounter=this.gameStream.status.timeCounter;
-    gsIndex=(gsIndex < 0) ? 0 : gsIndex;
-    this._setCurrentAction(gsIndex);
-    this._setCurrentTime(gsTime,gsCounter);
-};
 
-RecorderBarInterface.prototype._updateBarContainment = function() {
-    var x1=Math.round($(this._barInterface).offset().left-$(this._bar).width()+this.config._barBasePos);
-    var x2=x1+$(this._bar).width();
-    $(this._bar).draggable("option", "containment", [x1,-10000,x2,10000]);
-};
+/* Functions that modify/update DOM content directly */
 RecorderBarInterface.prototype.updateDuration = function() {
     var self=this;
     
@@ -243,20 +216,6 @@ RecorderBarInterface.prototype.updateDuration = function() {
     self._bar.style.width=barWidth;
     self._updateBarContainment();
 };
-RecorderBarInterface.prototype.setBasePos = function(p) {
-    if (p<0 || p>1) alert("invalid percentage!");
-    this.config._barBasePos=Math.round(this.config._barIntWidth*p);
-    this._baseMarker.style.left=this.config._barBasePos+"px";
-    this._updateBarContainment();
-    this.update();
-};
-RecorderBarInterface.prototype._setCurrentAction = function(index) {
-    if (index==this.status.gsIndex) return;
-    if (index!=undefined) $(this.status.actionList[index]).find(".action").addClass("currentAction");
-    if (this.status.gsIndex!=undefined) $(this.status.actionList[this.status.gsIndex]).find(".action").removeClass("currentAction");
-
-    this.status.gsIndex=index;
-};
 RecorderBarInterface.prototype._setCurrentTime = function(time,counter) {
     var nTime=time;
     if (time==-1) nTime=this.config._setupTime;
@@ -267,15 +226,104 @@ RecorderBarInterface.prototype._setCurrentTime = function(time,counter) {
     this.status.gsTime=time;
     this.status.gsCounter=counter;
 };
+RecorderBarInterface.prototype.update = function() {
+    var gsIndex=this.gameStream.status.timeIndex-1,
+        gsTime=this.gameStream.status.time,
+        gsCounter=this.gameStream.status.timeCounter;
+    gsIndex=(gsIndex < 0) ? 0 : gsIndex;
+    this._setCurrentAction(gsIndex);
+    this._setCurrentTime(gsTime,gsCounter);
+};
+RecorderBarInterface.prototype._updateBarContainment = function() {
+    var x1=Math.round($(this._barInterface).offset().left-$(this._bar).width()+this.config._barBasePos);
+    var x2=x1+$(this._bar).width();
+    $(this._bar).draggable("option", "containment", [x1,-10000,x2,10000]);
+};
+RecorderBarInterface.prototype.setBasePos = function(p) {
+    if (p<0 || p>1) alert("invalid percentage!");
+    this.config._barBasePos=Math.round(this.config._width*p);
+    this._baseMarker.style.left=this.config._barBasePos+"px";
+    this._updateBarContainment();
+    this.update();
+};
 
+
+/* Stuff that modifies the actionList */
+RecorderBarInterface.prototype._setCurrentAction = function(index) {
+    if (index==this.status.gsIndex) return;
+    if (index!=undefined) $(this.status.actionList[index]).find(".action").addClass("currentAction");
+    if (this.status.gsIndex!=undefined) $(this.status.actionList[this.status.gsIndex]).find(".action").removeClass("currentAction");
+
+    this.status.gsIndex=index;
+};
+
+RecorderBarInterface.prototype._getTimeIndex = function(time,el) {
+    if (this.status.timeList[time]==undefined) return undefined;
+    for (var i in this.status.timeList[time]) {
+        if (this.status.timeList[time][i]===el) {
+            return i;
+        }
+    }
+    return undefined;
+};
+
+// This is responsible for updating the position of the corresponding action (given by the index) in the dom
+// It is always assumed that the action exists at the given index position in the rgfGame with the new time already set.
+// If (dt) is true it is assumed that the action already exists in the recorder interface at oldTime
+//     and has to be moved to newTime=oldTime+dt.
+// If the newTime already contains the action (i.e. if j is defined, in particular dt==0) just the position is recalculated.
+// Otherwise (e.g. when dt is true or when a completely new action was added) it is inserted at newTime.
+RecorderBarInterface.prototype.updateActionPlacement = function(index,dt) {
+    var self=this,
+        newTime=self.gameStream._rgfGame.actionList[index].time,
+        oldTime=newTime-dt,
+        el=self.status.actionList[index],
+        i=self._getTimeIndex(oldTime,el),
+        j=self._getTimeIndex(newTime,el);
+    
+    if (dt) {
+        self.status.timeList[oldTime].splice(i,1);
+
+        if (self.status.timeList[oldTime].length==1) {
+        } else if (self.status.timeList[oldTime].length==0) {
+            delete self.status.timeList[oldTime];
+        }
+    }
+    
+    if (j==undefined) {
+        if (!self.status.timeList[newTime]) self.status.timeList[newTime]=[];
+        self.status.timeList[newTime].push(el);
+        self.status.timeList[newTime].sort(
+            function(a,b) {
+                return self.status.actionList.indexOf(a)-self.status.actionList.indexOf(b);
+            }
+        );
+    }
+    
+    if (self.status.timeList[newTime].length>1) {
+    } else {
+    }
+
+    if (newTime>=0) {
+        var pos=self._getPos(newTime);
+    } else if (newTime==-1) {
+        var pos=self._getPos(self.config._setupTime);
+    } else if (newTime==-2) {
+        var pos=self._getPos(self.config._initialKeyFrameTime);
+    } else {
+        alert("Invalid time...");
+    }
+    
+    self.status.actionList[index].style.left=pos+"px";
+    if (dt==undefined) $(self._bar).append($(self.status.actionList[index]));
+
+};
 RecorderBarInterface.prototype.insertAction = function(index) {
     var self=this;
     
     self.updateDuration();
-    
     self.status.actionList.splice(index,0,self.actionHtml(index));
-    self._updateActionTime(index);
-    $(self._bar).append($(self.status.actionList[index]));
+    self.updateActionPlacement(index);
     
     $(self.status.actionList[index]).draggable({
         handle:      ".drag",
@@ -290,7 +338,7 @@ RecorderBarInterface.prototype.insertAction = function(index) {
         drag: function(e,ui) {
             var time=self._getTime(ui.position.left);
             if (time<0) time=0;
-            var p=(ui.position.left+parseInt(self._bar.style.left))/self.config._barIntWidth;
+            var p=(ui.position.left+parseInt(self._bar.style.left))/self.config._width;
             if (self.mediaStream) self.mediaStream.seekTime(time);
             else self.gameStream.update(time);
             self.setBasePos(p);
@@ -305,9 +353,19 @@ RecorderBarInterface.prototype.insertAction = function(index) {
         }
     });
 };
-RecorderBarInterface.prototype.removeAction = function(index) {
+RecorderBarInterface.prototype.removeAction = function(index,action) {
+    var self=this;
+    
     this.updateDuration();
+    var time=action.time;
+    var removed=self.status.actionList.splice(index,1)[0];
+    var i=self._getTimeIndex(time,removed);
+    self.status.timeList[time].splice(i,1);
 
-    var removed=this.status.actionList.splice(index,1)[0];
-    removed.remove();
+    if (self.status.timeList[time].length==1) {
+    } else if (self.status.timeList[time].length==0) {
+        delete self.status.timeList[time];
+    }
+
+    $(removed).remove();
 };

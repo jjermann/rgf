@@ -71,7 +71,11 @@
     cursor: move;
 }
 .action .drag:hover {
-    background: green
+    background: green;
+}
+
+.action .ui-selected {
+    background: yellow;
 }
 
 .action.currentAction {

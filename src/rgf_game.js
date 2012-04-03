@@ -33,15 +33,15 @@ RGFGame.prototype.queueTimedAction=function(action,force,check) {
     
     var timeIndex, newNode, lastKeyframeIndex;
     // get the timeIndex (where to insert in the action list)
-    if (action.time>this.duration.time || (action.time==this.duration.time && action.counter>this.duration.counter)) {
+    if (newAction.time>this.duration.time || (newAction.time==this.duration.time && newAction.counter>this.duration.counter)) {
         timeIndex=this.actionList.length;
     } else {
-        timeIndex=this._getIndex(action.time, action.counter);
+        timeIndex=this._getIndex(newAction.time, newAction.counter);
     }
     // get the newNode (where to insert in the rgf tree)
-    if (action.position!=undefined) {
-        // if (action.name!="VT" || action.arg!="N") console.log("Warning: The position SHOULD always be changed with a VT action (not with "+action.name+"["+action.arg+"])!!");
-        newNode=this.rgfTree.descend(pathToArray(action.position));
+    if (newAction.position!=undefined) {
+        // if (newAction.name!="VT" || newAction.arg!="N") console.log("Warning: The position SHOULD always be changed with a VT newAction (not with "+newAction.name+"["+newAction.arg+"])!!");
+        newNode=this.rgfTree.descend(pathToArray(newAction.position));
     } else if (timeIndex>0) {
         newNode=this.actionList[timeIndex-1].node;
     } else {
@@ -64,15 +64,15 @@ RGFGame.prototype.queueTimedAction=function(action,force,check) {
     if (force==="force_insert") {
     } else if (timeIndex==0) {
         return false;
-    } else if (timeIndex===this.actionList.length || action.name=="KeyFrame") {
+    } else if (timeIndex===this.actionList.length || newAction.name=="KeyFrame") {
     } else if (force==="remove_all") {
     } else if (force==="remove_necessary") {
     } else {
-        if (action.name==";" && newNode.children.length) {
+        if (newAction.name==";" && newNode.children.length) {
             var lastNode=newNode.children[newNode.children.length-1];
             if (newAction.time<lastNode.time) return false;
             if (newAction.time==lastNode.time && newAction.counter<=lastNode.counter) return false;
-        } else if (action.name==";") {
+        } else if (newAction.name==";") {
         } else {
             // this is the latest durationtime/counter for the newNode subtree
             var streeDuration=newNode.getDuration();
@@ -96,7 +96,7 @@ RGFGame.prototype.queueTimedAction=function(action,force,check) {
 
     // REMOVE ACTIONS IF FORCED
 
-    if (timeIndex===this.actionList.length || action.name=="KeyFrame") {
+    if (timeIndex===this.actionList.length || newAction.name=="KeyFrame") {
     } else if (force==="remove_all") {
         for (var i=this.actionList.length-1; i>=timeIndex; i--) {
             this.removeAction(i,true);
@@ -106,12 +106,12 @@ RGFGame.prototype.queueTimedAction=function(action,force,check) {
         for (var i=this.keyframeList.length-1; i>lastKeyframeIndex; i--) {
             this.removeAction(this.keyframeList[i],true);
         }
-        if (action.name==";") {
+        if (newAction.name==";") {
             // remove all older brothers
-            this._removeBigBrothers(newNode,{time:action.time, counter:action.counter},timeIndex);
+            this._removeBigBrothers(newNode,{time:newAction.time, counter:newAction.counter},timeIndex);
         } else {
             // remove all nodes and properties of the whole subtree (of newNode) which are older...
-            this._removeOlderDescendants(newNode,{time:action.time, counter:action.counter},timeIndex);
+            this._removeOlderDescendants(newNode,{time:newAction.time, counter:newAction.counter},timeIndex);
         }
     } else if (force==="remove_keyframes") {
         // remove all keyframes after the timeIndex
@@ -142,7 +142,7 @@ RGFGame.prototype.queueTimedAction=function(action,force,check) {
         if (this.duration.time>=0) this.setup=false;
     }
 
-    if (action.name=="KeyFrame") this.keyframeList.splice(lastKeyframeIndex+1,0,timeIndex);
+    if (newAction.name=="KeyFrame") this.keyframeList.splice(lastKeyframeIndex+1,0,timeIndex);
     this.actionList.splice(timeIndex,0,newAction);
 
 
@@ -162,7 +162,6 @@ RGFGame.prototype.queueTimedAction=function(action,force,check) {
     return true;
 };
 
-// UNTESTED
 RGFGame.prototype.modifyActionTime = function(firstIndex,lastIndex,dt,check) {
     var firstAction = this.actionList[firstIndex],
         lastAction  = this.actionList[lastIndex];

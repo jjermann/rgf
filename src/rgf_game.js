@@ -35,6 +35,10 @@ RGFGame.prototype.queueTimedAction=function(action,force,check) {
     // get the timeIndex (where to insert in the action list)
     if (newAction.time>this.duration.time || (newAction.time==this.duration.time && newAction.counter>this.duration.counter)) {
         timeIndex=this.actionList.length;
+    } else if (newAction.counter) {
+        // Since we don't make any changes to the actionList yet we have to account for the fact that
+        // newAction.counter already exists when determing the timeIndex!!
+        timeIndex=this._getIndex(newAction.time, newAction.counter-1);
     } else {
         timeIndex=this._getIndex(newAction.time, newAction.counter);
     }

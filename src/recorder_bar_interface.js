@@ -336,20 +336,30 @@ RecorderBarInterface.prototype.insertAction = function(index) {
             if (self.mediaStream) self.mediaStream.player.pause();
         },
         drag: function(e,ui) {
-            var time=self._getTime(ui.position.left);
-            if (time<0) time=0;
             var p=(ui.position.left+parseInt(self._bar.style.left))/self.config._width;
+            var time=self._getTime(ui.position.left);
+
+            if (p<0) {
+                p=0;
+                time=self._getTime(-parseInt(self._bar.style.left));
+            } else if (p>1) {
+                p=1;
+                time=self._getTime(self.config._width-parseInt(self._bar.style.left));
+            }
             if (self.mediaStream) self.mediaStream.seekTime(time);
             else self.gameStream.update(time);
             self.setBasePos(p);
         },
         stop: function(e,ui) {
             var inst=this;
+            var p=(ui.position.left+parseInt(self._bar.style.left))/self.config._width;
 
-            var index=self.status.actionList.indexOf(inst);
-            var dt=self._getTime(ui.position.left)-self.gameStream._rgfGame.actionList[index].time;
-            // TODO: this is not working yet...
-            if (Math.abs(dt)>self.config.minDt) self.gameStream.modifyActionTime(index,index,dt);
+            if (p>=0 && p<=1) {
+                var time=self._getTime(ui.position.left);
+                var index=self.status.actionList.indexOf(inst);
+                var dt=time-self.gameStream._rgfGame.actionList[index].time;
+                if (Math.abs(dt)>self.config.minDt) self.gameStream.modifyActionTime(index,index,dt);
+            }
         }
     });
 };

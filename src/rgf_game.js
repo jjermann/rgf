@@ -183,30 +183,46 @@ RGFGame.prototype.modifyActionTime = function(firstIndex,lastIndex,dt,check) {
 
     if (check) return true;
     
+
     // CHANGE THE TIME AND COUNTERS ACCORDINGLY
-    var firstTime=this.actionList[firstIndex-1].time;
-    var counter=this.actionList[firstIndex-1].counter;
-    var i=firstIndex;
+
+    // Set the time and counters of the first action
+    var prevTime=this.actionList[firstIndex-1].time;
+    if (firstAction.time+dt==prevTime) var counter=this.actionList[firstIndex-1].counter+1;
+    else var counter=0;
+    this._setActionTime(firstIndex,firstAction.time+dt,counter);
+
+    // Set the time and counters of all selected actions
+    var i=firstIndex+1;
     while (i<=lastIndex) {
         var action=this.actionList[i];
-        // when modifying towards the left border
-        if (action.time+dt==firstTime) counter++;
+        if (action.time+dt==firstAction.time) counter++;
         else counter=action.counter; 
         this._setActionTime(i,action.time+dt,counter);
         i++;
     }
     
-    if (dt==dnext) {
-        // when modifying towards the right border
-        this._updateCounters(lastIndex+1,this.actionList[lastIndex+1].time,false);
-    } else if (dnext==0) {
-        // when modifying from the right border
-        this._updateCounters(lastIndex+1,this.actionList[lastIndex+1].time,true);
-    }
+    // Set the time and counters of all remaining actions
+    if (i<this.actionList.length) var nextTime=this.actionList[i].time;
+    else var nextTime=Infinity;
+    if (nextTime==lastAction.time) counter=lastAction.counter+1;
+    else counter=0;
     
+    while (i<this.actionList.length) {
+        var action=this.actionList[i];
+        if (action.time==nextTime) {
+            this._setActionTime(i,action.time,counter);
+            counter++;
+            i++;
+        } else {
+            break;
+        }
+    }
+
+    // modify the duration/etc in case we modify the last time of the action list...
     if (dnext==Infinity) {
-        this.duration.time=action.time;
-        this.duration.counter=action.counter;
+        this.duration.time=lastAction.time;
+        this.duration.counter=lastAction.counter;
         if (this.duration.time>=0) this.setup=false;
         else this.setup=true;
     }

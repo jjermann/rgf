@@ -29,13 +29,7 @@ GameInterface.prototype.init=function(config) {
         var newTime=self.gameStream.status.time;
         if (newTime<0) newTime=0;
         
-        if (oldTime!=newTime) {
-            var oldControl=self.gameStream.status.inControl;
-            self.gameStream.status.inControl=true;
-            self.gameStream.status.storedTime=undefined;
-            self.mediaStream.seekTime(newTime);
-            self.gameStream.status.inControl=oldControl;
-        }
+        if (oldTime!=newTime) self.mediaSeekTime(newTime);
     });
     $('#'+config.stepBackId).click(function() {
         var oldTime=self.gameStream.status.time;
@@ -44,12 +38,15 @@ GameInterface.prototype.init=function(config) {
         var newTime=self.gameStream.status.time;
         if (newTime<0) newTime=0;
 
-        if (oldTime!=newTime) {
-            var oldControl=self.gameStream.status.inControl;
-            self.gameStream.status.inControl=true;
-            self.gameStream.status.storedTime=undefined;
-            self.mediaStream.seekTime(newTime);
-            self.gameStream.status.inControl=oldControl;
-        }
+        if (oldTime!=newTime) self.mediaSeekTime(newTime);
     });
+};
+
+GameInterface.prototype.mediaSeekTime = function(time) {
+    var self=this,
+        oldControl=self.gameStream.status.inControl;
+    self.gameStream.status.inControl=true;
+    self.gameStream.status.storedTime=undefined;
+    self.mediaStream.seekTime(time);
+    self.gameStream.status.inControl=oldControl;
 };

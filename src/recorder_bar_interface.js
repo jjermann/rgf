@@ -113,8 +113,8 @@ RecorderBarInterface.prototype.html = function(config) {
           drag: function(e,ui) {
               var time=self._getTime(self.config._barBasePos-ui.position.left);
               if (time<0) time=0;
-              if (self.mediaStream) self.mediaStream.seekTime(time);
-              else self.gameStream.update(time);
+              self.mediaSeekTime(time);
+              self.gameStream.update(time);
           }
       });
 
@@ -248,6 +248,19 @@ RecorderBarInterface.prototype.setBasePos = function(p) {
 };
 
 
+/* seeking in the mediaStream */
+RecorderBarInterface.prototype.mediaSeekTime = function(time) {
+    var self=this;
+    if (self.mediaStream) {
+        var oldControl=self.gameStream.status.inControl;
+        self.gameStream.status.inControl=true;
+        self.gameStream.status.storedTime=undefined;
+        self.mediaStream.seekTime(time);
+        self.gameStream.status.inControl=oldControl;
+    }
+};
+
+
 /* Stuff that modifies the actionList */
 RecorderBarInterface.prototype._setCurrentAction = function(index) {
     if (index==this.status.gsIndex) return;
@@ -346,8 +359,8 @@ RecorderBarInterface.prototype.insertAction = function(index) {
                 p=1;
                 time=self._getTime(self.config._width-parseInt(self._bar.style.left));
             }
-            if (self.mediaStream) self.mediaStream.seekTime(time);
-            else self.gameStream.update(time);
+            self.gameStream.update(time);
+            self.mediaSeekTime(time);
             self.setBasePos(p);
         },
         stop: function(e,ui) {

@@ -162,7 +162,7 @@ function compareActionLists(actions1,actions2) {
 function init(newDuration,msDuration) {
     player=new MockBoardPlayer();
     mediaStream=new MockMediaStream(msDuration);
-    gameStream=new GameStream("test");
+    gameStream=new GameStream();
     human=new MockHuman(player,gameStream);
 
     
